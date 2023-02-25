@@ -1,6 +1,7 @@
 package com.example.server.controllers;
 
 import com.example.server.models.Post;
+import com.example.server.payload.request.PostRequestDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.PostService;
 import com.example.server.services.impl.KafkaServiceImp;
@@ -67,4 +68,24 @@ public class PostController {
                 HttpStatus.OK,
                 postService.getUserLikeOnPost(user_id,post_id));
     }
+
+    @DeleteMapping("/delete/{post_id}")
+    public ResponseEntity<?> deletePost(HttpServletRequest servletRequest,
+                                        @PathVariable("post_id") Long post_id
+    ){
+        return ResponseHandler.generateResponse("post delete successfully",
+                HttpStatus.OK,
+                postService.deletePost(servletRequest,post_id));
+    }
+
+    @PutMapping("/update/{post_id}")
+    public ResponseEntity<?> updatePost(HttpServletRequest servletRequest,
+                                        @PathVariable("post_id") Long post_id,
+                                        @RequestParam String text
+    ){
+        return ResponseHandler.generateResponse("post updated successfully",
+                HttpStatus.OK,
+                postService.updatePost(servletRequest,post_id,text));
+    }
+
 }

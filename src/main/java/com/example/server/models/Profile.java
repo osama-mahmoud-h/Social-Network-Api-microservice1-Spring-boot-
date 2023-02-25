@@ -2,13 +2,15 @@ package com.example.server.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.*;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "profiles")
@@ -16,7 +18,13 @@ import java.util.Set;
 @Setter
 @Getter
 @ToString
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+@TypeDefs({
+        @TypeDef(
+                name = "string-array",
+                typeClass = StringArrayType.class
+        ),
+        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+})
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -28,9 +36,13 @@ public class Profile {
     @JsonIgnoreProperties(value = "profile")
     private User owner;
 
-//    @OneToMany(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "profile_id")
-//    Set<Skill>skills = new HashSet<Skill>();
+    @Type(type = "string-array")
+    @Column(
+            length = 250,
+            name = "skills",
+            columnDefinition = "text[]"
+    )
+    List<String> skills;
 
     @Column(nullable = true)
     private String education;
@@ -43,6 +55,10 @@ public class Profile {
 
     @Column(nullable = true)
     private String image_url;
+
+    public void addSkill(String skill) {
+        this.skills.add(skill);
+    }
 
 
 }

@@ -77,7 +77,9 @@ public class Post {
     )
     @JoinTable(name = "posts_comments",
             joinColumns = { @JoinColumn(name = "post_id") },
-            inverseJoinColumns = { @JoinColumn(name = "comment_id") })
+            inverseJoinColumns = { @JoinColumn(name = "comment_id") }
+    )
+    @OnDelete(action =OnDeleteAction.CASCADE)
     @JsonIgnoreProperties("author")
     private Set<Comment>comments;
 

@@ -1,11 +1,8 @@
 package com.example.server.payload.request;
 
 
-import com.example.server.models.Skill;
 import lombok.Data;
 import lombok.ToString;
-
-import java.util.Set;
 
 @Data
 @ToString

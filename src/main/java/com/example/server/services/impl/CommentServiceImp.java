@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 @Service
@@ -45,5 +46,42 @@ public class CommentServiceImp implements CommentService {
         return ResponseHandler.generateResponse("comment created Succefully",
                 HttpStatus.CREATED,
                 null);
+    }
+
+    private Comment getCommentById(Long commentId){
+        Optional<Comment> comment =commentRepository.findById(commentId);
+        if(comment.isEmpty()){
+            throw new CustomErrorException(HttpStatus.NOT_FOUND,
+                    "comment not found");
+        }
+        return comment.get();
+    }
+
+    @Override
+    public Comment deleteComment(HttpServletRequest servletRequest, Long commentId) {
+
+        Comment comment = checkUserAuthorization(servletRequest, commentId);
+        commentRepository.deleteById(comment.getId());
+        return comment;
+    }
+
+    @Override
+    public Comment updateComment(HttpServletRequest servletRequest, Long commentId,String text){
+        Comment comment = checkUserAuthorization(servletRequest, commentId);
+        comment.setText(text);
+        commentRepository.save(comment);
+
+        return comment;
+    }
+
+    private Comment checkUserAuthorization(HttpServletRequest servletRequest,Long commentId){
+        Optional<User>author = authenticatedUser.getCurrentUser(servletRequest);
+        Comment comment = this.getCommentById(commentId);
+
+        if(!comment.getAuthor().getId().equals(author.get().getId())){
+            throw new CustomErrorException(HttpStatus.FORBIDDEN,
+                    "You are not authorized to delete this comment");
+        }
+        return comment;
     }
 }

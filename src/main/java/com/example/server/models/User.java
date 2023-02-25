@@ -63,6 +63,26 @@ public class User {
   @JsonIgnore
   private Profile profile;
 
+  @OneToMany(mappedBy = "followed",
+          fetch = FetchType.LAZY,
+          cascade = CascadeType.REMOVE,
+          orphanRemoval = true
+  )
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JsonIgnoreProperties(value = {"followed","follower"})
+  @JsonIgnore
+  Set<Follower>followers = new HashSet<>();
+
+  @OneToMany(mappedBy = "follower",
+          fetch = FetchType.LAZY,
+          cascade = CascadeType.REMOVE,
+          orphanRemoval = true
+  )
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JsonIgnoreProperties(value = {"follower","followed"})
+  @JsonIgnore
+  Set<Follower>following = new HashSet<>();
+
 
 
   public User(String username, String email, String password) {
@@ -70,5 +90,13 @@ public class User {
     this.email = email;
     this.password = password;
   }
+
+  public void addFollower(Follower follower){
+    this.followers.add(follower);
+  }
+  public void addFollowing(Follower following){
+    this.following.add(following);
+  }
+
 
 }

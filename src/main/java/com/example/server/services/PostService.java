@@ -228,6 +228,28 @@ public class PostService {
         return allcomments;
     }
 
+
+    public Post deletePost(HttpServletRequest servletRequest,Long post_id){
+        Optional<User> author =  authenticatedUser.getCurrentUser(servletRequest);
+        Post post = getPostById(post_id);
+        if(post.getAuthor().getId().equals(author.get().getId())){
+            postRepository.deleteById(post.getId());
+            return post;
+        }
+        throw new CustomErrorException(HttpStatus.FORBIDDEN,"you arent athor of this post");
+    }
+
+    public Post updatePost(HttpServletRequest servletRequest, Long post_id,String text) {
+        Optional<User> author = authenticatedUser.getCurrentUser(servletRequest);
+        Post post = getPostById(post_id);
+        if(!post.getAuthor().getId().equals(author.get().getId())){
+            throw new CustomErrorException(HttpStatus.FORBIDDEN," you arent '[author]' of this post");
+        }
+        post.setText(text);
+        postRepository.save(post);
+        return post;
+    }
+
     private PostResponceDto mapPostToPostResponce(Post post){
         //map post to postDto
         PostResponceDto  postResponceDto = new PostResponceDto();
@@ -270,4 +292,6 @@ public class PostService {
 
         return authorDto;
     }
+
+
 }
