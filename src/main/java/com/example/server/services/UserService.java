@@ -102,23 +102,5 @@ public class UserService {
         return user.get();
     }
 
-    public boolean ifLikedPost(User currUser, Post post) {
-
-//        User me = post()
-//                .stream()
-//                .filter(usr -> usr.getId().equals(currUser.getId()))
-//                .findAny().stream().findFirst()
-//                .orElse(null);
-//
-//        System.out.println("posts liked: "+post.getLiker_user().toString());
-
-        return true;// me!=null ? true : false;
-    }
-    public void removeLikeOnPost(User user,Post post){
-
-//        post.getLiker_user()
-//                .removeIf(usr -> usr.getId().equals(user.getId()));
-    }
-
 
 }

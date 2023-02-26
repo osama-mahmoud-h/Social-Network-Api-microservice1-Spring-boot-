@@ -15,6 +15,7 @@ import com.example.server.services.ProfileService;
 import com.example.server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,22 +59,53 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
-    public String updateBio(HttpServletRequest httpServletRequest, String bio) {
-        return null;
+    public boolean updateBio(HttpServletRequest httpServletRequest, String bio) {
+        Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
+        Profile profile = getProfile(curUser.get().getId());
+        profile.setBio(bio);
+        profileRepository.save(profile);
+        return true;
     }
 
     @Override
-    public String updateAbout(HttpServletRequest httpServletRequest, String bio) {
-        return null;
+    public boolean updateAbout(HttpServletRequest httpServletRequest, String about) {
+        Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
+        Profile profile = getProfile(curUser.get().getId());
+        profile.setAboutUser(about);
+        profileRepository.save(profile);
+        return true;
     }
 
     @Override
-    public String updateSkills(HttpServletRequest httpServletRequest, String bio) {
-        return null;
+    public boolean updateEducation(HttpServletRequest httpServletRequest, String education) {
+        Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
+        Profile profile = getProfile(curUser.get().getId());
+        profile.setEducation(education);
+        profileRepository.save(profile);
+        return true;
     }
 
     @Override
-    public List<Post> getUserPosts(HttpServletRequest httpServletRequest){
+    public boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills) {
+        Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
+        Profile profile = getProfile(curUser.get().getId());
+
+        String[] skillsArray = new String[skills.length];
+        int index = 0;
+        for (String skill : skills){
+            skillsArray[index++] = skill;
+            System.out.println("sikll: "+skill);
+        }
+        profile.setSkills(skillsArray);
+
+        profileRepository.save(profile);
+        return true;
+    }
+
+    @Override
+    public List<Post> getUserPosts(HttpServletRequest servletRequest){
+        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
+       // Collection<Post> posts = curUser.get().getPosts();
         return null;
     }
 
@@ -90,37 +122,53 @@ public class ProfileServiceImp implements ProfileService {
       return followers;
     }
 
+
+
     @Override
-    public List<User> getFollowing(HttpServletRequest servletRequest){
-        return null;
+    public Set<Follower> getFollowing(HttpServletRequest servletRequest){
+        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
+        Set<Follower> following = curUser.get().getFollowing();
+
+        return following;
     }
 
     @Override
-    public boolean follow(HttpServletRequest servletRequest, Long user_id){
+    @Transactional
+    public String follow(HttpServletRequest servletRequest, Long user_id){
         Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
         Optional<User> followed = userRepository.findUserById(user_id);
+
         if(followed.isEmpty()){
             throw new CustomErrorException("user not found");
         }
+        String follow = "followed";
 
-        Follower follower = new Follower();
+        if(isFollowing(curUser.get().getId(), followed.get().getId())){
+            followerRepository.unFollow(curUser.get().getId(),followed.get().getId());
+            follow = "unfollowed";
+        }
+        else {
+            Follower follower = new Follower();
 
-        follower.setFollower(curUser.get());
-        follower.setFollowed(followed.get());
+            follower.setFollower(curUser.get());
+            follower.setFollowed(followed.get());
 
-        followerRepository.save(follower);
+            followerRepository.save(follower);
 
-        return true;
+        }
+        return follow;
 
     }
 
     @Override
-    public Profile getProfile(Long userid) {
-        User user = userService.getUser(userid);
+    public boolean isFollowing(Long followerId, Long followedId){
+        return followerRepository.isFollow(followerId, followedId) !=null;
+    }
 
-        Profile profile = user.getProfile();
-       // profile.getUser().setPassword("");
-
+    @Override
+    public Profile getProfile(Long user_id) {
+        Optional<User> user = userRepository.findUserById(user_id);
+        Profile profile = user.get().getProfile();
         return profile;
     }
 
@@ -141,6 +189,8 @@ public class ProfileServiceImp implements ProfileService {
 
         return profile;
     }
+
+
 
 
 }

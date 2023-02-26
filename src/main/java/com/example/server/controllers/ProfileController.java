@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -31,46 +32,46 @@ public class ProfileController {
                 imageUloaded ? true : false
         );
     }
-//
-//    @PatchMapping("/update/bio")
-//    public ResponseEntity<?> updateBio(HttpServletRequest httpServletRequest,
-//                                    @RequestBody ProfileRequestDto profileDto
-//    ){
-//        return ResponseHandler.generateResponse("Profile updated successfully",
-//                HttpStatus.OK,
-//                profileService.updateProfile(httpServletRequest,profileDto)
-//                );
-//    }
-//
-//    @PatchMapping("/update/bio")
-//    public ResponseEntity<?> updateEducation(HttpServletRequest httpServletRequest,
-//                                    @RequestBody ProfileRequestDto profileDto
-//    ){
-//        return ResponseHandler.generateResponse("Profile updated successfully",
-//                HttpStatus.OK,
-//                profileService.updateProfile(httpServletRequest,profileDto)
-//        );
-//    }
-//
-//    @PatchMapping("/update/bio")
-//    public ResponseEntity<?> updateAbout(HttpServletRequest httpServletRequest,
-//                                    @RequestBody ProfileRequestDto profileDto
-//    ){
-//        return ResponseHandler.generateResponse("Profile updated successfully",
-//                HttpStatus.OK,
-//                profileService.updateProfile(httpServletRequest,profileDto)
-//        );
-//    }
-//
-//    @PatchMapping("/update/bio")
-//    public ResponseEntity<?> updateSkills(HttpServletRequest httpServletRequest,
-//                                    @RequestBody ProfileRequestDto profileDto
-//    ){
-//        return ResponseHandler.generateResponse("Profile updated successfully",
-//                HttpStatus.OK,
-//                profileService.updateProfile(httpServletRequest,profileDto)
-//        );
-//    }
+
+    @PutMapping("/update/education")
+    public ResponseEntity<?> updateEducation(HttpServletRequest httpServletRequest,
+                                    @RequestParam String education
+    ){
+        return ResponseHandler.generateResponse("education updated successfully",
+                HttpStatus.OK,
+                profileService.updateEducation(httpServletRequest,education)
+        );
+    }
+
+    @PutMapping("/update/about")
+    public ResponseEntity<?> updateAbout(HttpServletRequest httpServletRequest,
+                                    @RequestParam String about
+    ){
+        return ResponseHandler.generateResponse("about user updated successfully",
+                HttpStatus.OK,
+                profileService.updateAbout(httpServletRequest,about)
+        );
+    }
+
+    @PutMapping("/update/bio")
+    public ResponseEntity<?> updateBio(HttpServletRequest httpServletRequest,
+                                    @RequestParam String bio
+    ){
+        return ResponseHandler.generateResponse("bio updated successfully",
+                HttpStatus.OK,
+                profileService.updateBio(httpServletRequest,bio)
+        );
+    }
+    @PutMapping("/update/skills")
+    public ResponseEntity<?> updateSkills(HttpServletRequest httpServletRequest,
+                                       @RequestParam  String[] skills
+    ){
+        //System.out.println("siklls: "+ Arrays.toString(skills));
+        return ResponseHandler.generateResponse("skills updated successfully",
+                HttpStatus.OK,
+                profileService.updateSkills(httpServletRequest,skills)
+        );
+    }
 
     @GetMapping("/{userid}")
     public ResponseEntity<?> getProfile(@PathVariable("userid") Long userId){
@@ -82,10 +83,11 @@ public class ProfileController {
 
     @GetMapping("/follow/{user_id}")
     public ResponseEntity<?> followUser(HttpServletRequest servletRequest,@PathVariable("user_id") Long userId){
+        String follow = profileService.follow(servletRequest,userId);
         return ResponseHandler.generateResponse(
-                "user with id : "+userId+" , has been followed successfully",
+                "user with id : "+userId+" , has been "+follow+" successfully",
                 HttpStatus.OK,
-                profileService.follow(servletRequest,userId)
+                null
         );
     }
 
@@ -96,5 +98,14 @@ public class ProfileController {
                 profileService.getFollowers(servletRequest));
 
     }
+
+    @GetMapping("/following/get")
+    public ResponseEntity<?> getFollowing(HttpServletRequest servletRequest){
+        return ResponseHandler.generateResponse("following get successfully",
+                HttpStatus.OK,
+                profileService.getFollowing(servletRequest));
+
+    }
+
 
 }

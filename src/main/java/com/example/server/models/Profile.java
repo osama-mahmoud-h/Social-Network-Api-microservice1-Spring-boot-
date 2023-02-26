@@ -9,6 +9,7 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class Profile {
             name = "skills",
             columnDefinition = "text[]"
     )
-    List<String> skills;
+    String[] skills ;
 
     @Column(nullable = true)
     private String education;
@@ -56,9 +57,6 @@ public class Profile {
     @Column(nullable = true)
     private String image_url;
 
-    public void addSkill(String skill) {
-        this.skills.add(skill);
-    }
 
 
 }
