@@ -19,7 +19,6 @@ public interface ProfileService {
      boolean updateBio(HttpServletRequest httpServletRequest, String bio);
 
      boolean updateAbout(HttpServletRequest httpServletRequest, String bio);
-     
 
     boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills);
 
@@ -27,12 +26,9 @@ public interface ProfileService {
 
      List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
 
-
      Set<Follower> getFollowers(HttpServletRequest servletRequest);
 
-
     Set<Follower> getFollowing(HttpServletRequest servletRequest);
-
 
     String follow(HttpServletRequest servletRequest, Long user_id);
 

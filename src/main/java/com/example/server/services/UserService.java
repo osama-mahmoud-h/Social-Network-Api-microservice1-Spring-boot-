@@ -32,75 +32,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
-public class UserService {
+public interface UserService {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder encoder;
-    private final JwtUtils jwtUtils;
-    private final ProfileRepository profileRepository;
+    ResponseEntity<Object> login(@Valid @RequestBody LoginRequest loginRequest);
 
+    ResponseEntity<Object> register(@Valid @RequestBody SignupRequest signUpRequest);
 
-    public ResponseEntity<Object>login(@Valid @RequestBody LoginRequest loginRequest){
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles));
-    }
-
-    public ResponseEntity<Object> register(@Valid @RequestBody SignupRequest signUpRequest){
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new CustomErrorException(HttpStatus.BAD_REQUEST,"Email is already in use!");
-        }
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-
-        Set<Role> roles = new HashSet<>();
-
-        roles.add(new Role(ERole.ROLE_USER));
-        user.setRoles(roles);
-        userRepository.save(user);
-
-        //create new profile
-        Profile profile = new Profile();
-         profile.setOwner(user);
-        profileRepository.save(profile);
-
-        user.setProfile(profile);
-        userRepository.save(user);
-
-        user.setPassword("");
-
-        return ResponseHandler
-                .generateResponse("User registered successfully!", HttpStatus.CREATED,user);
-    }
-
-    public User getUser(Long userId){
-        Optional<User> user = userRepository.findUserById(userId);
-        if(user.isEmpty()){
-            throw new CustomErrorException(HttpStatus.NOT_FOUND,"User not found!");
-        }
-        return user.get();
-    }
-
-
+    User getUser(Long userId);
 }
