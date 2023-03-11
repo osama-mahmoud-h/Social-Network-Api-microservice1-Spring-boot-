@@ -116,21 +116,32 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
-    public Set<Follower> getFollowers(HttpServletRequest servletRequest){
+    public List<UserResponceDto> getFollowers(HttpServletRequest servletRequest){
         Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
         Set<Follower> followers = curUser.get().getFollowers();
+        List<UserResponceDto> followerUsers = new ArrayList<>();
 
-      return followers;
+        for (Follower follower : followers) {
+            UserResponceDto userDto = this.mapUserToUserResponce(follower.getFollower());
+            followerUsers.add(userDto);
+        }
+
+      return followerUsers;
     }
 
 
 
     @Override
-    public Set<Follower> getFollowing(HttpServletRequest servletRequest){
+    public List<UserResponceDto> getFollowing(HttpServletRequest servletRequest){
         Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
         Set<Follower> following = curUser.get().getFollowing();
+        List<UserResponceDto> followedUsers = new ArrayList<>();
 
-        return following;
+        for (Follower follower : following) {
+            UserResponceDto userDto = this.mapUserToUserResponce(follower.getFollowed());
+            followedUsers.add(userDto);
+        }
+        return followedUsers;
     }
 
     @Override
@@ -203,6 +214,9 @@ public class ProfileServiceImp implements ProfileService {
         }
         return allPosts;
     }
+
+
+
     private PostResponceDto mapPostToPostResponce(Post post){
         //map post to postDto
         PostResponceDto  postResponceDto = new PostResponceDto();

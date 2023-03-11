@@ -1,16 +1,15 @@
 package com.example.server.services;
 
-import com.example.server.models.Follower;
 import com.example.server.models.Post;
 import com.example.server.models.Profile;
 import com.example.server.payload.request.ProfileRequestDto;
 import com.example.server.payload.response.PostResponceDto;
+import com.example.server.payload.response.UserResponceDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public interface ProfileService {
@@ -27,9 +26,9 @@ public interface ProfileService {
 
      List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
 
-     Set<Follower> getFollowers(HttpServletRequest servletRequest);
+     List<UserResponceDto> getFollowers(HttpServletRequest servletRequest);
 
-    Set<Follower> getFollowing(HttpServletRequest servletRequest);
+    List<UserResponceDto> getFollowing(HttpServletRequest servletRequest);
 
     String follow(HttpServletRequest servletRequest, Long user_id);
 
