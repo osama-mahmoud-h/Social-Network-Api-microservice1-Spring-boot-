@@ -54,7 +54,15 @@ public class User {
   @JsonIgnore
   private Set<Like>liked_posts = new HashSet<>();
 
-
+  @OneToMany(mappedBy = "author",
+          fetch = FetchType.LAZY,
+          cascade = CascadeType.REMOVE,
+          orphanRemoval = true
+  )
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JsonIgnoreProperties(value = {"author"})
+  @JsonIgnore
+  Set<Post>posts = new HashSet<>();
 
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "profile_id", referencedColumnName = "id")

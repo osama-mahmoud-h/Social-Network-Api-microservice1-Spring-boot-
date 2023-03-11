@@ -1,11 +1,11 @@
 package com.example.server.services.impl;
 
 import com.example.server.Exceptions.CustomErrorException;
-import com.example.server.models.Follower;
-import com.example.server.models.Post;
-import com.example.server.models.Profile;
-import com.example.server.models.User;
+import com.example.server.models.*;
 import com.example.server.payload.request.ProfileRequestDto;
+import com.example.server.payload.response.CommentsResponseDto;
+import com.example.server.payload.response.PostResponceDto;
+import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.FollowerRepository;
 import com.example.server.repository.ProfileRepository;
 import com.example.server.repository.UserRepository;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -189,7 +190,61 @@ public class ProfileServiceImp implements ProfileService {
 
         return profile;
     }
+    
+    @Override
+    public List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests){
+        Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequests);
+       // getProfile(user.get().getId());
+        Set<Post>posts = user.get().getPosts();
+        List<PostResponceDto> allPosts = new ArrayList<>();
+        for (Post post : posts) {
+            PostResponceDto postDto = this.mapPostToPostResponce(post);
+            allPosts.add(postDto);
+        }
+        return allPosts;
+    }
+    private PostResponceDto mapPostToPostResponce(Post post){
+        //map post to postDto
+        PostResponceDto  postResponceDto = new PostResponceDto();
+        postResponceDto.setId(post.getId());
+        postResponceDto.setText(post.getText());
+        postResponceDto.setImages_url(post.getImages_url());
+        postResponceDto.setVedio_url(post.getVedio_url());
+        postResponceDto.setFile_url(post.getFile_url());
+        postResponceDto.setLikes(post.getLikesCount());
+        //create author dto
+        UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());
 
+        //set Author
+        postResponceDto.setAuthor(authorDto);
+
+        return postResponceDto;
+    }
+    private CommentsResponseDto mapCommentToCommentResponce(Comment comment){
+        //map post to postDto
+        CommentsResponseDto commentDto = new CommentsResponseDto();
+        commentDto.setId(comment.getId());
+        commentDto.setText(comment.getText());
+
+        //create author dto
+        UserResponceDto authorDto = mapUserToUserResponce(comment.getAuthor());
+
+        //set Author
+        commentDto.setAuthor(authorDto);
+
+        return commentDto;
+    }
+
+    private UserResponceDto mapUserToUserResponce(User user){
+        //create author dto
+        UserResponceDto authorDto = new UserResponceDto();
+        authorDto.setId(user.getId());
+        authorDto.setUsername(user.getUsername());
+        authorDto.setEmail(user.getEmail());
+        authorDto.setImage_url(user.getProfile().getImage_url());
+
+        return authorDto;
+    }
 
 
 

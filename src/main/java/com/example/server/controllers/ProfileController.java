@@ -107,5 +107,13 @@ public class ProfileController {
 
     }
 
+    @GetMapping("posts/all")
+    public ResponseEntity<?>getPosts(HttpServletRequest servletRequest){
+        return ResponseHandler.generateResponse("posts get successfully",
+                HttpStatus.OK,
+                profileService.allPosts(servletRequest));
+    }
+
+
 
 }

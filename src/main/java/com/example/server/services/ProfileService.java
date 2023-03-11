@@ -4,6 +4,7 @@ import com.example.server.models.Follower;
 import com.example.server.models.Post;
 import com.example.server.models.Profile;
 import com.example.server.payload.request.ProfileRequestDto;
+import com.example.server.payload.response.PostResponceDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,4 +40,6 @@ public interface ProfileService {
     Profile updateProfile(HttpServletRequest httpServletRequest, ProfileRequestDto profileDto);
 
     boolean updateEducation(HttpServletRequest httpServletRequest, String education);
+
+    List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests);
 }
