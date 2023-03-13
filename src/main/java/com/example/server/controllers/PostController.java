@@ -60,9 +60,9 @@ public class PostController {
                 HttpStatus.OK,
                 postService.getAllCommentsOnPost(post_id));
     }
-    @GetMapping("/user-like/{user_id}/{like_type}")
+    @GetMapping("/user-like/{post_id}")
     public ResponseEntity <?> ifILikedThisPost(HttpServletRequest req,
-                                           @PathVariable("like_type") Long post_id
+                                           @PathVariable("post_id") Long post_id
     ){
         return ResponseHandler.generateResponse("user like on post",
                 HttpStatus.OK,
