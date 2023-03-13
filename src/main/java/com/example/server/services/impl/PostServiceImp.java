@@ -154,7 +154,7 @@ public class PostServiceImp implements PostService {
         String liked="liked";
         //  removeLikeOnPost(currUser.get().getId(), postId);
 
-        Like like = UserLikedPost(currUser.get().getId(), saved_post);
+        Like like = ifUserLikedPost(currUser.get().getId(), saved_post);
         if (like!=null){
             if(like.getType()==like_type){ // already like using same reaction ,remove it
                 removeLikeOnPost(currUser.get().getId(), postId);
@@ -180,7 +180,7 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public Like UserLikedPost(Long userId, Post saved_post){
+    public Like ifUserLikedPost(Long userId, Post saved_post){
 
         Like like =  saved_post.getLikedPosts()
                 .stream()
@@ -189,17 +189,19 @@ public class PostServiceImp implements PostService {
         return  like;
     }
 
+
     @Override
-    public Like getUserLikeOnPost(Long userId, Long postId){
+    public Like ifILikedThisPost(HttpServletRequest req, Long postId){
+        Optional<User> me = authenticatedUser.getCurrentUser(req);
         Post saved_post = getPostById(postId);
-        Like like = UserLikedPost(userId, saved_post);
+        Like like = ifUserLikedPost(me.get().getId(), saved_post);
         if(like!=null){
             return like;
         }
         return new Like();
     }
-    //  @Transactional(propagation = Propagation.REQUIRED)
 
+    //  @Transactional(propagation = Propagation.REQUIRED)
     private void removeLikeOnPost(Long user_id, Long post_id){
         likeRepository.deleteLikeOnPost(user_id,post_id);
     }
@@ -210,11 +212,25 @@ public class PostServiceImp implements PostService {
         List<Post> posts = postRepository.findAll();
         List<PostResponceDto> allposts = new ArrayList<PostResponceDto>();
         for (Post post : posts){
-            System.out.println("author "+post.getAuthor());
+           // System.out.println("author "+post.getAuthor());
             PostResponceDto postDto = mapPostToPostResponce(post);
             allposts.add(postDto);
         }
         return allposts;
+    }
+
+    @Override
+    public PostResponceDto getPostDetails(Long postId){
+        Post post  = getPostById(postId);
+        PostResponceDto postDto = mapPostToPostResponce(post);
+
+        Map<Byte,Long>typeCount = new HashMap<>();
+        for(Like like :post.getLikedPosts()){
+            typeCount.put(like.getType(),
+                    typeCount.getOrDefault(like.getType(),0L) + 1L);
+        }
+        postDto.setLiketype(typeCount);
+        return postDto;
     }
 
     @Override
@@ -257,6 +273,7 @@ public class PostServiceImp implements PostService {
         postRepository.save(post);
         return post;
     }
+
 
     private PostResponceDto mapPostToPostResponce(Post post){
         //map post to postDto

@@ -61,12 +61,12 @@ public class PostController {
                 postService.getAllCommentsOnPost(post_id));
     }
     @GetMapping("/user-like/{user_id}/{like_type}")
-    public ResponseEntity <?> getLikeOnPost(@PathVariable("user_id") Long user_id,
+    public ResponseEntity <?> ifILikedThisPost(HttpServletRequest req,
                                            @PathVariable("like_type") Long post_id
     ){
         return ResponseHandler.generateResponse("user like on post",
                 HttpStatus.OK,
-                postService.getUserLikeOnPost(user_id,post_id));
+                postService.ifILikedThisPost(req,post_id));
     }
 
     @DeleteMapping("/delete/{post_id}")
@@ -86,6 +86,13 @@ public class PostController {
         return ResponseHandler.generateResponse("post updated successfully",
                 HttpStatus.OK,
                 postService.updatePost(servletRequest,post_id,text));
+    }
+
+    @GetMapping("/get-details/{post_id}")
+    public ResponseEntity<?> getPostDetails(@PathVariable("post_id") Long postId){
+        return ResponseHandler.generateResponse("post details get successfully",
+                HttpStatus.OK,
+                postService.getPostDetails(postId));
     }
 
 }

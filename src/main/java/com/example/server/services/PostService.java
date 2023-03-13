@@ -40,11 +40,17 @@ public interface PostService {
     @Transactional
     ResponseEntity<Object> likePost(HttpServletRequest request, Long postId, byte like_type);
 
-    Like UserLikedPost(Long userId, Post saved_post);
+    //Like UserLikedPost(Long userId, Post saved_post);
 
-    Like getUserLikeOnPost(Long userId, Long postId);
+    Like ifUserLikedPost(Long userId, Post saved_post);
+
+   // Like getUserLikeOnPost(Long userId, Long postId);
+
+    Like ifILikedThisPost(HttpServletRequest req, Long postId);
 
     List<PostResponceDto> getAllPosts();
+
+    PostResponceDto getPostDetails(Long postId);
 
     List<CommentsResponseDto> getAllCommentsOnPost(Long post_id);
 

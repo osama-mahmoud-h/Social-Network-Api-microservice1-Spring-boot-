@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,5 +21,7 @@ public class PostResponceDto {
     private Long likes;
     private Long comments_count;
     private UserResponceDto author;
+    private Map<Byte,Long> liketype;
 }
+
 
