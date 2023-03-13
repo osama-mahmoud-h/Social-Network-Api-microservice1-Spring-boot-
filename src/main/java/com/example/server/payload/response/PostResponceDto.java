@@ -18,10 +18,10 @@ public class PostResponceDto {
     private String[] images_url;
     private String vedio_url;
     private String file_url;
-    private Long likes;
     private Long comments_count;
     private UserResponceDto author;
-    private Map<Byte,Long> liketype;
+    private byte myFeed;
+    private Map<Byte,Long> feeds;
 }
 
 

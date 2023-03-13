@@ -3,9 +3,11 @@ package com.example.server.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -90,6 +92,10 @@ public class User {
   @JsonIgnoreProperties(value = {"follower","followed"})
   @JsonIgnore
   Set<Follower>following = new HashSet<>();
+
+  @Column(nullable = true,name = "timestamp")
+  @CreationTimestamp
+  private Timestamp timestamp;
 
 
 

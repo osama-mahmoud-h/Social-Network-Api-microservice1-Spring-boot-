@@ -48,10 +48,10 @@ public class PostController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> allPosts(){
+    public ResponseEntity<?> allPosts(HttpServletRequest req){
         return ResponseHandler.generateResponse("all posts successfully",
                 HttpStatus.OK,
-                 postService.getAllPosts());
+                 postService.getAllPosts(req));
     }
 
     @GetMapping("/comments/all/{post_id}")

@@ -11,6 +11,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.*;
 
 import static javax.persistence.GenerationType.AUTO;
@@ -69,8 +71,9 @@ public class Post {
     @Transient
     private Long likes;
 
-    @Column(nullable = true)
-    private Date created_at;
+    @Column(nullable = true,name = "timestamp")
+    @CreationTimestamp
+    private Timestamp timestamp ;
 
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {CascadeType.ALL}

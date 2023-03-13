@@ -48,7 +48,9 @@ public interface PostService {
 
     Like ifILikedThisPost(HttpServletRequest req, Long postId);
 
-    List<PostResponceDto> getAllPosts();
+  //  List<PostResponceDto> getAllPosts();
+
+    List<PostResponceDto> getAllPosts(HttpServletRequest req);
 
     PostResponceDto getPostDetails(Long postId);
 

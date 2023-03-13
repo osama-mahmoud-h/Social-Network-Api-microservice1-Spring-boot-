@@ -2,10 +2,12 @@ package com.example.server.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "comments")
@@ -26,4 +28,8 @@ public class Comment {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private User author;
+
+    @Column(nullable = true,name = "timestamp")
+    @CreationTimestamp
+    private Timestamp timestamp;
 }

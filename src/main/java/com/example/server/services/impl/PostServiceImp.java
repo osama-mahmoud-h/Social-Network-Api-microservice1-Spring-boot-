@@ -208,12 +208,25 @@ public class PostServiceImp implements PostService {
 
 
     @Override
-    public List<PostResponceDto> getAllPosts() {
+    public List<PostResponceDto> getAllPosts(HttpServletRequest req) {
         List<Post> posts = postRepository.findAll();
         List<PostResponceDto> allposts = new ArrayList<PostResponceDto>();
+       // Optional<User> me = authenticatedUser.getCurrentUser(req);
+
         for (Post post : posts){
            // System.out.println("author "+post.getAuthor());
             PostResponceDto postDto = mapPostToPostResponce(post);
+            //if i like this post
+            Like like = ifILikedThisPost(req, post.getId());
+            postDto.setMyFeed(like.getType());
+
+            Map<Byte,Long> likeTypeCount = new HashMap<>();
+            for(Like like_ :post.getLikedPosts()){
+                likeTypeCount.put(like_.getType(),
+                        likeTypeCount.getOrDefault(like_.getType(),0L) + 1L);
+            }
+            postDto.setFeeds(likeTypeCount);
+
             allposts.add(postDto);
         }
         return allposts;
@@ -229,7 +242,7 @@ public class PostServiceImp implements PostService {
             typeCount.put(like.getType(),
                     typeCount.getOrDefault(like.getType(),0L) + 1L);
         }
-        postDto.setLiketype(typeCount);
+        postDto.setFeeds(typeCount);
         return postDto;
     }
 
@@ -283,7 +296,7 @@ public class PostServiceImp implements PostService {
         postResponceDto.setImages_url(post.getImages_url());
         postResponceDto.setVedio_url(post.getVedio_url());
         postResponceDto.setFile_url(post.getFile_url());
-        postResponceDto.setLikes(post.getLikesCount());
+        //postResponceDto.setLikes(post.getLikesCount());
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());
 
