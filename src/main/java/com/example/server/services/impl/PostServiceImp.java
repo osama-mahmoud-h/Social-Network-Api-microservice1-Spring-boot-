@@ -217,15 +217,18 @@ public class PostServiceImp implements PostService {
            // System.out.println("author "+post.getAuthor());
             PostResponceDto postDto = mapPostToPostResponce(post);
             //if i like this post
-            Like like = ifILikedThisPost(req, post.getId());
-            postDto.setMyFeed(like.getType());
+            if(req==null ) { // for not athuenticated users
 
-            Map<Byte,Long> likeTypeCount = new HashMap<>();
-            for(Like like_ :post.getLikedPosts()){
-                likeTypeCount.put(like_.getType(),
-                        likeTypeCount.getOrDefault(like_.getType(),0L) + 1L);
+                Like like = ifILikedThisPost(req, post.getId());
+                postDto.setMyFeed(like.getType());
+
+                Map<Byte, Long> likeTypeCount = new HashMap<>();
+                for (Like like_ : post.getLikedPosts()) {
+                    likeTypeCount.put(like_.getType(),
+                            likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
+                }
+                postDto.setFeeds(likeTypeCount);
             }
-            postDto.setFeeds(likeTypeCount);
 
             allposts.add(postDto);
         }
