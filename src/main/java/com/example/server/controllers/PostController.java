@@ -44,7 +44,7 @@ public class PostController {
                                            @PathVariable("like_type") byte likeType
     ){
 
-        return postService.likePost(request,postId,likeType);
+        return ResponseEntity.ok().body(postService.likePost(request,postId,likeType));
     }
 
     @GetMapping("/all")

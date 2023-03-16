@@ -7,7 +7,6 @@ import com.example.server.models.Post;
 import com.example.server.models.User;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
-import com.example.server.payload.response.ResponseHandler;
 import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.LikeRepository;
 import com.example.server.repository.PostRepository;
@@ -19,7 +18,6 @@ import com.example.server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -140,7 +138,7 @@ public class PostServiceImp implements PostService {
 
     @Override
     @Transactional
-    public ResponseEntity<Object> likePost(HttpServletRequest request, Long postId, byte like_type){
+    public String likePost(HttpServletRequest request, Long postId, byte like_type){
 
         if(like_type<=0||like_type>7){
             throw new CustomErrorException("Like Error (out of range)");
@@ -158,11 +156,11 @@ public class PostServiceImp implements PostService {
         if (like!=null){
             if(like.getType()==like_type){ // already like using same reaction ,remove it
                 removeLikeOnPost(currUser.get().getId(), postId);
-                liked = "unliked";
+                return "0";
             }else{ //update like
                 like.setType(like_type);
                 likeRepository.save(like);
-                liked="updated";
+               // return  String.valueOf(like_type); //will return automatically
             }
         }else {
             Like newLike = new Like();
@@ -175,8 +173,7 @@ public class PostServiceImp implements PostService {
             liked = "liked";
         }
 
-        return ResponseHandler.generateResponse("post "+liked+" ok",
-                HttpStatus.CREATED, saved_post);
+        return String.valueOf(like_type);
     }
 
     @Override
@@ -221,14 +218,13 @@ public class PostServiceImp implements PostService {
 
                 Like like = ifILikedThisPost(req, post.getId());
                 postDto.setMyFeed(like.getType());
-
-                Map<Byte, Long> likeTypeCount = new HashMap<>();
-                for (Like like_ : post.getLikedPosts()) {
-                    likeTypeCount.put(like_.getType(),
-                            likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
-                }
-                postDto.setFeeds(likeTypeCount);
             }
+            Map<Byte, Long> likeTypeCount = new HashMap<>();
+            for (Like like_ : post.getLikedPosts()) {
+                likeTypeCount.put(like_.getType(),
+                        likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
+            }
+            postDto.setFeeds(likeTypeCount);
 
             allposts.add(postDto);
         }
