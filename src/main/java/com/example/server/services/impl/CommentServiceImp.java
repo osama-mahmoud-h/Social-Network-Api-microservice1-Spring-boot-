@@ -1,10 +1,9 @@
 package com.example.server.services.impl;
 
 import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.models.*;
+import com.example.server.repository.CommentLikeRepository;
 import com.example.server.services.CommentService;
-import com.example.server.models.Comment;
-import com.example.server.models.Post;
-import com.example.server.models.User;
 import com.example.server.payload.request.CommentRequestDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.repository.CommentRepository;
@@ -14,9 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 @Service
@@ -25,6 +24,7 @@ public class CommentServiceImp implements CommentService {
     private final CommentRepository commentRepository;
     private final AuthenticatedUser authenticatedUser;
     private final PostRepository postRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     public ResponseEntity<?> writeComment(HttpServletRequest request,
                                           CommentRequestDto commentDto
@@ -72,6 +72,51 @@ public class CommentServiceImp implements CommentService {
         commentRepository.save(comment);
 
         return comment;
+    }
+
+    @Override
+    @Transactional
+    public CommentLike likeComment(HttpServletRequest request, Long commentId, byte like_type){
+            if(like_type<=0||like_type>7){
+                throw new CustomErrorException("Like Error (out of range)");
+            }
+            Optional<User> currUser  = authenticatedUser.getCurrentUser(request);
+
+            Comment savedComment = this.getCommentById(commentId);
+
+            CommentLike like = ifUserLikedComment(currUser.get().getId(), savedComment);
+
+            if (like!=null){
+                if(like.getType()==like_type){ // already like using same reaction ,remove it
+                    removeLikeOnPost(currUser.get().getId(), commentId);
+                }else{ //update like
+                    like.setType(like_type);
+                    commentLikeRepository.save(like);
+                    return like;
+                }
+            }else {
+                CommentLike newLike = new CommentLike();
+                newLike.setLiker(currUser.get());
+                newLike.setComment(savedComment);
+                newLike.setType(like_type);
+
+                commentLikeRepository.save(newLike);
+                return newLike;
+            }
+
+            return new  CommentLike();
+    }
+
+    private void removeLikeOnPost(Long userId, Long commentId) {
+        commentLikeRepository.deleteLikeOnComment(userId, commentId);
+    }
+
+    private CommentLike ifUserLikedComment(Long userId, Comment savedComment) {
+        CommentLike like =  savedComment.getLikedComments()
+                .stream()
+                .filter(lik ->lik.getLiker().getId().equals(userId))
+                .findAny().orElse(null);
+        return like ;
     }
 
     private Comment checkUserAuthorization(HttpServletRequest servletRequest,Long commentId){

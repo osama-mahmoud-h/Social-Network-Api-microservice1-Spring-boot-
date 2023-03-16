@@ -23,6 +23,17 @@ public class CommentController {
         return commentService.writeComment(request,commentDto);
     }
 
+    @PostMapping("like")
+    public ResponseEntity<?> likeComment(HttpServletRequest request,
+                                         Long commentId,
+                                         byte like_type
+    ){
+        return ResponseHandler.generateResponse("comment like/unliked successfully",
+                HttpStatus.OK,
+                commentService.likeComment(request,commentId,like_type)
+        );
+    }
+
     @DeleteMapping ("/delete/{comment_id}")
     public ResponseEntity<?> deleteComment(HttpServletRequest servletRequest,
                                            @PathVariable("comment_id") Long commentId

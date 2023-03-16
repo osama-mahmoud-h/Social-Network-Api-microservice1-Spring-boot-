@@ -2,14 +2,14 @@ package com.example.server.services.impl;
 
 import com.example.server.Exceptions.CustomErrorException;
 import com.example.server.models.Comment;
-import com.example.server.models.Like;
+import com.example.server.models.PostLike;
 import com.example.server.models.Post;
 import com.example.server.models.User;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.payload.response.UserResponceDto;
-import com.example.server.repository.LikeRepository;
+import com.example.server.repository.PostLikeRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.repository.UserRepository;
 import com.example.server.security.jwt.AuthenticatedUser;
@@ -37,7 +37,7 @@ public class PostServiceImp implements PostService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final KafkaServiceImp kafkaServiceImp;
-    private final LikeRepository likeRepository;
+    private final PostLikeRepository likeRepository;
 
     public Post getPostById(Long postId){
         Optional<Post> post = postRepository.findById(postId);
@@ -154,7 +154,7 @@ public class PostServiceImp implements PostService {
         String liked="liked";
         //  removeLikeOnPost(currUser.get().getId(), postId);
 
-        Like like = ifUserLikedPost(currUser.get().getId(), saved_post);
+        PostLike like = ifUserLikedPost(currUser.get().getId(), saved_post);
         if (like!=null){
             if(like.getType()==like_type){ // already like using same reaction ,remove it
                 removeLikeOnPost(currUser.get().getId(), postId);
@@ -165,7 +165,7 @@ public class PostServiceImp implements PostService {
                 liked="updated";
             }
         }else {
-            Like newLike = new Like();
+            PostLike newLike = new PostLike();
             newLike.setLiker(currUser.get());
             newLike.setPost(saved_post);
             newLike.setType(like_type);
@@ -180,9 +180,9 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public Like ifUserLikedPost(Long userId, Post saved_post){
+    public PostLike ifUserLikedPost(Long userId, Post saved_post){
 
-        Like like =  saved_post.getLikedPosts()
+        PostLike like =  saved_post.getLikedPosts()
                 .stream()
                 .filter(lik ->lik.getLiker().getId().equals(userId))
                 .findAny().orElse(null);
@@ -191,14 +191,14 @@ public class PostServiceImp implements PostService {
 
 
     @Override
-    public Like ifILikedThisPost(HttpServletRequest req, Long postId){
+    public PostLike ifILikedThisPost(HttpServletRequest req, Long postId){
         Optional<User> me = authenticatedUser.getCurrentUser(req);
         Post saved_post = getPostById(postId);
-        Like like = ifUserLikedPost(me.get().getId(), saved_post);
+        PostLike like = ifUserLikedPost(me.get().getId(), saved_post);
         if(like!=null){
             return like;
         }
-        return new Like();
+        return new PostLike();
     }
 
     //  @Transactional(propagation = Propagation.REQUIRED)
@@ -219,11 +219,11 @@ public class PostServiceImp implements PostService {
             //if i like this post
             if(req==null ) { // for not athuenticated users
 
-                Like like = ifILikedThisPost(req, post.getId());
+                PostLike like = ifILikedThisPost(req, post.getId());
                 postDto.setMyFeed(like.getType());
 
                 Map<Byte, Long> likeTypeCount = new HashMap<>();
-                for (Like like_ : post.getLikedPosts()) {
+                for (PostLike like_ : post.getLikedPosts()) {
                     likeTypeCount.put(like_.getType(),
                             likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
                 }
@@ -241,7 +241,7 @@ public class PostServiceImp implements PostService {
         PostResponceDto postDto = mapPostToPostResponce(post);
 
         Map<Byte,Long>typeCount = new HashMap<>();
-        for(Like like :post.getLikedPosts()){
+        for(PostLike like :post.getLikedPosts()){
             typeCount.put(like.getType(),
                     typeCount.getOrDefault(like.getType(),0L) + 1L);
         }
