@@ -1,11 +1,8 @@
 package com.example.server.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -17,7 +14,7 @@ import java.util.Objects;
 //@AllArgsConstructor
 //@NoArgsConstructor
 @EqualsAndHashCode(exclude = {"post", "liker"})
-public class Like {
+public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -36,11 +33,11 @@ public class Like {
     @Column(name = "type")
     private byte type;
 
-    public Like() {
+    public PostLike() {
         this.type = 0 ;
     }
 
-    public Like(Post post, User liker, byte type) {
+    public PostLike(Post post, User liker, byte type) {
         this.post=post;
         this.liker = liker;
         this.type = type;
@@ -50,7 +47,7 @@ public class Like {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Like like = (Like) o;
+        PostLike like = (PostLike) o;
         return type == like.type && Objects.equals(id, like.id) && Objects.equals(post, like.post) && Objects.equals(liker, like.liker);
     }
 

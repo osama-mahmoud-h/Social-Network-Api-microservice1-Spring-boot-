@@ -9,13 +9,9 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -54,7 +50,7 @@ public class User {
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JsonIgnoreProperties(value = "liker")
   @JsonIgnore
-  private Set<Like>liked_posts = new HashSet<>();
+  private Set<PostLike>liked_posts = new HashSet<>();
 
   @OneToMany(mappedBy = "author",
           fetch = FetchType.LAZY,

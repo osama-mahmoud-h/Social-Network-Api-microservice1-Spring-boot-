@@ -12,7 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.*;
 
 import static javax.persistence.GenerationType.AUTO;
@@ -49,7 +48,7 @@ public class Post {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnoreProperties(value = {"post","liker"})
     @JsonIgnore
-    private Set<Like>likedPosts = new HashSet<>();
+    private Set<PostLike>likedPosts = new HashSet<>();
 
     @Column(nullable = false)
     private String text;

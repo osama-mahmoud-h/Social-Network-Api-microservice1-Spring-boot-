@@ -44,4 +44,36 @@ public class CommentController {
         );
     }
 
+    @PostMapping("/like/{comment_id}/{like_type}")
+    public ResponseEntity<?> likeComment(HttpServletRequest request,
+                                         @PathVariable("comment_id") Long commentId,
+                                         @PathVariable("like_type") byte likeType
+    ){
+        return ResponseHandler.generateResponse("comment like / unlike",
+                HttpStatus.OK,
+                commentService.likeComment(request,commentId,likeType)
+        );
+    }
+
 }
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ * */

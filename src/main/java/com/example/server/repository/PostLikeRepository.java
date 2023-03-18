@@ -1,13 +1,13 @@
 package com.example.server.repository;
 
-import com.example.server.models.Like;
+import com.example.server.models.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LikeRepository extends JpaRepository<Like,Long> {
+public interface PostLikeRepository extends JpaRepository<PostLike,Long> {
 
     @Modifying
     @Query(value = "DELETE FROM users_like_posts where liker_id=?1 AND post_id=?2",nativeQuery = true)
