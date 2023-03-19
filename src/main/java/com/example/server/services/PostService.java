@@ -37,7 +37,7 @@ public interface PostService {
 
     PostResponceDto getPostDetails(Long postId);
 
-    List<CommentsResponseDto> getAllCommentsOnPost(Long post_id);
+    //List<CommentsResponseDto> getAllCommentsOnPost(HttpServletRequest req, Long post_id);
 
     Post deletePost(HttpServletRequest servletRequest, Long post_id);
 

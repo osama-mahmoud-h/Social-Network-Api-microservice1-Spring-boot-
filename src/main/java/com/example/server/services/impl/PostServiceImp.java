@@ -1,10 +1,7 @@
 package com.example.server.services.impl;
 
 import com.example.server.Exceptions.CustomErrorException;
-import com.example.server.models.Comment;
-import com.example.server.models.PostLike;
-import com.example.server.models.Post;
-import com.example.server.models.User;
+import com.example.server.models.*;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
 import com.example.server.payload.response.UserResponceDto;
@@ -218,7 +215,7 @@ public class PostServiceImp implements PostService {
            // System.out.println("author "+post.getAuthor());
             PostResponceDto postDto = mapPostToPostResponce(post);
             //if i like this post
-            if(req!=null ) { // for not athuenticated users
+            if(req!=null && req.getHeader("Authorization")!=null ) { // for not athuenticated users
                 PostLike like = ifILikedThisPost(req, post.getId());
                 postDto.setMyFeed(like.getType());
             }
@@ -248,22 +245,7 @@ public class PostServiceImp implements PostService {
         return postDto;
     }
 
-    @Override
-    public List<CommentsResponseDto> getAllCommentsOnPost(Long post_id) {
-        Optional<Post> post = postRepository.findById(post_id);
-        if(post.isEmpty()){
-            throw new CustomErrorException(HttpStatus.NOT_FOUND, "post "+post_id+" not found");
-        }
-        Set<Comment> comments = post.get().getComments();
 
-        List<CommentsResponseDto> allcomments = new ArrayList<>();
-
-        for (Comment comment:comments) {
-            CommentsResponseDto commentDto = mapCommentToCommentResponce(comment);
-            allcomments.add(commentDto);
-        }
-        return allcomments;
-    }
 
 
     @Override

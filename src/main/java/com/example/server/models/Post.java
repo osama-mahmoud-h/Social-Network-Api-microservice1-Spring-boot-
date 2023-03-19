@@ -50,7 +50,7 @@ public class Post {
     @JsonIgnore
     private Set<PostLike>likedPosts = new HashSet<>();
 
-    @Column(nullable = false)
+    @Column(nullable = false,length = 2048)//2KB of string
     private String text;
 
     @Column(nullable = true)

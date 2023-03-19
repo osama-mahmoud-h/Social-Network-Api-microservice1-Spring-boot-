@@ -2,6 +2,8 @@ package com.example.server.services.impl;
 
 import com.example.server.Exceptions.CustomErrorException;
 import com.example.server.models.*;
+import com.example.server.payload.response.CommentsResponseDto;
+import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.CommentLikeRepository;
 import com.example.server.services.CommentService;
 import com.example.server.payload.request.CommentRequestDto;
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -76,38 +78,97 @@ public class CommentServiceImp implements CommentService {
 
     @Override
     @Transactional
-    public String likeComment(HttpServletRequest request, Long commentId, byte like_type){
+    public CommentLike likeComment(HttpServletRequest request, Long commentId, byte like_type){
 
         if(like_type<=0||like_type>7){
             throw new CustomErrorException("Like Error (out of range)");
         }
         Optional<User> currUser  = authenticatedUser.getCurrentUser(request);
 
-        Comment savedComment = this.getCommentById(commentId);
+        try {
+            Comment savedComment = this.getCommentById(commentId);
+            CommentLike commentLike = ifUserLikedComment(currUser.get().getId(), savedComment);
 
-          System.out.println("post saved--------------------- "+savedComment);
+            if (commentLike!=null){
+                if(commentLike.getType()==like_type){ // already like using same reaction ,remove it
+                    removeLikeOnPost(currUser.get().getId(), commentId);
+                    return new CommentLike();
+                }else{ //update like
+                    commentLike.setType(like_type);
+                    commentLikeRepository.save(commentLike);
+                    return commentLike;
+                    // return  String.valueOf(like_type); //will return automatically
+                }
+            }else {
+                CommentLike newLike = new CommentLike();
+                newLike.setLiker(currUser.get());
+                newLike.setComment(savedComment);
+                newLike.setType(like_type);
 
-        CommentLike commentLike = ifUserLikedComment(currUser.get().getId(), savedComment);
-
-        if (commentLike!=null){
-            if(commentLike.getType()==like_type){ // already like using same reaction ,remove it
-                removeLikeOnPost(currUser.get().getId(), commentId);
-                return "0";
-            }else{ //update like
-                commentLike.setType(like_type);
-                commentLikeRepository.save(commentLike);
-                // return  String.valueOf(like_type); //will return automatically
+                commentLikeRepository.save(newLike);
+                return newLike;
             }
-        }else {
-            CommentLike newLike = new CommentLike();
-            newLike.setLiker(currUser.get());
-            newLike.setComment(savedComment);
-            newLike.setType(like_type);
 
-            commentLikeRepository.save(newLike);
+        }catch (Exception ex){
+            throw new CustomErrorException(ex.getMessage());
         }
+    }
 
-        return String.valueOf(like_type);
+    @Override
+    public List<CommentsResponseDto> getAllCommentsOnPost(HttpServletRequest req, Long post_id) {
+
+        Optional<Post> post = postRepository.findById(post_id);
+        if(post.isEmpty()){
+            throw new CustomErrorException(HttpStatus.NOT_FOUND, "post "+post_id+" not found");
+        }
+        Set<Comment> comments = post.get().getComments();
+
+        List<CommentsResponseDto> allcomments = new ArrayList<>();
+
+        for (Comment comment:comments) {
+            CommentsResponseDto commentDto = mapCommentToCommentResponce(comment);
+
+            if(req!=null && req.getHeader("Authorization")!=null){
+                Optional<User> user = authenticatedUser.getCurrentUser(req);
+                CommentLike cmntLike = ifUserLikedComment(user.get().getId(),comment);
+                commentDto.setMyFeed(cmntLike.getType());
+            }
+
+            Map<Byte, Long> likeTypeCount = new HashMap<>();
+            for (CommentLike like_ : comment.getLikedComments()) {
+                likeTypeCount.put(like_.getType(),
+                        likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
+            }
+            commentDto.setFeeds(likeTypeCount);
+
+            allcomments.add(commentDto);
+        }
+        return allcomments;
+    }
+
+    private CommentsResponseDto mapCommentToCommentResponce(Comment comment){
+        //map post to postDto
+        CommentsResponseDto commentDto = new CommentsResponseDto();
+        commentDto.setId(comment.getId());
+        commentDto.setText(comment.getText());
+
+        //create author dto
+        UserResponceDto authorDto = mapUserToUserResponce(comment.getAuthor());
+
+        //set Author
+        commentDto.setAuthor(authorDto);
+
+        return commentDto;
+    }
+    private UserResponceDto mapUserToUserResponce(User user){
+        //create author dto
+        UserResponceDto authorDto = new UserResponceDto();
+        authorDto.setId(user.getId());
+        authorDto.setUsername(user.getUsername());
+        authorDto.setEmail(user.getEmail());
+        authorDto.setImage_url(user.getProfile().getImage_url());
+
+        return authorDto;
     }
 
     private CommentLike ifUserLikedComment(Long userId, Comment savedComment) {

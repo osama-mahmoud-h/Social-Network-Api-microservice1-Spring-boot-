@@ -54,12 +54,6 @@ public class PostController {
                  postService.getAllPosts(req));
     }
 
-    @GetMapping("/comments/all/{post_id}")
-    public ResponseEntity<?> allCommentsOnPost(@PathVariable("post_id") Long post_id){
-        return ResponseHandler.generateResponse("all comments get successfully",
-                HttpStatus.OK,
-                postService.getAllCommentsOnPost(post_id));
-    }
     @GetMapping("/user-like/{post_id}")
     public ResponseEntity <?> ifILikedThisPost(HttpServletRequest req,
                                            @PathVariable("post_id") Long post_id

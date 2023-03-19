@@ -4,7 +4,9 @@ import com.example.server.models.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike,Long> {
     @Modifying
     @Query(value = "DELETE FROM users_like_comments where liker_id=?1 AND comment_id=?2",nativeQuery = true)

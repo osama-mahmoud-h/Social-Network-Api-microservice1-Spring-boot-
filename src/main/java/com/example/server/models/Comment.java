@@ -41,6 +41,14 @@ public class Comment {
     @JsonIgnore
     private Set<CommentLike> likedComments = new HashSet<>();
 
+    @OneToMany(mappedBy = "comment",
+            cascade = CascadeType.REMOVE,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnoreProperties(value = {"comment","author"})
+    @JsonIgnore
+    private Set<CommentReplay> commentReplies = new HashSet<>();
 
     @Column(nullable = true,name = "timestamp")
     @CreationTimestamp

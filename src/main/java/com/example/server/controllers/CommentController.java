@@ -1,14 +1,22 @@
 package com.example.server.controllers;
 
+import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.models.Comment;
+import com.example.server.models.CommentLike;
+import com.example.server.models.Post;
+import com.example.server.models.PostLike;
+import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.CommentService;
 import com.example.server.payload.request.CommentRequestDto;
+import com.example.server.services.CommentsReplayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,6 +61,15 @@ public class CommentController {
                 HttpStatus.OK,
                 commentService.likeComment(request,commentId,likeType)
         );
+    }
+
+    @GetMapping("/all/{post_id}")
+    public ResponseEntity<?> allCommentsOnPost(HttpServletRequest req,
+                                               @PathVariable("post_id") Long post_id){
+        System.out.println("post " + post_id);
+        return ResponseHandler.generateResponse("all comments get successfully",
+                HttpStatus.OK,
+                commentService.getAllCommentsOnPost(req,post_id));
     }
 
 }
