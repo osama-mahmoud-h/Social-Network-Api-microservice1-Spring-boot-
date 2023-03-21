@@ -22,9 +22,11 @@ public interface ProfileService {
 
     boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills);
 
-    List<Post> getUserPosts(HttpServletRequest httpServletRequest);
+    //List<Post> getUserPosts(HttpServletRequest httpServletRequest);
 
-     List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
+   // List<Post> getUserPosts(HttpServletRequest servletRequest);
+
+    List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
 
      List<UserResponceDto> getFollowers(HttpServletRequest servletRequest);
 
@@ -40,5 +42,10 @@ public interface ProfileService {
 
     boolean updateEducation(HttpServletRequest httpServletRequest, String education);
 
-    List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests);
+   // List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests);
+
+    List<PostResponceDto> allPosts(
+            HttpServletRequest req,
+            Long user_id
+    );
 }

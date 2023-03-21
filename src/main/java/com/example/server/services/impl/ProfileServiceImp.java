@@ -11,6 +11,7 @@ import com.example.server.repository.ProfileRepository;
 import com.example.server.repository.UserRepository;
 import com.example.server.security.jwt.AuthenticatedUser;
 import com.example.server.services.FilesStorageService;
+import com.example.server.services.PostService;
 import com.example.server.services.ProfileService;
 import com.example.server.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +31,7 @@ public class ProfileServiceImp implements ProfileService {
     private final FilesStorageService filesStorageService;
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
+    private final PostService postService;
 
     @Override
     public boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image) {
@@ -86,6 +85,7 @@ public class ProfileServiceImp implements ProfileService {
         return true;
     }
 
+
     @Override
     public boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills) {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
@@ -103,12 +103,12 @@ public class ProfileServiceImp implements ProfileService {
         return true;
     }
 
-    @Override
-    public List<Post> getUserPosts(HttpServletRequest servletRequest){
-        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
-       // Collection<Post> posts = curUser.get().getPosts();
-        return null;
-    }
+//    @Override
+//    public List<Post> getUserPosts(HttpServletRequest servletRequest){
+//        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
+//       // Collection<Post> posts = curUser.get().getPosts();
+//        return null;
+//    }
 
     @Override
     public List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest){
@@ -203,17 +203,31 @@ public class ProfileServiceImp implements ProfileService {
     }
     
     @Override
-    public List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests){
-        Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequests);
+    public List<PostResponceDto> allPosts(HttpServletRequest req, Long user_id){
+        Optional<User> user = authenticatedUser.getCurrentUser(req);
        // getProfile(user.get().getId());
         Set<Post>posts = user.get().getPosts();
         List<PostResponceDto> allPosts = new ArrayList<>();
         for (Post post : posts) {
             PostResponceDto postDto = this.mapPostToPostResponce(post);
+
+            if(req!=null && req.getHeader("Authorization")!=null ) { // for not athuenticated users
+                PostLike like = postService.ifILikedThisPost(req, post.getId());
+                postDto.setMyFeed(like.getType());
+            }
+            // map every reaction to its count on this post
+            Map<Byte, Long> likeTypeCount = new HashMap<>();
+            for (PostLike like_ : post.getLikedPosts()) {
+                likeTypeCount.put(like_.getType(),
+                        likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
+            }
+            postDto.setFeeds(likeTypeCount);
+
             allPosts.add(postDto);
         }
         return allPosts;
     }
+
 
 
 
