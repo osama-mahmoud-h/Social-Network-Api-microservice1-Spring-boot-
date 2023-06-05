@@ -1,4 +1,4 @@
-package com.example.server.payload.request;
+package com.example.server.payload.request.profile;
 
 
 import lombok.Data;

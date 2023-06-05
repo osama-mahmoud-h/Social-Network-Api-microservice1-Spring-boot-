@@ -1,9 +1,11 @@
 package com.example.server.services;
 
 import com.example.server.models.Post;
-import com.example.server.models.Profile;
-import com.example.server.payload.request.ProfileRequestDto;
+import com.example.server.payload.request.profile.ContactInfoDto;
+import com.example.server.payload.request.profile.EducationRequestDto;
+import com.example.server.payload.request.profile.SocialRequestDto;
 import com.example.server.payload.response.PostResponceDto;
+import com.example.server.payload.response.profile.ProfileResponseDto;
 import com.example.server.payload.response.UserResponceDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,15 +18,19 @@ public interface ProfileService {
 
     boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image);
 
-     boolean updateBio(HttpServletRequest httpServletRequest, String bio);
+    boolean uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image);
+
+    boolean updateBio(HttpServletRequest httpServletRequest, String bio);
 
      boolean updateAbout(HttpServletRequest httpServletRequest, String bio);
 
-    boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills);
+    boolean updateEducation(HttpServletRequest httpServletRequest, EducationRequestDto education);
 
     //List<Post> getUserPosts(HttpServletRequest httpServletRequest);
 
    // List<Post> getUserPosts(HttpServletRequest servletRequest);
+
+    boolean updateSkills(HttpServletRequest httpServletRequest, String newSkill);
 
     List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
 
@@ -36,11 +42,13 @@ public interface ProfileService {
 
     boolean isFollowing(Long followerId, Long followedId);
 
-    Profile getProfile(Long userid);
+    //Profile getProfile(Long userid);
 
-    Profile updateProfile(HttpServletRequest httpServletRequest, ProfileRequestDto profileDto);
+    ProfileResponseDto getProfileDto(HttpServletRequest req, Long user_id);
 
-    boolean updateEducation(HttpServletRequest httpServletRequest, String education);
+    //Profile updateProfile(HttpServletRequest httpServletRequest, ProfileRequestDto profileDto);
+
+    //boolean updateEducation(HttpServletRequest httpServletRequest, String education);
 
    // List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests);
 
@@ -48,4 +56,12 @@ public interface ProfileService {
             HttpServletRequest req,
             Long user_id
     );
+
+    boolean addSocialLink(HttpServletRequest req, SocialRequestDto social);
+
+    boolean updateSocialLink(HttpServletRequest req, SocialRequestDto social);
+
+    Boolean deleteSocial(HttpServletRequest req, String name);
+
+    ContactInfoDto updateContactInfo(HttpServletRequest req, ContactInfoDto contactDto);
 }

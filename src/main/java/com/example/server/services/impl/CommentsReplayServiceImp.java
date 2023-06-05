@@ -1,7 +1,7 @@
 package com.example.server.services.impl;
 
 
-import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.exceptions.CustomErrorException;
 import com.example.server.models.Comment;
 import com.example.server.models.CommentReplay;
 import com.example.server.models.User;

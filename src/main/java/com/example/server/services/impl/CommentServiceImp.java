@@ -1,6 +1,6 @@
 package com.example.server.services.impl;
 
-import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.exceptions.CustomErrorException;
 import com.example.server.models.*;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.UserResponceDto;

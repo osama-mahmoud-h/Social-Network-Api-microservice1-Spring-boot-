@@ -1,10 +1,14 @@
 package com.example.server.services.impl;
 
-import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.exceptions.CustomErrorException;
 import com.example.server.models.*;
-import com.example.server.payload.request.ProfileRequestDto;
+import com.example.server.payload.request.profile.ContactInfoDto;
+import com.example.server.payload.request.profile.EducationRequestDto;
+import com.example.server.payload.request.profile.SocialRequestDto;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
+import com.example.server.payload.response.profile.EducationResponseDto;
+import com.example.server.payload.response.profile.ProfileResponseDto;
 import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.FollowerRepository;
 import com.example.server.repository.ProfileRepository;
@@ -15,6 +19,7 @@ import com.example.server.services.PostService;
 import com.example.server.services.ProfileService;
 import com.example.server.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +64,31 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
+    public boolean uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image) {
+
+        Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
+
+        String image_url = "uploads/";
+        if(!image.isEmpty()){
+            if(!image.getContentType().startsWith("image")){
+                throw new CustomErrorException("not valid image");
+            }
+            String randomString = String.valueOf(Math.random());
+            image_url +=  randomString+image.getOriginalFilename();
+            //upload image to server
+            filesStorageService.save(image,randomString);
+
+            Profile profile = getProfile(user.get().getId());
+            profile.setCoverImageUrl(image_url);
+
+            profileRepository.save(profile);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean updateBio(HttpServletRequest httpServletRequest, String bio) {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
         Profile profile = getProfile(curUser.get().getId());
@@ -77,7 +107,7 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
-    public boolean updateEducation(HttpServletRequest httpServletRequest, String education) {
+    public boolean updateEducation(HttpServletRequest httpServletRequest, EducationRequestDto education) {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
         Profile profile = getProfile(curUser.get().getId());
         profile.setEducation(education);
@@ -87,16 +117,18 @@ public class ProfileServiceImp implements ProfileService {
 
 
     @Override
-    public boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills) {
+    public boolean updateSkills(HttpServletRequest httpServletRequest, String newSkill) {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
         Profile profile = getProfile(curUser.get().getId());
 
-        String[] skillsArray = new String[skills.length];
+        String[] skillsArray = new String[profile.getSkills().length+1];
         int index = 0;
-        for (String skill : skills){
+        for (String skill : profile.getSkills()){
             skillsArray[index++] = skill;
             System.out.println("sikll: "+skill);
         }
+        skillsArray[index] = newSkill;
+
         profile.setSkills(skillsArray);
 
         profileRepository.save(profile);
@@ -177,36 +209,65 @@ public class ProfileServiceImp implements ProfileService {
         return followerRepository.isFollow(followerId, followedId) !=null;
     }
 
-    @Override
-    public Profile getProfile(Long user_id) {
+
+    private Profile getProfile(Long user_id) {
         Optional<User> user = userRepository.findUserById(user_id);
         Profile profile = user.get().getProfile();
         return profile;
     }
 
     @Override
-    public Profile updateProfile(HttpServletRequest httpServletRequest,
-                                 ProfileRequestDto profileDto
-    ){
-        Optional<User> user  = authenticatedUser.getCurrentUser(httpServletRequest);
+    public ProfileResponseDto getProfileDto(HttpServletRequest req,Long user_id){
 
-        Profile profile= user.get().getProfile();
+        User user = userService.getUser(user_id);
 
-        profile.setBio(profileDto.getBio());
-        profile.setAboutUser(profileDto.getAboutUser());
-       // profile.getSkills().addAll(profileDto.getSiklls());
-        profile.setEducation(profileDto.getEducation());
+        Profile profile = getProfile(user_id);
 
-        profileRepository.save(profile);
+        //TODO: profile mapper
+        //map profile to profileDto
+        ProfileResponseDto profileDto = new ProfileResponseDto();
 
-        return profile;
+        profileDto.setId(profile.getId());
+        profileDto.setUser(mapUserToUserResponce(user));
+        profileDto.setBio(profile.getBio());
+        profileDto.setUserPosts(allPosts(req,user_id));
+        profileDto.setImage_url(profile.getImage_url());
+        profileDto.setCoverImage_url(profile.getCoverImageUrl());
+
+        //TODO: map education to educationResponseDto
+        profileDto.setEducation((EducationResponseDto) profile.getEducation());
+        profileDto.setContactInfo(profileDto.getContactInfo());
+        profileDto.setSkills(profile.getSkills());
+        //profileDto.setSocialLinks((SocialResponseDto[]) profile.getSocials());
+
+        return profileDto;
     }
+
+//    @Override
+//    public Profile updateProfile(HttpServletRequest httpServletRequest,
+//                                 ProfileRequestDto profileDto
+//    ){
+//        Optional<User> user  = authenticatedUser.getCurrentUser(httpServletRequest);
+//
+//        Profile profile= user.get().getProfile();
+//
+//        profile.setBio(profileDto.getBio());
+//        profile.setAboutUser(profileDto.getAboutUser());
+//       // profile.getSkills().addAll(profileDto.getSiklls());
+//        profile.setEducation(profileDto.getEducation());
+//
+//        profileRepository.save(profile);
+//
+//        return profile;
+//    }
     
     @Override
     public List<PostResponceDto> allPosts(HttpServletRequest req, Long user_id){
+
         Optional<User> user = authenticatedUser.getCurrentUser(req);
        // getProfile(user.get().getId());
         Set<Post>posts = user.get().getPosts();
+
         List<PostResponceDto> allPosts = new ArrayList<>();
         for (Post post : posts) {
             PostResponceDto postDto = this.mapPostToPostResponce(post);
@@ -228,8 +289,68 @@ public class ProfileServiceImp implements ProfileService {
         return allPosts;
     }
 
+    @Override
+    public boolean addSocialLink(HttpServletRequest req, SocialRequestDto social){
+        User user = userService.getCurrentAuthenticatedUser(req);
+        Profile profile = getProfile(user.getId());
 
+        Map<String,String>links = profile.getLinks();
 
+        if(links==null){
+            links = new HashMap<>();
+        }
+        links.put(social.getName(),social.getUrl());
+
+        profile.setLinks(links);
+        profileRepository.save(profile);
+
+        return true;
+    }
+
+    @Override
+    public boolean updateSocialLink(HttpServletRequest req, SocialRequestDto social){
+        User user = userService.getCurrentAuthenticatedUser(req);
+        Profile profile = getProfile(user.getId());
+
+        if(profile.getLinks()==null){
+            throw new CustomErrorException(HttpStatus.BAD_REQUEST,"social name doesn't exists");
+        }
+        profile.getLinks().put(social.getName(),social.getUrl());
+
+        profileRepository.save(profile);
+
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public Boolean deleteSocial (HttpServletRequest req, String name){
+        User user = userService.getCurrentAuthenticatedUser(req);
+        Profile profile = getProfile(user.getId());
+
+        if(profile.getLinks()==null || ! profile.getLinks().containsKey(name)){
+             throw new CustomErrorException(HttpStatus.BAD_REQUEST,"social name doesn't exists");
+        }
+
+        profile.getLinks().remove(name);
+
+        profileRepository.save(profile);
+
+        return true;
+    }
+
+    @Override
+    public ContactInfoDto updateContactInfo(HttpServletRequest req, ContactInfoDto contactDto){
+
+        User user = userService.getCurrentAuthenticatedUser(req);
+
+        Profile profile = getProfile(user.getId());
+
+        profile.setContactInfo(contactDto);
+        profileRepository.save(profile);
+
+        return contactDto;
+    }
 
     private PostResponceDto mapPostToPostResponce(Post post){
         //map post to postDto

@@ -1,18 +1,19 @@
 package com.example.server.controllers;
 
 
-import com.example.server.payload.request.ProfileRequestDto;
+import com.example.server.payload.request.profile.ContactInfoDto;
+import com.example.server.payload.request.profile.EducationRequestDto;
+import com.example.server.payload.request.profile.SocialRequestDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -33,9 +34,22 @@ public class ProfileController {
         );
     }
 
+    @PostMapping("/upload-coverimage")
+    public ResponseEntity<?> uploadCoverImage(HttpServletRequest httpServletRequest,
+                                         @RequestParam("coverimage")MultipartFile image
+    ){
+        boolean imageUloaded = profileService.uploadCoverImage(httpServletRequest,image);
+        return ResponseHandler.generateResponse(
+                imageUloaded ? "cover image Uploaded successfully" : "error while uploading cover image",
+                imageUloaded ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+                imageUloaded ? true : false
+        );
+    }
+
+
     @PutMapping("/update/education")
     public ResponseEntity<?> updateEducation(HttpServletRequest httpServletRequest,
-                                    @RequestParam String education
+                                    @RequestBody EducationRequestDto education
     ){
         return ResponseHandler.generateResponse("education updated successfully",
                 HttpStatus.OK,
@@ -64,7 +78,7 @@ public class ProfileController {
     }
     @PutMapping("/update/skills")
     public ResponseEntity<?> updateSkills(HttpServletRequest httpServletRequest,
-                                       @RequestParam  String[] skills
+                                       @RequestParam  String skills
     ){
         //System.out.println("siklls: "+ Arrays.toString(skills));
         return ResponseHandler.generateResponse("skills updated successfully",
@@ -74,10 +88,10 @@ public class ProfileController {
     }
 
     @GetMapping("/{userid}")
-    public ResponseEntity<?> getProfile(@PathVariable("userid") Long userId){
+    public ResponseEntity<?> getProfile(HttpServletRequest req, @PathVariable("userid") Long userId){
         return ResponseHandler.generateResponse("Profile get successfully",
                 HttpStatus.OK,
-                profileService.getProfile(userId)
+                profileService.getProfileDto(req,userId)
         );
     }
 
@@ -107,12 +121,50 @@ public class ProfileController {
 
     }
 
-    @GetMapping("posts/all")
+    @GetMapping("/posts/all")
     public ResponseEntity<?>getPosts(HttpServletRequest servletRequest,Long userId){
         return ResponseHandler.generateResponse("posts get successfully",
                 HttpStatus.OK,
                 profileService.allPosts(servletRequest,userId));
     }
+
+    /**
+     * phone controllers
+     * */
+    @PutMapping("/contactInfo/update")
+    public ResponseEntity<?> updatePhone(
+            HttpServletRequest req,
+            @Valid @RequestBody ContactInfoDto contactDto
+    ){
+        return null;
+    }
+
+
+    /**
+     * social linkes
+     * */
+    @PostMapping("/social/add")
+    public ResponseEntity<?> addSocial(HttpServletRequest req,@RequestBody SocialRequestDto socialDto){
+        return ResponseHandler.generateResponse("posts get successfully",
+                HttpStatus.OK,
+                profileService.addSocialLink(req,socialDto)
+        );
+    }
+    @PutMapping("/social/update")
+    public ResponseEntity<?> updateSocial(HttpServletRequest req,@RequestBody SocialRequestDto socialDto){
+        return ResponseHandler.generateResponse("posts get successfully",
+                HttpStatus.OK,
+                profileService.updateSocialLink(req,socialDto)
+        );
+    }
+    @DeleteMapping("/social/delete/{social_name}")
+    public ResponseEntity<?> deleteSocial(HttpServletRequest req,@PathVariable("social_name") String social_name){
+        return ResponseHandler.generateResponse("posts get successfully",
+                HttpStatus.OK,
+                profileService.deleteSocial(req,social_name)
+        );
+    }
+
 
 
 

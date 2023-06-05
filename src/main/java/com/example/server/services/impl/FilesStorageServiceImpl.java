@@ -1,6 +1,6 @@
 package com.example.server.services.impl;
 
-import com.example.server.Exceptions.CustomErrorException;
+import com.example.server.exceptions.CustomErrorException;
 import com.example.server.services.FilesStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
