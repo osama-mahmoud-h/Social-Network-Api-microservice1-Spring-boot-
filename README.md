@@ -23,4 +23,4 @@ The `CommentService` interface provides methods for managing user comments. Our 
 
 Overall, our backend system provides the necessary interfaces to create a full-featured social media platform. Our frontend developers can utilize these interfaces to create a seamless user experience, while our backend team ensures the reliability and scalability of the system.
 ### api documentation 
-![Alt Text](images/api-documentation.png)
+![Alt Text](images/api-documentation2.png)
