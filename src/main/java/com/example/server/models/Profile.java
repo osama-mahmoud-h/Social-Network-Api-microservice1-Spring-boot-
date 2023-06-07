@@ -37,13 +37,13 @@ public class Profile {
     @JsonIgnoreProperties(value = "profile")
     private User owner;
 
-    @Type(type = "string-array")
+    @Type(type = "jsonb")
     @Column(
             length = 512,
             name = "skills",
-            columnDefinition = "text[]"
+            columnDefinition = "json"
     )
-    String[] skills ;
+    Set<String> skills =new HashSet<>();
 
     @Column(columnDefinition = "jsonb")
     @Type(type = "jsonb")

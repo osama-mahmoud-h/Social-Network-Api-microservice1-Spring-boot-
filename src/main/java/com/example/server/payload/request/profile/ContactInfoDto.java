@@ -2,8 +2,7 @@ package com.example.server.payload.request.profile;
 
 import lombok.*;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Max;
+import javax.validation.constraints.*;
 
 @Setter
 @Getter
@@ -12,17 +11,18 @@ import javax.validation.constraints.Max;
 @NoArgsConstructor
 public class ContactInfoDto {
 
-    @Max(value = 16,message = "too long phone number")
+    @Size(max = 16,message = "too long phone number")
+    //@NotBlank(message = "please provide username")
     private String phone;
 
-    @Max(value = 16,message = "too long telephone number")
+    @Size(max = 16,message = "too long telephone number")
     private String telephone;
 
     @Email(message = "not valid email address")
-    @Max(value = 32,message = "too long email address")
+    @Size(max = 32,message = "too long email address")
     private String email;
 
-    @Max(value = 128,message = "too long address name")
-    private String Address;
+    @Size(max = 128,message = "too long address name")
+    private String address;
 
 }

@@ -44,5 +44,8 @@ public class Test {
     )
     private  SocialRequestDto[] names;
 
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
+    Set<SocialRequestDto>tags = new HashSet<>();
 
 }

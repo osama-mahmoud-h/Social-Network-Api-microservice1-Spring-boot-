@@ -132,11 +132,14 @@ public class ProfileController {
      * phone controllers
      * */
     @PutMapping("/contactInfo/update")
-    public ResponseEntity<?> updatePhone(
+    public ResponseEntity<?> updateContactInfo(
             HttpServletRequest req,
             @Valid @RequestBody ContactInfoDto contactDto
     ){
-        return null;
+        return ResponseHandler.generateResponse("contact info updated successfully",
+                HttpStatus.OK,
+                profileService.updateContactInfo(req,contactDto)
+        );
     }
 
 
@@ -145,21 +148,21 @@ public class ProfileController {
      * */
     @PostMapping("/social/add")
     public ResponseEntity<?> addSocial(HttpServletRequest req,@RequestBody SocialRequestDto socialDto){
-        return ResponseHandler.generateResponse("posts get successfully",
+        return ResponseHandler.generateResponse("social-link added successfully",
                 HttpStatus.OK,
                 profileService.addSocialLink(req,socialDto)
         );
     }
     @PutMapping("/social/update")
     public ResponseEntity<?> updateSocial(HttpServletRequest req,@RequestBody SocialRequestDto socialDto){
-        return ResponseHandler.generateResponse("posts get successfully",
+        return ResponseHandler.generateResponse("social-link updated successfully",
                 HttpStatus.OK,
                 profileService.updateSocialLink(req,socialDto)
         );
     }
     @DeleteMapping("/social/delete/{social_name}")
     public ResponseEntity<?> deleteSocial(HttpServletRequest req,@PathVariable("social_name") String social_name){
-        return ResponseHandler.generateResponse("posts get successfully",
+        return ResponseHandler.generateResponse("social-link deleted successfully",
                 HttpStatus.OK,
                 profileService.deleteSocial(req,social_name)
         );

@@ -121,17 +121,16 @@ public class ProfileServiceImp implements ProfileService {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
         Profile profile = getProfile(curUser.get().getId());
 
-        String[] skillsArray = new String[profile.getSkills().length+1];
-        int index = 0;
-        for (String skill : profile.getSkills()){
-            skillsArray[index++] = skill;
-            System.out.println("sikll: "+skill);
+        System.out.println("before------------------");
+        if(profile.getSkills()==null){
+            Set<String> newSkills = new HashSet<>();
+            profile.setSkills(newSkills);
         }
-        skillsArray[index] = newSkill;
+        profile.getSkills().add(newSkill);
 
-        profile.setSkills(skillsArray);
-
+        System.out.println("afterrrrrrrtrrrrrrrrrrrrrrr");
         profileRepository.save(profile);
+
         return true;
     }
 
@@ -235,10 +234,11 @@ public class ProfileServiceImp implements ProfileService {
         profileDto.setCoverImage_url(profile.getCoverImageUrl());
 
         //TODO: map education to educationResponseDto
-        profileDto.setEducation((EducationResponseDto) profile.getEducation());
+        profileDto.setEducation( profile.getEducation());
         profileDto.setContactInfo(profileDto.getContactInfo());
         profileDto.setSkills(profile.getSkills());
-        //profileDto.setSocialLinks((SocialResponseDto[]) profile.getSocials());
+        profileDto.setContactInfo(profile.getContactInfo());
+        profileDto.setSocialLinks(profile.getLinks());
 
         return profileDto;
     }

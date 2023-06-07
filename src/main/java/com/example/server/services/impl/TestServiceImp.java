@@ -7,9 +7,10 @@ import com.example.server.services.TestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,30 @@ public class TestServiceImp implements TestService {
         testRepository.save(test);
 
         return test.getNames();
+    }
+
+    @Override
+    public Set<SocialRequestDto> addTag(String tag){
+        Test test = new Test();
+
+        Set<SocialRequestDto> tagSet = new HashSet<>();
+
+        SocialRequestDto scldto = new SocialRequestDto("name1","url1");
+
+        tagSet.add(scldto);
+
+        Optional<Test> test2 = testRepository.findById(60l);
+        if (test2.isPresent()){
+            test2.get().getTags().add(new SocialRequestDto("name2","url2"));
+            testRepository.save(test);
+            return test2.get().getTags();
+        }else {
+            //
+            test.setTags(tagSet);
+            testRepository.save(test);
+            return test.getTags();
+        }
+
     }
 
 }

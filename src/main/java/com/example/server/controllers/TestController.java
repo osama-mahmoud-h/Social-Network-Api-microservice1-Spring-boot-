@@ -50,4 +50,12 @@ private final TestService testService;
     return  ResponseEntity.ok().body(testService.saveName(names));
   }
 
+  @PostMapping("/tag/save")
+  public ResponseEntity<?> addTag(String name){
+
+    return  ResponseEntity.ok().body(testService.addTag(name));
+  }
+
+
+
 }
