@@ -280,6 +280,7 @@ public class PostServiceImp implements PostService {
         postResponceDto.setImages_url(post.getImages_url());
         postResponceDto.setVedio_url(post.getVedio_url());
         postResponceDto.setFile_url(post.getFile_url());
+        postResponceDto.setComments_count((long) post.getComments().size());
         //postResponceDto.setLikes(post.getLikesCount());
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());

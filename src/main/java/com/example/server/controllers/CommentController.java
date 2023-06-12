@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("write")
+    @PostMapping("/write")
     public ResponseEntity<?> writeComment(HttpServletRequest request,
                                           @RequestBody CommentRequestDto commentDto
     ) {

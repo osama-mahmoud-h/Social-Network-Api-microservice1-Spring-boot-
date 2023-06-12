@@ -11,6 +11,7 @@ import com.example.server.payload.response.ResponseHandler;
 import com.example.server.repository.CommentRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.security.jwt.AuthenticatedUser;
+import com.example.server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +28,13 @@ public class CommentServiceImp implements CommentService {
     private final AuthenticatedUser authenticatedUser;
     private final PostRepository postRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final UserService userService;
 
     public ResponseEntity<?> writeComment(HttpServletRequest request,
                                           CommentRequestDto commentDto
     ){
-        Optional<User> currentUser = authenticatedUser.getCurrentUser(request);
+        User currentUser = userService.getCurrentAuthenticatedUser(request);
+        //Optional<User> currentUser = authenticatedUser.getCurrentUser(request);
         Optional<Post> curPost = postRepository.findById(commentDto.getPost_id());
 
         if(curPost.isEmpty()){
@@ -39,7 +42,7 @@ public class CommentServiceImp implements CommentService {
         }
 
         Comment comment = new Comment();
-        comment.setAuthor(currentUser.get());
+        comment.setAuthor(currentUser);
         comment.setText(commentDto.getText());
 
         curPost.get().getComments().add(comment);
@@ -47,7 +50,7 @@ public class CommentServiceImp implements CommentService {
 
         return ResponseHandler.generateResponse("comment created Succefully",
                 HttpStatus.CREATED,
-                null);
+                commentDto);
     }
 
     private Comment getCommentById(Long commentId){
@@ -121,17 +124,21 @@ public class CommentServiceImp implements CommentService {
         if(post.isEmpty()){
             throw new CustomErrorException(HttpStatus.NOT_FOUND, "post "+post_id+" not found");
         }
+
+        System.out.println("all comments: "+post.get().getComments().size());
+
         Set<Comment> comments = post.get().getComments();
 
         List<CommentsResponseDto> allcomments = new ArrayList<>();
+        User user = userService.getCurrentAuthenticatedUser(req);
 
         for (Comment comment:comments) {
             CommentsResponseDto commentDto = mapCommentToCommentResponce(comment);
 
             if(req!=null && req.getHeader("Authorization")!=null){
-                Optional<User> user = authenticatedUser.getCurrentUser(req);
-                CommentLike cmntLike = ifUserLikedComment(user.get().getId(),comment);
-                commentDto.setMyFeed(cmntLike.getType());
+                CommentLike cmntLike = ifUserLikedComment(user.getId(),comment);
+                if(cmntLike!=null)
+                    commentDto.setMyFeed(cmntLike.getType());
             }
 
             Map<Byte, Long> likeTypeCount = new HashMap<>();
