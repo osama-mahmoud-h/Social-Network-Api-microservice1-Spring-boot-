@@ -2,6 +2,7 @@ package com.example.server.controllers;
 
 import com.example.server.models.Post;
 import com.example.server.payload.request.PostRequestDto;
+import com.example.server.payload.response.PostResponceDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.PostService;
 import com.example.server.services.impl.KafkaServiceImp;
@@ -32,7 +33,7 @@ public class PostController {
 
     ) {
        // System.out.println("================================================================: "+images);
-        Post post = postService.savePost(request,images, video,file, text);
+        PostResponceDto post = postService.savePost(request,images, video,file, text);
 
         return ResponseHandler.generateResponse("post upload successfully",
                 HttpStatus.CREATED,

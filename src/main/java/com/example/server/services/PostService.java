@@ -2,7 +2,6 @@ package com.example.server.services;
 
 import com.example.server.models.PostLike;
 import com.example.server.models.Post;
-import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +12,11 @@ import java.util.*;
 
 @Service
 public interface PostService {
-    Post savePost(HttpServletRequest request,
-                  MultipartFile[] images,
-                  MultipartFile video,
-                  MultipartFile file,
-                  String text
+    PostResponceDto savePost(HttpServletRequest request,
+                             MultipartFile[] images,
+                             MultipartFile video,
+                             MultipartFile file,
+                             String text
     );
 
     @Transactional

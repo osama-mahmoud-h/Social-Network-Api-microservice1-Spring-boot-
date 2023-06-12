@@ -43,18 +43,18 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public Post savePost(HttpServletRequest request,
-                         MultipartFile[] images,
-                         MultipartFile video,
-                         MultipartFile file,
-                         String text
+    public PostResponceDto savePost(HttpServletRequest request,
+                                    MultipartFile[] images,
+                                    MultipartFile video,
+                                    MultipartFile file,
+                                    String text
     ){
         //System.out.println("================================================================: "
         //         +images.length+" image[0]: "+images[0].getOriginalFilename());
         String video_url = "uploads/";
         String file_url = "uploads/";
         String [] image_urls = new String[images!=null ? images.length : 0];
-        try {
+
             String randomString = String.valueOf(new Random().nextLong());
             if(video!=null && !video.isEmpty()){
                 if(!video.getContentType().startsWith("video")){
@@ -119,18 +119,18 @@ public class PostServiceImp implements PostService {
             newPost.setImages_url(image_urls);
             newPost.setFile_url(file!=null ? file_url : null);
 
-            postRepository.save(newPost);
+            System.out.println("herrrrrrrrrrrrrrrrrrrrrrrrrrre"+newPost);
+            newPost = postRepository.save(newPost);
 
             // userRepository.save(currUser.get());
 
+        System.out.println("post id: "+newPost);
             //publish post as message for kafka
             PostResponceDto postResponceDto = mapPostToPostResponce(newPost);
             //  kafkaServiceImp.publishMessage(postResponceDto);
 
-            return newPost;
-        }catch (Exception exception){
-            throw new CustomErrorException(HttpStatus.BAD_REQUEST,exception.getMessage());
-        }
+            return postResponceDto;
+
     }
 
     @Override
@@ -280,7 +280,10 @@ public class PostServiceImp implements PostService {
         postResponceDto.setImages_url(post.getImages_url());
         postResponceDto.setVedio_url(post.getVedio_url());
         postResponceDto.setFile_url(post.getFile_url());
+
+        if(post.getComments()!=null)
         postResponceDto.setComments_count((long) post.getComments().size());
+
         //postResponceDto.setLikes(post.getLikesCount());
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());
