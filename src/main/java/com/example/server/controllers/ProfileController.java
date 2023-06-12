@@ -18,6 +18,8 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/profile")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
+
 public class ProfileController {
 
     private final ProfileService profileService;

@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/file")
+@CrossOrigin(origins = "*", maxAge = 3600)
+
 public class FilesController {
     private final FilesStorageService filesStorageService;
 

@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comment/replay")
+@CrossOrigin(origins = "*", maxAge = 3600)
+
 public class CommentReplayController {
     private final CommentsReplayService commentsReplayService;
 

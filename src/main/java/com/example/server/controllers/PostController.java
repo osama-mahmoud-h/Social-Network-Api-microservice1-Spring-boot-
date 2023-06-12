@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 
 @RequestMapping("/api/post")
+@CrossOrigin(origins = "*", maxAge = 3600)
+
 public class PostController {
     private final PostService postService;
     private final KafkaServiceImp kafkaServiceImp;

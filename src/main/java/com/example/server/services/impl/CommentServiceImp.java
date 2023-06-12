@@ -45,12 +45,16 @@ public class CommentServiceImp implements CommentService {
         comment.setAuthor(currentUser);
         comment.setText(commentDto.getText());
 
+
         curPost.get().getComments().add(comment);
         postRepository.save(curPost.get());
+        Comment savedComment = commentRepository.save(comment);
+
+        CommentsResponseDto responseDto  = mapCommentToCommentResponce(comment);
 
         return ResponseHandler.generateResponse("comment created Succefully",
                 HttpStatus.CREATED,
-                commentDto);
+                savedComment);
     }
 
     private Comment getCommentById(Long commentId){
@@ -164,6 +168,7 @@ public class CommentServiceImp implements CommentService {
         CommentsResponseDto commentDto = new CommentsResponseDto();
         commentDto.setId(comment.getId());
         commentDto.setText(comment.getText());
+        commentDto.setTimestamp(comment.getTimestamp());
 
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(comment.getAuthor());

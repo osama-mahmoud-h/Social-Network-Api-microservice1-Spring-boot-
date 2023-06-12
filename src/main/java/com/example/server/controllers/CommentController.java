@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")
+@CrossOrigin(origins = "*", maxAge = 3600)
+
 public class CommentController {
     private final CommentService commentService;
 
