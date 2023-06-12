@@ -130,7 +130,10 @@ public class CommentServiceImp implements CommentService {
         Set<Comment> comments = post.get().getComments();
 
         List<CommentsResponseDto> allcomments = new ArrayList<>();
-        User user = userService.getCurrentAuthenticatedUser(req);
+
+        User user = null ;
+        if(req!=null && req.getHeader("Authorization")!=null)
+            user = userService.getCurrentAuthenticatedUser(req);
 
         for (Comment comment:comments) {
             CommentsResponseDto commentDto = mapCommentToCommentResponce(comment);
@@ -141,11 +144,14 @@ public class CommentServiceImp implements CommentService {
                     commentDto.setMyFeed(cmntLike.getType());
             }
 
+           // System.out.println("herrrrrrrrrrrrrrrrrrr 1");
             Map<Byte, Long> likeTypeCount = new HashMap<>();
             for (CommentLike like_ : comment.getLikedComments()) {
                 likeTypeCount.put(like_.getType(),
                         likeTypeCount.getOrDefault(like_.getType(), 0L) + 1L);
             }
+          //  System.out.println("herrrrrrrrrrrrrrrrrrr 2");
+
             commentDto.setFeeds(likeTypeCount);
 
             allcomments.add(commentDto);
