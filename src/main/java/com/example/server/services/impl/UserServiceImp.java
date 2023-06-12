@@ -70,7 +70,7 @@ public class UserServiceImp implements UserService {
         UserMapper userDto = new UserMapperImpl();
 
         UserResponceDto userResponceDto = userDto.mapUserToUserResponseDto(user.get());
-        userResponceDto.setJwt(jwt);
+        userResponceDto.setAccessToken(jwt);
 
         return userResponceDto;
     }
