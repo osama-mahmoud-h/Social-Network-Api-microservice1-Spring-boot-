@@ -1,14 +1,16 @@
 package com.example.server.services.impl;
 
 import com.example.server.exceptions.CustomErrorException;
+import com.example.server.mappers.UserMapper;
+import com.example.server.mappers.impl.UserMapperImpl;
 import com.example.server.models.ERole;
 import com.example.server.models.Profile;
 import com.example.server.models.Role;
 import com.example.server.models.User;
 import com.example.server.payload.request.LoginRequest;
 import com.example.server.payload.request.SignupRequest;
-import com.example.server.payload.response.JwtResponse;
 import com.example.server.payload.response.ResponseHandler;
+import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.ProfileRepository;
 import com.example.server.repository.RoleRepository;
 import com.example.server.repository.UserRepository;
@@ -47,10 +49,10 @@ public class UserServiceImp implements UserService {
     private final JwtUtils jwtUtils;
     private final ProfileRepository profileRepository;
     private final AuthenticatedUser authenticatedUser;
-
+    private final UserMapper userMapper;
 
     @Override
-    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest loginRequest){
+    public UserResponceDto login(@Valid @RequestBody LoginRequest loginRequest){
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -63,11 +65,14 @@ public class UserServiceImp implements UserService {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles));
+        Optional<User> user = userRepository.findUserById(userDetails.getId());
+
+        UserMapper userDto = new UserMapperImpl();
+
+        UserResponceDto userResponceDto = userDto.mapUserToUserResponseDto(user.get());
+        userResponceDto.setJwt(jwt);
+
+        return userResponceDto;
     }
 
     @Override

@@ -3,9 +3,11 @@ package com.example.server.controllers;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.UserService;
 import com.example.server.security.jwt.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +31,9 @@ public class AuthController {
 
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-    return userService.login(loginRequest);
+    return ResponseHandler.generateResponse("user loge in successfully",
+            HttpStatus.OK,
+            userService.login(loginRequest));
   }
 
   @PostMapping("/signup")

@@ -3,6 +3,7 @@ package com.example.server.services;
 import com.example.server.models.*;
 import com.example.server.payload.request.LoginRequest;
 import com.example.server.payload.request.SignupRequest;
+import com.example.server.payload.response.UserResponceDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +14,7 @@ import javax.validation.Valid;
 @Service
 public interface UserService {
 
-    ResponseEntity<Object> login(@Valid @RequestBody LoginRequest loginRequest);
+    UserResponceDto login(@Valid @RequestBody LoginRequest loginRequest);
 
     ResponseEntity<Object> register(@Valid @RequestBody SignupRequest signUpRequest);
 

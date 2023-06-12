@@ -14,4 +14,5 @@ public class UserResponceDto {
     private String username;
     private String email;
     private String image_url;
+    private String jwt;
 }
