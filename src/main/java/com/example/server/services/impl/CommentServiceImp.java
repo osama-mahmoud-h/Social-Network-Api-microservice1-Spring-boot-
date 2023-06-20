@@ -160,6 +160,7 @@ public class CommentServiceImp implements CommentService {
 
             allcomments.add(commentDto);
         }
+        Collections.reverse(allcomments);
         return allcomments;
     }
 
