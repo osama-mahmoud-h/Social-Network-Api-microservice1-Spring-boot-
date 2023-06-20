@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 @ToString
 public class PostResponceDto {
     private Long id;
+    private Date timestamp;
     private String text;
     private String[] images_url;
     private String vedio_url;
@@ -22,6 +24,7 @@ public class PostResponceDto {
     private UserResponceDto author;
     private byte myFeed;
     private Map<Byte,Long> feeds;
+
 }
 
 

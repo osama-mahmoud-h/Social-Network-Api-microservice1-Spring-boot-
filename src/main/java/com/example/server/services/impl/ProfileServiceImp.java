@@ -7,7 +7,6 @@ import com.example.server.payload.request.profile.EducationRequestDto;
 import com.example.server.payload.request.profile.SocialRequestDto;
 import com.example.server.payload.response.CommentsResponseDto;
 import com.example.server.payload.response.PostResponceDto;
-import com.example.server.payload.response.profile.EducationResponseDto;
 import com.example.server.payload.response.profile.ProfileResponseDto;
 import com.example.server.payload.response.UserResponceDto;
 import com.example.server.repository.FollowerRepository;
@@ -121,14 +120,12 @@ public class ProfileServiceImp implements ProfileService {
         Optional<User> curUser = authenticatedUser.getCurrentUser(httpServletRequest);
         Profile profile = getProfile(curUser.get().getId());
 
-        System.out.println("before------------------");
         if(profile.getSkills()==null){
             Set<String> newSkills = new HashSet<>();
             profile.setSkills(newSkills);
         }
         profile.getSkills().add(newSkill);
 
-        System.out.println("afterrrrrrrtrrrrrrrrrrrrrrr");
         profileRepository.save(profile);
 
         return true;
@@ -147,9 +144,9 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
-    public List<UserResponceDto> getFollowers(HttpServletRequest servletRequest){
-        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
-        Set<Follower> followers = curUser.get().getFollowers();
+    public List<UserResponceDto> getFollowers(Long userId ){
+        User curUser = userService.getUserById(userId);
+        Set<Follower> followers = curUser.getFollowers();
         List<UserResponceDto> followerUsers = new ArrayList<>();
 
         for (Follower follower : followers) {
@@ -163,9 +160,9 @@ public class ProfileServiceImp implements ProfileService {
 
 
     @Override
-    public List<UserResponceDto> getFollowing(HttpServletRequest servletRequest){
-        Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);
-        Set<Follower> following = curUser.get().getFollowing();
+    public List<UserResponceDto> getFollowing(Long userId){
+        User curUser = userService.getUserById(userId);
+        Set<Follower> following = curUser.getFollowing();
         List<UserResponceDto> followedUsers = new ArrayList<>();
 
         for (Follower follower : following) {

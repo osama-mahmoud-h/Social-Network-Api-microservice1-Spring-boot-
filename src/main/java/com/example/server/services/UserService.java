@@ -21,4 +21,6 @@ public interface UserService {
     User getUser(Long userId);
 
     User getCurrentAuthenticatedUser(HttpServletRequest req);
+
+    User getUserById(Long userId);
 }

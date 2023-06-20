@@ -34,9 +34,9 @@ public interface ProfileService {
 
     List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest);
 
-     List<UserResponceDto> getFollowers(HttpServletRequest servletRequest);
+    List<UserResponceDto> getFollowers(Long userId);
 
-    List<UserResponceDto> getFollowing(HttpServletRequest servletRequest);
+    List<UserResponceDto> getFollowing(Long userId);
 
     String follow(HttpServletRequest servletRequest, Long user_id);
 

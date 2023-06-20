@@ -107,19 +107,19 @@ public class ProfileController {
         );
     }
 
-    @GetMapping("/followers/get")
-    public ResponseEntity<?> getFollowers(HttpServletRequest servletRequest){
+    @GetMapping("/followers/get/{user_id}")
+    public ResponseEntity<?> getFollowers(Long userId){
         return ResponseHandler.generateResponse("followers get successfully",
                 HttpStatus.OK,
-                profileService.getFollowers(servletRequest));
+                profileService.getFollowers(userId));
 
     }
 
-    @GetMapping("/following/get")
-    public ResponseEntity<?> getFollowing(HttpServletRequest servletRequest){
+    @GetMapping("/following/get/{user_id}")
+    public ResponseEntity<?> getFollowing(Long userId){
         return ResponseHandler.generateResponse("following get successfully",
                 HttpStatus.OK,
-                profileService.getFollowing(servletRequest));
+                profileService.getFollowing(userId));
 
     }
 

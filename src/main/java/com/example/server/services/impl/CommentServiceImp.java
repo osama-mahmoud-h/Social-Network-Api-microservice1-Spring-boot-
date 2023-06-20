@@ -35,7 +35,7 @@ public class CommentServiceImp implements CommentService {
     ){
         User currentUser = userService.getCurrentAuthenticatedUser(request);
         //Optional<User> currentUser = authenticatedUser.getCurrentUser(request);
-        Optional<Post> curPost = postRepository.findById(commentDto.getPost_id());
+        Optional<Post> curPost = postRepository.findById((long)commentDto.getPost_id());
 
         if(curPost.isEmpty()){
             throw new CustomErrorException(HttpStatus.NOT_FOUND,"post not found");

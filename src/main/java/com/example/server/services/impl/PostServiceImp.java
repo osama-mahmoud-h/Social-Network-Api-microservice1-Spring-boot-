@@ -119,7 +119,6 @@ public class PostServiceImp implements PostService {
             newPost.setImages_url(image_urls);
             newPost.setFile_url(file!=null ? file_url : null);
 
-            System.out.println("herrrrrrrrrrrrrrrrrrrrrrrrrrre"+newPost);
             newPost = postRepository.save(newPost);
 
             // userRepository.save(currUser.get());
@@ -228,6 +227,7 @@ public class PostServiceImp implements PostService {
 
             allposts.add(postDto);
         }
+        Collections.reverse(allposts);
         return allposts;
     }
 
@@ -276,6 +276,7 @@ public class PostServiceImp implements PostService {
         //map post to postDto
         PostResponceDto  postResponceDto = new PostResponceDto();
         postResponceDto.setId(post.getId());
+        postResponceDto.setTimestamp(post.getTimestamp());
         postResponceDto.setText(post.getText());
         postResponceDto.setImages_url(post.getImages_url());
         postResponceDto.setVedio_url(post.getVedio_url());
@@ -298,6 +299,7 @@ public class PostServiceImp implements PostService {
         CommentsResponseDto commentDto = new CommentsResponseDto();
         commentDto.setId(comment.getId());
         commentDto.setText(comment.getText());
+
 
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(comment.getAuthor());

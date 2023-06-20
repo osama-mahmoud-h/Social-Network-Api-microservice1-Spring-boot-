@@ -124,5 +124,14 @@ public class UserServiceImp implements UserService {
         return user.get();
     }
 
+    @Override
+    public User getUserById(Long userId) {
+        Optional<User> user = userRepository.findUserById(userId);
+        if(user.isEmpty()){
+            throw new CustomErrorException(HttpStatus.NOT_FOUND,"User not found!");
+        }
+        return user.get();
+    }
+
 
 }
