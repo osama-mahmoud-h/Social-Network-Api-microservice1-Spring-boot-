@@ -2,9 +2,11 @@ package com.example.server.services.impl;
 
 
 import com.example.server.exceptions.CustomErrorException;
+import com.example.server.mappers.UserMapper;
 import com.example.server.models.Comment;
 import com.example.server.models.CommentReplay;
 import com.example.server.models.User;
+import com.example.server.payload.response.CommentReplayDto;
 import com.example.server.repository.CommentRepository;
 import com.example.server.repository.CommentsReplayRepository;
 import com.example.server.security.jwt.AuthenticatedUser;
@@ -17,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +29,7 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     private final CommentRepository commentRepository;
     private final AuthenticatedUser authenticatedUser;
     private final CommentsReplayRepository commentsReplayRepository;
-
+    private final UserMapper userMapper;
     @Override
     public CommentReplay replayComment(HttpServletRequest request, Long commentId, String text){
         Pair<Comment,User> commentUserPair = afterCheckUserAuthorizationOnComment(request,commentId);
@@ -48,6 +52,19 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     }
 
     @Override
+    public List<CommentReplayDto> getAllRepliesOnComment(Long commentId){
+        List<CommentReplayDto> commentsReplayDtos;
+
+        commentsReplayDtos = commentsReplayRepository
+                .findAll()
+                .stream()
+                .map(replay -> mapCommentReplayToReplayDto(replay))
+                .collect(Collectors.toList());
+
+        return commentsReplayDtos;
+    }
+
+    @Override
     public CommentReplay updateReplayOnComment(HttpServletRequest request ,Long replayId , String text ){
 
         Pair<CommentReplay,User> replayUserPair = afterCheckUserAuthorizationOnReplay(request,replayId);
@@ -58,9 +75,6 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
 
         return replayUserPair.getFirst();
     }
-
-
-
 
     private Comment getCommentById(Long commentId){
         Optional<Comment> comment =commentRepository.findById(commentId);
@@ -99,6 +113,17 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
         }
         return new Pair<>(replay,author.get());
     }
+
+    private CommentReplayDto mapCommentReplayToReplayDto(CommentReplay replay){
+        CommentReplayDto replayDto = new CommentReplayDto();
+        replayDto.setId(replay.getId());
+        replayDto.setText(replay.getText());
+        replayDto.setAuthor(userMapper.mapUserToUserResponseDto(replay.getAuthor()));
+        replayDto.setTimestamp(replay.getTimestamp());
+
+        return replayDto;
+    }
+
 }
 
 @Data

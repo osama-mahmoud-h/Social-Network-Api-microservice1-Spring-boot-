@@ -50,13 +50,12 @@ public class CommentReplayController {
         );
     }
 
-    @GetMapping("/get/all")
-    public ResponseEntity<?> allReplayOnComment(HttpServletRequest servletRequest,
-                                                   @PathVariable("comment_id") Long commentId
+    @GetMapping("/get/all/{comment_id}")
+    public ResponseEntity<?> allReplayOnComment(@PathVariable("comment_id") Long commentId
     ){
-        return ResponseHandler.generateResponse("replay deleted successfully",
+        return ResponseHandler.generateResponse("get all replies on comment successfully",
                 HttpStatus.OK,
-                commentsReplayService.deleteReplayOnComment(servletRequest,commentId)
+                commentsReplayService.getAllRepliesOnComment(commentId)
         );
     }
 
