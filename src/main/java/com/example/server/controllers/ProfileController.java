@@ -123,8 +123,9 @@ public class ProfileController {
 
     }
 
-    @GetMapping("/posts/all")
-    public ResponseEntity<?>getPosts(HttpServletRequest servletRequest,Long userId){
+    @GetMapping("/posts/all/{user_id}")
+    public ResponseEntity<?>getPosts(HttpServletRequest servletRequest,
+                                     @PathVariable("user_id") Long userId){
         return ResponseHandler.generateResponse("posts get successfully",
                 HttpStatus.OK,
                 profileService.allPosts(servletRequest,userId));

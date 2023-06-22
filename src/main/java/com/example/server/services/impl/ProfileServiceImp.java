@@ -50,7 +50,7 @@ public class ProfileServiceImp implements ProfileService {
             String randomString = String.valueOf(Math.random());
             image_url +=  randomString+image.getOriginalFilename();
             //upload image to server
-            filesStorageService.save(image,randomString);
+            filesStorageService.save(image,randomString+image.getOriginalFilename());
 
             Profile profile = getProfile(user.get().getId());
             profile.setImage_url(image_url);
@@ -75,7 +75,7 @@ public class ProfileServiceImp implements ProfileService {
             String randomString = String.valueOf(Math.random());
             image_url +=  randomString+image.getOriginalFilename();
             //upload image to server
-            filesStorageService.save(image,randomString);
+            filesStorageService.save(image,randomString+image.getOriginalFilename());
 
             Profile profile = getProfile(user.get().getId());
             profile.setCoverImageUrl(image_url);
@@ -283,6 +283,8 @@ public class ProfileServiceImp implements ProfileService {
 
             allPosts.add(postDto);
         }
+
+        Collections.reverse(allPosts);
         return allPosts;
     }
 
@@ -357,6 +359,7 @@ public class ProfileServiceImp implements ProfileService {
         postResponceDto.setImages_url(post.getImages_url());
         postResponceDto.setVedio_url(post.getVedio_url());
         postResponceDto.setFile_url(post.getFile_url());
+        postResponceDto.setTimestamp(post.getTimestamp());
       //  postResponceDto.setLikes(post.getLikesCount());
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());
