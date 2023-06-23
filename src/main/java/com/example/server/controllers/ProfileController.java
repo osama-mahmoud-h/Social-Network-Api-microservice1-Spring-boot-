@@ -108,7 +108,7 @@ public class ProfileController {
     }
 
     @GetMapping("/followers/get/{user_id}")
-    public ResponseEntity<?> getFollowers(Long userId){
+    public ResponseEntity<?> getFollowers(@PathVariable("user_id") Long userId){
         return ResponseHandler.generateResponse("followers get successfully",
                 HttpStatus.OK,
                 profileService.getFollowers(userId));
@@ -116,7 +116,7 @@ public class ProfileController {
     }
 
     @GetMapping("/following/get/{user_id}")
-    public ResponseEntity<?> getFollowing(Long userId){
+    public ResponseEntity<?> getFollowing(@PathVariable("user_id") Long userId){
         return ResponseHandler.generateResponse("following get successfully",
                 HttpStatus.OK,
                 profileService.getFollowing(userId));

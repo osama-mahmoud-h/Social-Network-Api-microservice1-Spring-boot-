@@ -11,6 +11,7 @@ import com.example.server.repository.CommentRepository;
 import com.example.server.repository.CommentsReplayRepository;
 import com.example.server.security.jwt.AuthenticatedUser;
 import com.example.server.services.CommentsReplayService;
+import com.example.server.services.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +31,17 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     private final AuthenticatedUser authenticatedUser;
     private final CommentsReplayRepository commentsReplayRepository;
     private final UserMapper userMapper;
+    private final UserService userService;
+
     @Override
     public CommentReplay replayComment(HttpServletRequest request, Long commentId, String text){
-        Pair<Comment,User> commentUserPair = afterCheckUserAuthorizationOnComment(request,commentId);
+        //Pair<Comment,User> commentUserPair = afterCheckUserAuthorizationOnComment(request,commentId);
+        Comment comment = getCommentById(commentId);
+        User user = userService.getCurrentAuthenticatedUser(request);
 
         CommentReplay commentReplay = new CommentReplay();
-        commentReplay.setComment(commentUserPair.getFirst());
-        commentReplay.setAuthor(commentUserPair.getSecond());
+        commentReplay.setComment(comment);
+        commentReplay.setAuthor(user);
         commentReplay.setText(text);
         commentsReplayRepository.save(commentReplay);
 

@@ -360,6 +360,10 @@ public class ProfileServiceImp implements ProfileService {
         postResponceDto.setVedio_url(post.getVedio_url());
         postResponceDto.setFile_url(post.getFile_url());
         postResponceDto.setTimestamp(post.getTimestamp());
+
+        if(post.getComments()!=null){
+            postResponceDto.setComments_count((long) post.getComments().size());
+        }
       //  postResponceDto.setLikes(post.getLikesCount());
         //create author dto
         UserResponceDto authorDto = mapUserToUserResponce(post.getAuthor());
