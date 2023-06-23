@@ -1,6 +1,7 @@
 package com.example.server.controllers;
 
 
+import com.example.server.payload.request.CommentReplayReqDto;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.CommentsReplayService;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,18 @@ public class CommentReplayController {
     @PostMapping("/write/{comment_id}")
     public ResponseEntity<?> replayComment(HttpServletRequest servletRequest,
                                            @PathVariable("comment_id") Long commentId ,
-                                           String text
+                                           @RequestBody CommentReplayReqDto text
     ){
         return ResponseHandler.generateResponse("replay done",
                 HttpStatus.OK,
-                commentsReplayService.replayComment(servletRequest,commentId,text)
+                commentsReplayService.replayComment(servletRequest, commentId,text)
         );
     }
 
     @PutMapping("/update/{comment_replay_id}")
     public ResponseEntity<?> updateReplayOnComment(HttpServletRequest servletRequest,
                                            @PathVariable("comment_replay_id") Long commentReplayId ,
-                                           String text
+                                                   @RequestBody CommentReplayReqDto text
     ){
         return ResponseHandler.generateResponse("replay updated successfully",
                 HttpStatus.OK,

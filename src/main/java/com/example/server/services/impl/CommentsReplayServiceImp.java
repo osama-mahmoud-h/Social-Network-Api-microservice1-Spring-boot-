@@ -6,6 +6,7 @@ import com.example.server.mappers.UserMapper;
 import com.example.server.models.Comment;
 import com.example.server.models.CommentReplay;
 import com.example.server.models.User;
+import com.example.server.payload.request.CommentReplayReqDto;
 import com.example.server.payload.response.CommentReplayDto;
 import com.example.server.repository.CommentRepository;
 import com.example.server.repository.CommentsReplayRepository;
@@ -34,7 +35,7 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     private final UserService userService;
 
     @Override
-    public CommentReplay replayComment(HttpServletRequest request, Long commentId, String text){
+    public CommentReplay replayComment(HttpServletRequest request, Long commentId, CommentReplayReqDto text){
         //Pair<Comment,User> commentUserPair = afterCheckUserAuthorizationOnComment(request,commentId);
         Comment comment = getCommentById(commentId);
         User user = userService.getCurrentAuthenticatedUser(request);
@@ -42,7 +43,7 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
         CommentReplay commentReplay = new CommentReplay();
         commentReplay.setComment(comment);
         commentReplay.setAuthor(user);
-        commentReplay.setText(text);
+        commentReplay.setText(text.getText());
         commentsReplayRepository.save(commentReplay);
 
         return commentReplay;
@@ -70,11 +71,11 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     }
 
     @Override
-    public CommentReplay updateReplayOnComment(HttpServletRequest request ,Long replayId , String text ){
+    public CommentReplay updateReplayOnComment(HttpServletRequest request ,Long replayId , CommentReplayReqDto text ){
 
         Pair<CommentReplay,User> replayUserPair = afterCheckUserAuthorizationOnReplay(request,replayId);
 
-        replayUserPair.getFirst().setText(text);
+        replayUserPair.getFirst().setText(text.getText());
 
         commentsReplayRepository.save(replayUserPair.getFirst());
 
