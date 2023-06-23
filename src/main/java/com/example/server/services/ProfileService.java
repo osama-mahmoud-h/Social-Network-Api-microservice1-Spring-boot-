@@ -16,9 +16,9 @@ import java.util.List;
 @Service
 public interface ProfileService {
 
-    boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image);
+    String uploadImage(HttpServletRequest httpServletRequest, MultipartFile image);
 
-    boolean uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image);
+    String uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image);
 
     boolean updateBio(HttpServletRequest httpServletRequest, String bio);
 

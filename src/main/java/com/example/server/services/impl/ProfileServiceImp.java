@@ -1,6 +1,7 @@
 package com.example.server.services.impl;
 
 import com.example.server.exceptions.CustomErrorException;
+import com.example.server.mappers.UserMapper;
 import com.example.server.models.*;
 import com.example.server.payload.request.profile.ContactInfoDto;
 import com.example.server.payload.request.profile.EducationRequestDto;
@@ -36,9 +37,10 @@ public class ProfileServiceImp implements ProfileService {
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
     private final PostService postService;
+    private final UserMapper userMapper;
 
     @Override
-    public boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image) {
+    public String uploadImage(HttpServletRequest httpServletRequest, MultipartFile image) {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
@@ -56,14 +58,14 @@ public class ProfileServiceImp implements ProfileService {
             profile.setImage_url(image_url);
 
             profileRepository.save(profile);
-            return true;
+            return image_url;
         }
 
-        return false;
+        throw new CustomErrorException(HttpStatus.BAD_REQUEST,"empty image");
     }
 
     @Override
-    public boolean uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image) {
+    public String uploadCoverImage(HttpServletRequest httpServletRequest, MultipartFile image) {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
@@ -81,10 +83,10 @@ public class ProfileServiceImp implements ProfileService {
             profile.setCoverImageUrl(image_url);
 
             profileRepository.save(profile);
-            return true;
+            return image_url;
         }
 
-        return false;
+        throw new CustomErrorException(HttpStatus.BAD_REQUEST,"empty image");
     }
 
     @Override
