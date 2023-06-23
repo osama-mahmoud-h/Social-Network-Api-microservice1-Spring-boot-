@@ -28,11 +28,11 @@ public class ProfileController {
     public ResponseEntity<?> uploadImage(HttpServletRequest httpServletRequest,
                                          @RequestParam("image")MultipartFile image
     ){
-        boolean imageUloaded = profileService.uploadImage(httpServletRequest,image);
+        String imageUloaded = profileService.uploadImage(httpServletRequest,image);
         return ResponseHandler.generateResponse(
-                imageUloaded ? "image Uploaded successfully" : "error while uploading image",
-                imageUloaded ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
-                imageUloaded ? true : false
+                imageUloaded!=null ? "image Uploaded successfully" : "error while uploading image",
+                imageUloaded!=null ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+                imageUloaded
         );
     }
 
@@ -40,11 +40,11 @@ public class ProfileController {
     public ResponseEntity<?> uploadCoverImage(HttpServletRequest httpServletRequest,
                                          @RequestParam("coverimage")MultipartFile image
     ){
-        boolean imageUloaded = profileService.uploadCoverImage(httpServletRequest,image);
+        String imageUloaded = profileService.uploadCoverImage(httpServletRequest,image);
         return ResponseHandler.generateResponse(
-                imageUloaded ? "cover image Uploaded successfully" : "error while uploading cover image",
-                imageUloaded ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
-                imageUloaded ? true : false
+                imageUloaded !=null ? "cover image Uploaded successfully" : "error while uploading cover image",
+                imageUloaded !=null ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+                imageUloaded
         );
     }
 
