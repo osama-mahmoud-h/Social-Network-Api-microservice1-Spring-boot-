@@ -62,7 +62,7 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
         List<CommentReplayDto> commentsReplayDtos;
 
         commentsReplayDtos = commentsReplayRepository
-                .findAll()
+                .findById(commentId)
                 .stream()
                 .map(replay -> mapCommentReplayToReplayDto(replay))
                 .collect(Collectors.toList());
