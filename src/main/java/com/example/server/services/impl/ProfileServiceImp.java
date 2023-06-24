@@ -50,9 +50,10 @@ public class ProfileServiceImp implements ProfileService {
                 throw new CustomErrorException("not valid image");
             }
             String randomString = String.valueOf(Math.random());
-            image_url +=  randomString+image.getOriginalFilename();
+            image_url +=  randomString+image.getOriginalFilename()
+                                            .replaceAll(" ","").replaceAll("[()]", "");
             //upload image to server
-            filesStorageService.save(image,randomString+image.getOriginalFilename());
+            filesStorageService.save(image,image_url);
 
             Profile profile = getProfile(user.get().getId());
             profile.setImage_url(image_url);
@@ -75,9 +76,10 @@ public class ProfileServiceImp implements ProfileService {
                 throw new CustomErrorException("not valid image");
             }
             String randomString = String.valueOf(Math.random());
-            image_url +=  randomString+image.getOriginalFilename();
+            image_url +=  randomString+image.getOriginalFilename()
+                                             .replaceAll(" ","").replaceAll("[()]", "");
             //upload image to server
-            filesStorageService.save(image,randomString+image.getOriginalFilename());
+            filesStorageService.save(image,image_url);
 
             Profile profile = getProfile(user.get().getId());
             profile.setCoverImageUrl(image_url);
