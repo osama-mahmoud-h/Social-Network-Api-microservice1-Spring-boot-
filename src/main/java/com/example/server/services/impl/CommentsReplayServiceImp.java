@@ -61,8 +61,9 @@ public class CommentsReplayServiceImp implements CommentsReplayService {
     public List<CommentReplayDto> getAllRepliesOnComment(Long commentId){
         List<CommentReplayDto> commentsReplayDtos;
 
-        commentsReplayDtos = commentsReplayRepository
-                .findById(commentId)
+        commentsReplayDtos =commentRepository.findById(commentId)
+                .get()
+                .getCommentReplies()
                 .stream()
                 .map(replay -> mapCommentReplayToReplayDto(replay))
                 .collect(Collectors.toList());
