@@ -38,6 +38,8 @@ public interface ProfileService {
 
     List<UserResponceDto> getFollowing(Long userId);
 
+    List<UserResponceDto> getFollowersAndFollowing(Long userId);
+
     String follow(HttpServletRequest servletRequest, Long user_id);
 
     boolean isFollowing(Long followerId, Long followedId);

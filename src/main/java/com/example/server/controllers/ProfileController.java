@@ -122,6 +122,13 @@ public class ProfileController {
                 profileService.getFollowing(userId));
 
     }
+    @GetMapping("/following-following/get/{user_id}")
+    public ResponseEntity<?> getFollowersAndFollowing(@PathVariable("user_id") Long userId){
+        return ResponseHandler.generateResponse("followers-following get successfully",
+                HttpStatus.OK,
+                profileService.getFollowersAndFollowing(userId));
+
+    }
 
     @GetMapping("/posts/all/{user_id}")
     public ResponseEntity<?>getPosts(HttpServletRequest servletRequest,
@@ -130,6 +137,9 @@ public class ProfileController {
                 HttpStatus.OK,
                 profileService.allPosts(servletRequest,userId));
     }
+
+
+
 
     /**
      * phone controllers
@@ -145,7 +155,6 @@ public class ProfileController {
         );
     }
 
-
     /**
      * social linkes
      * */
@@ -156,6 +165,7 @@ public class ProfileController {
                 profileService.addSocialLink(req,socialDto)
         );
     }
+
     @PutMapping("/social/update")
     public ResponseEntity<?> updateSocial(HttpServletRequest req,@RequestBody SocialRequestDto socialDto){
         return ResponseHandler.generateResponse("social-link updated successfully",
@@ -163,6 +173,7 @@ public class ProfileController {
                 profileService.updateSocialLink(req,socialDto)
         );
     }
+
     @DeleteMapping("/social/delete/{social_name}")
     public ResponseEntity<?> deleteSocial(HttpServletRequest req,@PathVariable("social_name") String social_name){
         return ResponseHandler.generateResponse("social-link deleted successfully",

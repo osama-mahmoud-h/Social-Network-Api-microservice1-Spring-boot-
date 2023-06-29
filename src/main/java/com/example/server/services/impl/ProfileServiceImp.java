@@ -177,6 +177,17 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
+    public List<UserResponceDto> getFollowersAndFollowing(Long userId){
+        List<UserResponceDto>all = new ArrayList<>();
+        List<UserResponceDto> followers = getFollowers(userId);
+        List<UserResponceDto> following = getFollowing(userId);
+
+        all.addAll(followers);
+        all.addAll(following);
+        return all;
+    }
+
+    @Override
     @Transactional
     public String follow(HttpServletRequest servletRequest, Long user_id){
         Optional<User> curUser = authenticatedUser.getCurrentUser(servletRequest);

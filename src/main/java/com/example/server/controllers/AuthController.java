@@ -3,6 +3,8 @@ package com.example.server.controllers;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.example.server.mappers.UserMapper;
+import com.example.server.models.User;
 import com.example.server.payload.response.ResponseHandler;
 import com.example.server.services.UserService;
 import com.example.server.security.jwt.AuthenticatedUser;
@@ -22,6 +24,7 @@ public class AuthController {
 
   private final UserService userService;
   private final AuthenticatedUser authenticatedUser;
+  private final UserMapper userMapper;
 
   @GetMapping("/test")
   public ResponseEntity<?> test(HttpServletRequest request) {
@@ -39,5 +42,15 @@ public class AuthController {
   @PostMapping("/signup")
   public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
     return userService.register(signUpRequest);
+  }
+
+  @PostMapping("/isAuthenticated")
+  public ResponseEntity<?> isAuthenticated(HttpServletRequest request) {
+    User user = userService.getCurrentAuthenticatedUser(request);
+
+    return ResponseHandler.generateResponse("user loge in successfully",
+            HttpStatus.OK,
+            userMapper.mapUserToUserResponseDto(user));
+    //  throw new CustomErrorException( HttpStatus.BAD_REQUEST,"Email is already in use!");
   }
 }
