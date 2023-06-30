@@ -177,8 +177,8 @@ public class ProfileServiceImp implements ProfileService {
     }
 
     @Override
-    public List<UserResponceDto> getFollowersAndFollowing(Long userId){
-        List<UserResponceDto>all = new ArrayList<>();
+    public Set<UserResponceDto> getFollowersAndFollowing(Long userId){
+        Set<UserResponceDto>all = new HashSet<>();
         List<UserResponceDto> followers = getFollowers(userId);
         List<UserResponceDto> following = getFollowing(userId);
 
@@ -195,6 +195,9 @@ public class ProfileServiceImp implements ProfileService {
 
         if(followed.isEmpty()){
             throw new CustomErrorException("user not found");
+        }
+        if(curUser.get().getId().equals(followed.get().getId())){
+            throw new CustomErrorException("you cannot follow yourself");
         }
         String follow = "followed";
 

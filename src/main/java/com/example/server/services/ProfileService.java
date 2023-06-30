@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public interface ProfileService {
@@ -38,7 +39,7 @@ public interface ProfileService {
 
     List<UserResponceDto> getFollowing(Long userId);
 
-    List<UserResponceDto> getFollowersAndFollowing(Long userId);
+    Set<UserResponceDto> getFollowersAndFollowing(Long userId);
 
     String follow(HttpServletRequest servletRequest, Long user_id);
 
