@@ -44,14 +44,22 @@ public class ProfileServiceImp implements ProfileService {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
-        String image_url = "uploads/";
+        String image_url = "uploads/images/";
         if(!image.isEmpty()){
             if(!image.getContentType().startsWith("image")){
                 throw new CustomErrorException("not valid image");
             }
-            String randomString = String.valueOf(Math.random());
-            image_url +=  randomString+image.getOriginalFilename()
-                                            .replaceAll(" ","").replaceAll("[()]", "");
+            UUID randomUUID = UUID.randomUUID();
+            String randomString = randomUUID.toString();
+
+            Optional<String> extension = getExtensionByStringHandling(image.getOriginalFilename());
+
+            if(extension.isEmpty()){
+                throw new CustomErrorException("not valid image");
+            }
+
+            image_url +=  randomString+"."+extension.get();
+
             //upload image to server
             filesStorageService.save(image,image_url);
 
@@ -70,14 +78,23 @@ public class ProfileServiceImp implements ProfileService {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
-        String image_url = "uploads/";
+        String image_url = "uploads/images/";
         if(!image.isEmpty()){
             if(!image.getContentType().startsWith("image")){
                 throw new CustomErrorException("not valid image");
             }
-            String randomString = String.valueOf(Math.random());
-            image_url +=  randomString+image.getOriginalFilename()
-                                             .replaceAll(" ","").replaceAll("[()]", "");
+
+            UUID randomUUID = UUID.randomUUID();
+            String randomString = randomUUID.toString();
+
+            Optional<String> extension = getExtensionByStringHandling(image.getOriginalFilename());
+
+            if(extension.isEmpty()){
+                throw new CustomErrorException("not valid image");
+            }
+
+            image_url +=  randomString+"."+extension.get();
+
             //upload image to server
             filesStorageService.save(image,image_url);
 
@@ -417,6 +434,11 @@ public class ProfileServiceImp implements ProfileService {
         return authorDto;
     }
 
+    private Optional<String> getExtensionByStringHandling(String filename) {
+        return Optional.ofNullable(filename)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
 
 
 }

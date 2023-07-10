@@ -51,21 +51,24 @@ public class PostServiceImp implements PostService {
     ){
         //System.out.println("================================================================: "
         //         +images.length+" image[0]: "+images[0].getOriginalFilename());
-        String video_url = "uploads/";
-        String file_url = "uploads/";
+        String video_url = "uploads/videos/";
+        String file_url = "uploads/files/";
         String [] image_urls = new String[images!=null ? images.length : 0];
 
-            String randomString = String.valueOf(new Random().nextLong());
-            if(video!=null && !video.isEmpty()){
-                if(!video.getContentType().startsWith("video")){
-                    throw new CustomErrorException("not valid video");
-                }
-                video_url +=randomString+"_"+video.getOriginalFilename();
-                //upload video to server
-                filesStorageService.save(video,randomString+"_"+video.getOriginalFilename());
-            }
+        UUID randomUUID = UUID.randomUUID();
+        String randomString = randomUUID.toString();
 
-            if(images!=null && images.length>0){
+        if(video!=null && !video.isEmpty()){
+            if(!video.getContentType().startsWith("video")){
+                throw new CustomErrorException("not valid video");
+            }
+            Optional<String> extension = getExtensionByStringHandling(video.getOriginalFilename());
+            video_url +=randomString+"."+extension.get();
+            //upload video to server
+            filesStorageService.save(video,video_url);
+        }
+
+        if(images!=null && images.length>0){
                 for (int i = 0; i < Math.min(images.length,10); i++) { // max 10 elements
 
                     MultipartFile image = images[i];
@@ -76,16 +79,11 @@ public class PostServiceImp implements PostService {
                     if(!image.getContentType().startsWith("image")){
                         throw new CustomErrorException("not valid image");
                     }
-                    String extension = "";
-                    if (image != null && image.getOriginalFilename().lastIndexOf(".") > 0) {
-                        extension = image.getOriginalFilename().substring(image.getOriginalFilename().lastIndexOf(".") + 1);
-                        System.out.print("extension: " + extension+"  , ");
-                        System.out.println("extension: " + image.getContentType());
+                    Optional<String> extension = getExtensionByStringHandling(image.getOriginalFilename());
 
-                    }
-                    image_urls[i] = "uploads/"+randomString+"_"+image.getOriginalFilename();
+                    image_urls[i] = "uploads/images/"+randomString+"."+extension.get();
                     //upload image to server
-                    filesStorageService.save(image,randomString+"_"+image.getOriginalFilename());
+                    filesStorageService.save(image,image_urls[i]);
 
                 }
             }
@@ -95,9 +93,10 @@ public class PostServiceImp implements PostService {
                 if(!file.getContentType().startsWith("application")){
                     throw new CustomErrorException("not valid file");
                 }
-                file_url +=randomString+"_"+file.getOriginalFilename();
+                Optional<String> extension = getExtensionByStringHandling(video.getOriginalFilename());
+                file_url +=randomString+"."+extension.get();
                 //upload image to server
-                filesStorageService.save(file,randomString+"_"+file.getOriginalFilename());
+                filesStorageService.save(file,file_url);
             }
 
             if((text==null || text.trim().length()==0)
@@ -320,4 +319,11 @@ public class PostServiceImp implements PostService {
 
         return authorDto;
     }
+
+    private Optional<String> getExtensionByStringHandling(String filename) {
+        return Optional.ofNullable(filename)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+
 }
