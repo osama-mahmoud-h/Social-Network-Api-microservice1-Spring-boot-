@@ -44,22 +44,14 @@ public class ProfileServiceImp implements ProfileService {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
-        String image_url = "uploads/images/";
+        String image_url = "uploads/";
         if(!image.isEmpty()){
             if(!image.getContentType().startsWith("image")){
                 throw new CustomErrorException("not valid image");
             }
-            UUID randomUUID = UUID.randomUUID();
-            String randomString = randomUUID.toString();
-
-            Optional<String> extension = getExtensionByStringHandling(image.getOriginalFilename());
-
-            if(extension.isEmpty()){
-                throw new CustomErrorException("not valid image");
-            }
-
-            image_url +=  randomString+"."+extension.get();
-
+            String randomString = String.valueOf(Math.random());
+            image_url +=  randomString+image.getOriginalFilename()
+                                            .replaceAll(" ","").replaceAll("[()]", "");
             //upload image to server
             filesStorageService.save(image,image_url);
 
@@ -78,23 +70,14 @@ public class ProfileServiceImp implements ProfileService {
 
         Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequest);
 
-        String image_url = "uploads/images/";
+        String image_url = "uploads/";
         if(!image.isEmpty()){
             if(!image.getContentType().startsWith("image")){
                 throw new CustomErrorException("not valid image");
             }
-
-            UUID randomUUID = UUID.randomUUID();
-            String randomString = randomUUID.toString();
-
-            Optional<String> extension = getExtensionByStringHandling(image.getOriginalFilename());
-
-            if(extension.isEmpty()){
-                throw new CustomErrorException("not valid image");
-            }
-
-            image_url +=  randomString+"."+extension.get();
-
+            String randomString = String.valueOf(Math.random());
+            image_url +=  randomString+image.getOriginalFilename()
+                                             .replaceAll(" ","").replaceAll("[()]", "");
             //upload image to server
             filesStorageService.save(image,image_url);
 
@@ -296,9 +279,10 @@ public class ProfileServiceImp implements ProfileService {
     @Override
     public List<PostResponceDto> allPosts(HttpServletRequest req, Long user_id){
 
-        Optional<User> user = authenticatedUser.getCurrentUser(req);
+        //Optional<User> user = authenticatedUser.getCurrentUser(req);
        // getProfile(user.get().getId());
-        Set<Post>posts = user.get().getPosts();
+        User user = userService.getUser(user_id);
+        Set<Post>posts = user.getPosts();
 
         List<PostResponceDto> allPosts = new ArrayList<>();
         for (Post post : posts) {
@@ -434,11 +418,6 @@ public class ProfileServiceImp implements ProfileService {
         return authorDto;
     }
 
-    private Optional<String> getExtensionByStringHandling(String filename) {
-        return Optional.ofNullable(filename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
-    }
 
 
 }
