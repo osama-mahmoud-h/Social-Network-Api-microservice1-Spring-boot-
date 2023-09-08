@@ -96,7 +96,7 @@ class UserServiceImpTest {
                 return null;
             }
         };
-        */
+
         //when
         when(authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword()))).thenReturn();
@@ -132,7 +132,7 @@ class UserServiceImpTest {
         );
         //when
         //then
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(true);
+        when(userRepository.existsByEmail(email)).thenReturn(true);
         assertThatThrownBy(()->userService.register(signupRequest))
                 .isInstanceOf(CustomErrorException.class)
                 .hasMessageContaining("Email is already in use!");
