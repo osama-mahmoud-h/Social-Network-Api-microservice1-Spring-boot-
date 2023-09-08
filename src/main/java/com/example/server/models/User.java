@@ -107,6 +107,13 @@ public class User {
   public void addFollowing(Follower following){
     this.following.add(following);
   }
-
+  public void addPost(Post post)
+  {
+    posts.add(post);
+  }
+  public void removePost(Post post)
+  {
+    posts.remove(post);
+  }
 
 }

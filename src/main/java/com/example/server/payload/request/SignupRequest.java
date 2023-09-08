@@ -1,5 +1,6 @@
 package com.example.server.payload.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Set;
@@ -7,6 +8,7 @@ import java.util.Set;
 import javax.validation.constraints.*;
 
 @Data //getters and setters
+@AllArgsConstructor
 public class SignupRequest {
   @NotBlank(message = "please provide username")
   @Size(min = 3, max = 20)

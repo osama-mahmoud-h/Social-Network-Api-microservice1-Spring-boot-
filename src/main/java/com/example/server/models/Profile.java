@@ -17,6 +17,7 @@ import java.util.Set;
 @Entity(name = "profiles")
 @NoArgsConstructor
 @Setter
+@AllArgsConstructor
 @Getter
 @ToString
 @TypeDefs({

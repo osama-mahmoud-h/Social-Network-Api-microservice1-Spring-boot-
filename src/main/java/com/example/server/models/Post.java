@@ -88,11 +88,11 @@ public class Post {
 
 
 
-    public Post(String text, String vedio_url, String[] images_url, User user) {
+    public Post(String text, String vedio_url, String[] images_url /*, User user*/) {
         this.text = text;
         this.vedio_url = vedio_url;
         this.images_url = images_url;
-     //   this.user = user;
+        //this.user = user;
         this.likes = 0L;
     }
    public Long getLikesCount() {
