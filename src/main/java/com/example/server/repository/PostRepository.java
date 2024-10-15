@@ -1,12 +1,9 @@
 package com.example.server.repository;
 
-import com.example.server.models.Post;
-import org.hibernate.query.NativeQuery;
+import com.example.server.model.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @Repository

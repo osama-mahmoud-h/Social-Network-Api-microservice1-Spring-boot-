@@ -1,6 +1,6 @@
 package com.example.server.repository;
 
-import com.example.server.models.PostLike;
+import com.example.server.model.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
