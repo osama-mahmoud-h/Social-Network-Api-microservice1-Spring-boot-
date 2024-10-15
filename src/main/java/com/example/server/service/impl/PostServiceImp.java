@@ -2,13 +2,11 @@ package com.example.server.service.impl;
 
 import com.example.server.model.AppUser;
 import com.example.server.model.Comment;
-import com.example.server.model.PostLike;
 import com.example.server.model.Post;
 import com.example.server.dto.response.CommentsResponseDto;
 import com.example.server.dto.response.PostResponceDto;
-import com.example.server.dto.response.ResponseHandler;
 import com.example.server.dto.response.AppUserResponseDto;
-import com.example.server.repository.PostLikeRepository;
+//import com.example.server.repository.PostLikeRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.repository.AppUserRepository;
 import com.example.server.service.FilesStorageService;
@@ -17,7 +15,6 @@ import com.example.server.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +30,7 @@ public class PostServiceImp implements PostService {
     private final FilesStorageService filesStorageService;
     private final AppUserRepository appUserRepository;
     private final UserService userService;
-    private final PostLikeRepository likeRepository;
+   // private final PostLikeRepository likeRepository;
 
     public Post getPostById(Long postId){
 //        Optional<Post> post = postRepository.findById(postId);
@@ -178,34 +175,30 @@ public class PostServiceImp implements PostService {
         return null;
     }
 
-    @Override
-    public PostLike ifUserLikedPost(Long userId, Post saved_post){
+//    @Override
+//    //public PostLike ifUserLikedPost(Long userId, Post saved_post){
+//
+////        PostLike like =  saved_post.getLikedPosts()
+////                .stream()
+////                .filter(lik ->lik.getLiker().getId().equals(userId))
+////                .findAny().orElse(null);
+////        return  like;
+//        return null;
+//    }
 
-//        PostLike like =  saved_post.getLikedPosts()
-//                .stream()
-//                .filter(lik ->lik.getLiker().getId().equals(userId))
-//                .findAny().orElse(null);
-//        return  like;
-        return null;
-    }
 
+//    @Override
+//    public PostLike ifILikedThisPost(HttpServletRequest req, Long postId){
+////        Optional<User> me = authenticatedUser.getCurrentUser(req);
+////        Post saved_post = getPostById(postId);
+////        PostLike like = ifUserLikedPost(me.get().getId(), saved_post);
+////        if(like!=null){
+////            return like;
+////        }
+////        return new PostLike();
+//        return null;
+//    }
 
-    @Override
-    public PostLike ifILikedThisPost(HttpServletRequest req, Long postId){
-//        Optional<User> me = authenticatedUser.getCurrentUser(req);
-//        Post saved_post = getPostById(postId);
-//        PostLike like = ifUserLikedPost(me.get().getId(), saved_post);
-//        if(like!=null){
-//            return like;
-//        }
-//        return new PostLike();
-        return null;
-    }
-
-    //  @Transactional(propagation = Propagation.REQUIRED)
-    private void removeLikeOnPost(Long user_id, Long post_id){
-        likeRepository.deleteLikeOnPost(user_id,post_id);
-    }
 
 
     @Override

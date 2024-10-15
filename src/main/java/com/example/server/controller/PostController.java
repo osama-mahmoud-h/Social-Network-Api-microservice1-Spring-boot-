@@ -62,7 +62,9 @@ public class PostController {
     ){
         return ResponseHandler.generateResponse("user like on post",
                 HttpStatus.OK,
-                postService.ifILikedThisPost(req,post_id));
+               false
+               // postService.ifILikedThisPost(req,post_id)
+                );
     }
 
     @DeleteMapping("/delete/{post_id}")

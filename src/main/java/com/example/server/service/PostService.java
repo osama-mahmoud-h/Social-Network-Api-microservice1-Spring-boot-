@@ -1,6 +1,5 @@
 package com.example.server.service;
 
-import com.example.server.model.PostLike;
 import com.example.server.model.Post;
 import com.example.server.dto.response.CommentsResponseDto;
 import com.example.server.dto.response.PostResponceDto;
@@ -26,11 +25,11 @@ public interface PostService {
 
     //Like UserLikedPost(Long userId, Post saved_post);
 
-    PostLike ifUserLikedPost(Long userId, Post saved_post);
+    //PostLike ifUserLikedPost(Long userId, Post saved_post);
 
    // Like getUserLikeOnPost(Long userId, Long postId);
 
-    PostLike ifILikedThisPost(HttpServletRequest req, Long postId);
+    //PostLike ifILikedThisPost(HttpServletRequest req, Long postId);
 
   //  List<PostResponceDto> getAllPosts();
 

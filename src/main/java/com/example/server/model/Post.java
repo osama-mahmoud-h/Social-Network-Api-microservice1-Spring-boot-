@@ -1,15 +1,14 @@
 package com.example.server.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 
 @Entity
@@ -22,55 +21,36 @@ import java.util.*;
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @SequenceGenerator(name = "post_sequence", sequenceName = "post_sequence", allocationSize = 50)  // Adjust allocationSize as needed
+    private Long postId;
 
-    @ManyToOne( fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(nullable = false, length = 512)
+    private String content;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_posts_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
-    @JsonIgnoreProperties(value = {"posts","liked_posts"})
     private AppUser author;
 
-    @OneToMany(mappedBy = "post",
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnoreProperties(value = {"post","liker"})
-    @JsonIgnore
-    private Set<PostLike>likedPosts = new HashSet<>();
-
-    @Column(nullable = false)
-    private String text;
-
-    @Column(nullable = true)
-    private String vedio_url;
-
-//    @Column(
-//            length = 700,
-//            name = "images_url",
-//            columnDefinition = "text[]"
-//    )
-//    private String[] images_url ;
-
-    @Column(nullable = true)
-    private String file_url;
-
-    @Transient
-    private Long likes;
-
-    @Column(nullable = true,name = "timestamp")
-    @CreationTimestamp
-    private Timestamp timestamp ;
-
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL}
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "post_files",
+            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "postId", foreignKey = @ForeignKey(name = "FK_post_files_post_id")),
+            inverseJoinColumns = @JoinColumn(name = "file_id", referencedColumnName = "fileId", foreignKey = @ForeignKey(name = "FK_post_files_file_id"))
     )
-    @JoinTable(name = "posts_comments",
-            joinColumns = { @JoinColumn(name = "post_id") },
-            inverseJoinColumns = { @JoinColumn(name = "comment_id") }
+    private Set<File> files;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "post_reactions",
+            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "postId", foreignKey = @ForeignKey(name = "FK_post_reactions_post_id")),
+            inverseJoinColumns = @JoinColumn(name = "reaction_id", referencedColumnName = "reactionId", foreignKey = @ForeignKey(name = "FK_post_reactions_reaction_id"))
     )
-    @OnDelete(action =OnDeleteAction.CASCADE)
-    @JsonIgnoreProperties("author")
-    private Set<Comment>comments;
+    private Set<UserReaction> userReactions;
 
 }

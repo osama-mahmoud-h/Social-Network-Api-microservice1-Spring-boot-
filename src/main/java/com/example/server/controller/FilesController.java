@@ -1,7 +1,6 @@
 package com.example.server.controller;
 
 import com.example.server.service.FilesStorageService;
-import com.example.server.model.FileInfo;
 import com.example.server.dto.response.ResponseHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -51,15 +50,15 @@ public class FilesController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getListFiles() {
-        List<FileInfo> fileInfos = filesStorageService.loadAll().map(path -> {
-            String filename = path.getFileName().toString();
-            String url = MvcUriComponentsBuilder
-                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
-
-            return new FileInfo(filename, url);
-        }).collect(Collectors.toList());
+//        List<FileInfo> fileInfos = filesStorageService.loadAll().map(path -> {
+//            String filename = path.getFileName().toString();
+//            String url = MvcUriComponentsBuilder
+//                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
+//
+//            return new FileInfo(filename, url);
+//        }).collect(Collectors.toList());
        /// return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
-        return ResponseHandler.generateResponse("files get success",HttpStatus.OK,fileInfos);
+        return ResponseHandler.generateResponse("files get success",HttpStatus.OK,null);
     }
 
     @GetMapping("/{filename:.+}")

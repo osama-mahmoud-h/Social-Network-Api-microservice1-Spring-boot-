@@ -5,7 +5,7 @@ import com.example.server.dto.request.ProfileRequestDto;
 import com.example.server.dto.response.CommentsResponseDto;
 import com.example.server.dto.response.PostResponceDto;
 import com.example.server.dto.response.AppUserResponseDto;
-import com.example.server.repository.FollowerRepository;
+//import com.example.server.repository.FollowerRepository;
 import com.example.server.repository.ProfileRepository;
 import com.example.server.repository.AppUserRepository;
 import com.example.server.service.FilesStorageService;
@@ -31,7 +31,7 @@ public class ProfileServiceImp implements ProfileService {
    // private final AuthenticatedUser authenticatedUser;
     private final FilesStorageService filesStorageService;
     private final AppUserRepository appUserRepository;
-    private final FollowerRepository followerRepository;
+   // private final FollowerRepository followerRepository;
 
     @Override
     public boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image) {
@@ -92,7 +92,7 @@ public class ProfileServiceImp implements ProfileService {
 
     @Override
     public boolean isFollowing(Long followerId, Long followedId){
-        return followerRepository.isFollow(followerId, followedId) !=null;
+        return false;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.example.server.dto.response;
 
 import com.example.server.model.AppUser;
-import com.example.server.model.SkillTracker;
 import lombok.Data;
 import lombok.ToString;
 
@@ -15,7 +14,7 @@ public class ProfileResponseDto {
 
     private AppUser user;
 
-    Set<SkillTracker> skills;
+   // Set<SkillTracker> skills;
 
     private String education;
 

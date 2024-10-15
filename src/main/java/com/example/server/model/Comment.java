@@ -9,6 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,28 +21,32 @@ import java.util.Set;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    private Long commentId;
 
-    @Column(length = 400,nullable = false)
-    private String text;
+    @Column(length = 255, nullable = false)
+    private String content;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
     private AppUser author;
 
-    @OneToMany(mappedBy = "comment",
-            cascade = CascadeType.REMOVE,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "post_id", referencedColumnName = "postId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_post_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnoreProperties(value = {"comment","liker"})
-    @JsonIgnore
-    private Set<CommentLike> likedComments = new HashSet<>();
+    private Post post;
 
-    @Column(nullable = true,name = "timestamp")
-    @CreationTimestamp
-    private Timestamp timestamp;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id", referencedColumnName = "commentId", nullable = true, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_parent_comment_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Comment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<Comment> replies;
 
 }

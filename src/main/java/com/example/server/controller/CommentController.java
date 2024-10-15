@@ -29,7 +29,8 @@ public class CommentController {
     ){
         return ResponseHandler.generateResponse("comment like/unliked successfully",
                 HttpStatus.OK,
-                commentService.likeComment(request,commentId,like_type)
+                null
+                ///commentService.likeComment(request,commentId,like_type)
         );
     }
 
