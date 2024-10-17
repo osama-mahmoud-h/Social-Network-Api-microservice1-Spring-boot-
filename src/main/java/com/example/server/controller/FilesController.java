@@ -1,7 +1,7 @@
 package com.example.server.controller;
 
-import com.example.server.service.FilesStorageService;
 import com.example.server.dto.response.ResponseHandler;
+import com.example.server.utils.fileStorage.FilesStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -9,14 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/file")
+@RequestMapping("/api/v1/file")
 public class FilesController {
     private final FilesStorageService filesStorageService;
 

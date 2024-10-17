@@ -1,17 +1,22 @@
 package com.example.server.service.impl;
 
+import com.example.server.dto.request.post.CreatePostRequestDto;
+import com.example.server.mapper.FileMapper;
+import com.example.server.mapper.PostMapper;
 import com.example.server.model.AppUser;
 import com.example.server.model.Comment;
+import com.example.server.model.File;
 import com.example.server.model.Post;
 import com.example.server.dto.response.CommentsResponseDto;
-import com.example.server.dto.response.PostResponceDto;
+import com.example.server.dto.response.PostResponseDto;
 import com.example.server.dto.response.AppUserResponseDto;
 //import com.example.server.repository.PostLikeRepository;
+import com.example.server.repository.FileRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.repository.AppUserRepository;
-import com.example.server.service.FilesStorageService;
 import com.example.server.service.PostService;
 import com.example.server.service.UserService;
+import com.example.server.utils.fileStorage.FilesStorageService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,9 @@ public class PostServiceImp implements PostService {
     private final FilesStorageService filesStorageService;
     private final AppUserRepository appUserRepository;
     private final UserService userService;
+    private final PostMapper postMapper;
+    private final FileMapper fileMapper;
+    private final FileRepository fileRepository;
    // private final PostLikeRepository likeRepository;
 
     public Post getPostById(Long postId){
@@ -42,95 +51,17 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public Post savePost(HttpServletRequest request,
-                         MultipartFile[] images,
-                         MultipartFile video,
-                         MultipartFile file,
-                         String text
-    ){
-//        //System.out.println("================================================================: "
-//        //         +images.length+" image[0]: "+images[0].getOriginalFilename());
-//        String video_url = "uploads/";
-//        String file_url = "uploads/";
-//        String [] image_urls = new String[images!=null ? images.length : 0];
-//        try {
-//            String randomString = String.valueOf(new Random().nextLong());
-//            if(video!=null && !video.isEmpty()){
-//                if(!video.getContentType().startsWith("video")){
-//                    throw new CustomErrorException("not valid video");
-//                }
-//                video_url +=randomString+"_"+video.getOriginalFilename();
-//                //upload video to server
-//                filesStorageService.save(video,randomString+"_"+video.getOriginalFilename());
-//            }
-//
-//            if(images!=null && images.length>0){
-//                for (int i = 0; i < Math.min(images.length,10); i++) { // max 10 elements
-//
-//                    MultipartFile image = images[i];
-//                    if(image==null || image.isEmpty()){
-//                        continue;
-//                        //throw new CustomErrorException("not valid image");
-//                    }
-//                    if(!image.getContentType().startsWith("image")){
-//                        throw new CustomErrorException("not valid image");
-//                    }
-//                    String extension = "";
-//                    if (image != null && image.getOriginalFilename().lastIndexOf(".") > 0) {
-//                        extension = image.getOriginalFilename().substring(image.getOriginalFilename().lastIndexOf(".") + 1);
-//                        System.out.print("extension: " + extension+"  , ");
-//                        System.out.println("extension: " + image.getContentType());
-//
-//                    }
-//                    image_urls[i] = "uploads/"+randomString+"_"+image.getOriginalFilename();
-//                    //upload image to server
-//                    filesStorageService.save(image,randomString+"_"+image.getOriginalFilename());
-//
-//                }
-//            }
-//
-//            if(file!=null && !file.isEmpty()){
-//                System.out.println("file type: " + file.getContentType());
-//                if(!file.getContentType().startsWith("application")){
-//                    throw new CustomErrorException("not valid file");
-//                }
-//                file_url +=randomString+"_"+file.getOriginalFilename();
-//                //upload image to server
-//                filesStorageService.save(file,randomString+"_"+file.getOriginalFilename());
-//            }
-//
-//            if((text==null || text.trim().length()==0)
-//                    && (file==null||file.isEmpty())
-//                    && (images==null||images.length==0)
-//                    && (video==null|| video.isEmpty())
-//            ){
-//                throw new CustomErrorException(HttpStatus.NOT_FOUND,"post is empty");
-//            }
-//            //getUser
-//            Optional<User> currUser = authenticatedUser.getCurrentUser(request);
-//
-//            //create new post
-//            Post newPost = new Post();
-//            newPost.setLikes(0l);
-//            newPost.setText(text==null ? "" : text);
-//            newPost.setAuthor(currUser.get());
-//            newPost.setVedio_url(video!=null ? video_url : null);
-//            newPost.setImages_url(image_urls);
-//            newPost.setFile_url(file!=null ? file_url : null);
-//
-//            postRepository.save(newPost);
-//
-//            // userRepository.save(currUser.get());
-//
-//            //publish post as message for kafka
-//            PostResponceDto postResponceDto = mapPostToPostResponce(newPost);
-//            //  kafkaServiceImp.publishMessage(postResponceDto);
-//
-//            return newPost;
-//        }catch (Exception exception){
-//            throw new CustomErrorException(HttpStatus.BAD_REQUEST,exception.getMessage());
-//        }
-        return null;
+    @Transactional
+    public Post savePost(AppUser currentUser, CreatePostRequestDto createPostRequestDto){
+        Post newPost = this.postMapper.mapCreatePostRequestDtoToPost(createPostRequestDto);
+        Set<File> uploadedFiles = this.uploadFiles(createPostRequestDto.getFiles());
+
+        List<File> savedFiles = this.fileRepository.saveAll(uploadedFiles);
+
+        newPost.setFiles(new HashSet<>(savedFiles));
+        newPost.setAuthor(currentUser);
+
+        return this.postRepository.save(newPost);
     }
 
     @Override
@@ -202,7 +133,7 @@ public class PostServiceImp implements PostService {
 
 
     @Override
-    public List<PostResponceDto> getAllPosts(HttpServletRequest req) {
+    public List<PostResponseDto> getAllPosts(HttpServletRequest req) {
 //        List<Post> posts = postRepository.findAll();
 //        List<PostResponceDto> allposts = new ArrayList<PostResponceDto>();
 //       // Optional<User> me = authenticatedUser.getCurrentUser(req);
@@ -231,7 +162,7 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public PostResponceDto getPostDetails(Long postId){
+    public PostResponseDto getPostDetails(Long postId){
 //        Post post  = getPostById(postId);
 //        PostResponceDto postDto = mapPostToPostResponce(post);
 //
@@ -290,7 +221,7 @@ public class PostServiceImp implements PostService {
     }
 
 
-    private PostResponceDto mapPostToPostResponce(Post post){
+    private PostResponseDto mapPostToPostResponce(Post post){
 //        //map post to postDto
 //        PostResponceDto  postResponceDto = new PostResponceDto();
 //        postResponceDto.setId(post.getId());
@@ -334,5 +265,10 @@ public class PostServiceImp implements PostService {
 //
 //        return authorDto;
         return null;
+    }
+
+    private Set<File> uploadFiles(MultipartFile[] multipartFiles){
+        return Arrays.stream(multipartFiles).map(this.fileMapper::mapMultiPartFileToFileSchema)
+                .collect(Collectors.toSet());
     }
 }

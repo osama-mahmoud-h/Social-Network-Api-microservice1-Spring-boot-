@@ -1,4 +1,4 @@
-package com.example.server.service;
+package com.example.server.utils.fileStorage;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,11 +9,13 @@ import java.util.stream.Stream;
 public interface FilesStorageService {
     public void init();
 
-    public void save(MultipartFile file,String filename);
+    public String save(MultipartFile file);
 
     public Resource load(String filename);
 
     public void deleteAll();
+
+    boolean deleteFile(String filename);
 
     public Stream<Path> loadAll();
 }

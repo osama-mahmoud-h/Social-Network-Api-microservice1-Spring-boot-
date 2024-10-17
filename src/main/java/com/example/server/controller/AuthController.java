@@ -20,12 +20,6 @@ public class AuthController {
 
   private final UserService userService;
 
-  @GetMapping("/test")
-  public ResponseEntity<?> test(HttpServletRequest request) {
-    return ResponseEntity.ok().body(null);
-  //  throw new CustomErrorException( HttpStatus.BAD_REQUEST,"Email is already in use!");
-  }
-
   @PostMapping("/login")
   public ResponseEntity<MyApiResponse<LogInResponseDto>> authenticateUser(@Valid @RequestBody LoginRequestDto loginRequestDto) {
     return ResponseEntity.ok().body(MyApiResponse.success(userService.login(loginRequestDto), "User logged in successfully"));

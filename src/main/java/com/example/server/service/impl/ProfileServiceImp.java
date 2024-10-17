@@ -3,14 +3,14 @@ package com.example.server.service.impl;
 import com.example.server.model.*;
 import com.example.server.dto.request.ProfileRequestDto;
 import com.example.server.dto.response.CommentsResponseDto;
-import com.example.server.dto.response.PostResponceDto;
+import com.example.server.dto.response.PostResponseDto;
 import com.example.server.dto.response.AppUserResponseDto;
 //import com.example.server.repository.FollowerRepository;
 import com.example.server.repository.ProfileRepository;
 import com.example.server.repository.AppUserRepository;
-import com.example.server.service.FilesStorageService;
 import com.example.server.service.ProfileService;
 import com.example.server.service.UserService;
+import com.example.server.utils.fileStorage.FilesStorageService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.User;
@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -119,7 +116,7 @@ public class ProfileServiceImp implements ProfileService {
     }
     
     @Override
-    public List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests){
+    public List<PostResponseDto> allPosts(HttpServletRequest httpServletRequests){
 //        Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequests);
 //       // getProfile(user.get().getId());
 //        Set<Post>posts = user.get().getPosts();
@@ -133,7 +130,7 @@ public class ProfileServiceImp implements ProfileService {
 
 
 
-    private PostResponceDto mapPostToPostResponce(Post post){
+    private PostResponseDto mapPostToPostResponce(Post post){
 //        //map post to postDto
 //        PostResponceDto  postResponceDto = new PostResponceDto();
 //        postResponceDto.setId(post.getId());

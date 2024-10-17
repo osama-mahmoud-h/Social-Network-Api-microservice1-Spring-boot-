@@ -43,8 +43,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception ex) {
             log.error("JWT Authentication failed: {}", ex.getMessage());
-            String errorMessage = createCustomErrorMessage(ex, ex.getMessage().contains("not active") ? HttpServletResponse.SC_FORBIDDEN : HttpServletResponse.SC_UNAUTHORIZED);
-            response.setStatus(ex.getMessage().contains("not active") ? HttpServletResponse.SC_FORBIDDEN : HttpServletResponse.SC_UNAUTHORIZED);
+            String errorMessage = createCustomErrorMessage(ex, HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(errorMessage);
@@ -88,11 +88,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String createCustomErrorMessage(Exception ex, int statusCode) {
         String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now().atOffset(ZoneOffset.UTC));
-        return String.format("{\"timestamp\": \"%s\", \"status\": %d, \"error\": \"%s\", \"message\": \"%s\"}",
+        return String.format("{\"timestamp\": \"%s\", \"status\": %d,\"message\": \"%s\"}",
                 timestamp,
                 statusCode,
-                statusCode == HttpServletResponse.SC_FORBIDDEN ? "Forbidden" : "Unauthorized",
-                ex.getMessage());
+                "Unauthorized"
+        );
     }
 
 

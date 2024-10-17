@@ -3,6 +3,8 @@ package com.example.server.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.ForeignKey;
 import lombok.*;
 import org.hibernate.annotations.*;
 
@@ -16,12 +18,17 @@ import jakarta.persistence.*;
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    private Long profileId;
 
     private String aboutUser;
 
     private String bio;
 
-    private String image_url;
+    private String imageUrl;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false,cascade = CascadeType.MERGE)
+    @JoinColumn(name = "user_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_profiles_user_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private AppUser user;
 
 }

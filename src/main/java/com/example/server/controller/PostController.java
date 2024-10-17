@@ -1,12 +1,20 @@
 package com.example.server.controller;
 
+import com.example.server.dto.request.post.CreatePostRequestDto;
+import com.example.server.dto.request.post.GetRecentPostsRequestDto;
+import com.example.server.dto.response.MyApiResponse;
+import com.example.server.model.AppUser;
 import com.example.server.model.Post;
 import com.example.server.dto.response.ResponseHandler;
 import com.example.server.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,24 +22,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 
-@RequestMapping("/api/post")
+@RequestMapping("/api/v1/post")
 public class PostController {
     private final PostService postService;
-    @PostMapping("/upload")
-    public ResponseEntity<?> savePost(HttpServletRequest request,
-                                      @RequestParam(value = "images",required = false) MultipartFile[] images,
-                                      @RequestParam(value = "video",required = false)MultipartFile video,
-                                      @RequestParam(value = "file",required = false)MultipartFile file,
-                                      @RequestParam(value = "text",required = false)String text
+
+    @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MyApiResponse<Boolean>> savePost(@AuthenticationPrincipal UserDetails currentUser,
+                                                          @Valid @ModelAttribute CreatePostRequestDto createPostRequestDto
 
     ) {
-       // System.out.println("================================================================: "+images);
-        Post post = postService.savePost(request,images, video,file, text);
-
-        return ResponseHandler.generateResponse("post upload successfully",
-                HttpStatus.CREATED,
-                post
-        );
+        return ResponseEntity.ok(MyApiResponse.success( postService.savePost((AppUser)currentUser, createPostRequestDto)!=null, "Post created successfully"));
     }
 
     @PostMapping("/like/{post_id}/{like_type}")
@@ -44,7 +44,7 @@ public class PostController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> allPosts(HttpServletRequest req){
+    public ResponseEntity<?> allPosts(@AuthenticationPrincipal UserDetails currentUser, @Valid @ModelAttribute GetRecentPostsRequestDto req){
         return ResponseHandler.generateResponse("all posts successfully",
                 HttpStatus.OK,
                  postService.getAllPosts(req));

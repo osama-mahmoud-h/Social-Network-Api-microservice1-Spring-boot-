@@ -3,7 +3,7 @@ package com.example.server.service;
 import com.example.server.model.Post;
 import com.example.server.model.Profile;
 import com.example.server.dto.request.ProfileRequestDto;
-import com.example.server.dto.response.PostResponceDto;
+import com.example.server.dto.response.PostResponseDto;
 import com.example.server.dto.response.AppUserResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
@@ -40,5 +40,5 @@ public interface ProfileService {
 
     boolean updateEducation(HttpServletRequest httpServletRequest, String education);
 
-    List<PostResponceDto> allPosts(HttpServletRequest httpServletRequests);
+    List<PostResponseDto> allPosts(HttpServletRequest httpServletRequests);
 }

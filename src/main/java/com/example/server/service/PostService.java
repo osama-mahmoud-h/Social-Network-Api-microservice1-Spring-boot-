@@ -1,24 +1,20 @@
 package com.example.server.service;
 
+import com.example.server.dto.request.post.CreatePostRequestDto;
+import com.example.server.model.AppUser;
 import com.example.server.model.Post;
 import com.example.server.dto.response.CommentsResponseDto;
-import com.example.server.dto.response.PostResponceDto;
+import com.example.server.dto.response.PostResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
 @Service
 public interface PostService {
-    Post savePost(HttpServletRequest request,
-                  MultipartFile[] images,
-                  MultipartFile video,
-                  MultipartFile file,
-                  String text
-    );
+    Post savePost(AppUser currentUser, CreatePostRequestDto createPostRequestDto);
 
     @Transactional
     ResponseEntity<Object> likePost(HttpServletRequest request, Long postId, byte like_type);
@@ -33,9 +29,9 @@ public interface PostService {
 
   //  List<PostResponceDto> getAllPosts();
 
-    List<PostResponceDto> getAllPosts(HttpServletRequest req);
+    List<PostResponseDto> getAllPosts(HttpServletRequest req);
 
-    PostResponceDto getPostDetails(Long postId);
+    PostResponseDto getPostDetails(Long postId);
 
     List<CommentsResponseDto> getAllCommentsOnPost(Long post_id);
 
