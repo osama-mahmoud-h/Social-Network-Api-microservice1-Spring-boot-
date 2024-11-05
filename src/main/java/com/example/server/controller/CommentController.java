@@ -59,16 +59,23 @@ public class CommentController {
         return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
     }
 
-    //    @PostMapping("like")
-//    public ResponseEntity<?> reactComment(
-//            @AuthenticationPrincipal UserDetails currentUserDetails,
-//            @RequestBody ReactCommentRequestDto reactCommentRequestDto
-//            ){
-//        return ResponseHandler.generateResponse("comment like/unliked successfully",
-//                HttpStatus.OK,
-//                null
-//                ///commentService.likeComment(request,commentId,like_type)
-//        );
-//    }
+    @GetMapping("/replay")
+    public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> replayOnComment(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
+            ){
+        Set<CommentResponseDto> retrievedComments = commentService.getReplayOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
+        return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
+    }
+
+    @GetMapping("/replies/all")
+    public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> allRepliesOnComment(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
+            ){
+        Set<CommentResponseDto> retrievedComments = commentService.getAllRepliesOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
+        return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
+    }
+    
 
 }
