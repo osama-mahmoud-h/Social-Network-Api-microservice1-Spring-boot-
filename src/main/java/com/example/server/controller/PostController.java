@@ -2,6 +2,7 @@ package com.example.server.controller;
 
 import com.example.server.dto.request.post.CreatePostRequestDto;
 import com.example.server.dto.request.post.GetRecentPostsRequestDto;
+import com.example.server.dto.request.post.UpdatePostRequestDto;
 import com.example.server.dto.response.MyApiResponse;
 import com.example.server.dto.response.PostResponseDto;
 import com.example.server.model.AppUser;
@@ -47,56 +48,36 @@ public class PostController {
         return ResponseEntity.ok(MyApiResponse.success(posts,"all posts get successfully"));
     }
 
-    @GetMapping("/comments/all/{post_id}")
-    public ResponseEntity<?> allCommentsOnPost(@PathVariable("post_id") Long post_id){
-        return ResponseHandler.generateResponse("all comments get successfully",
-                HttpStatus.OK,
-                postService.getAllCommentsOnPost(post_id));
-    }
-    @GetMapping("/user-like/{post_id}")
-    public ResponseEntity <?> ifILikedThisPost(HttpServletRequest req,
-                                           @PathVariable("post_id") Long post_id
+
+    @DeleteMapping("/delete/{postId}")
+    public ResponseEntity<MyApiResponse<Boolean>> deletePost(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable("postId") Long postId
     ){
-        return ResponseHandler.generateResponse("user like on post",
-                HttpStatus.OK,
-               false
-               // postService.ifILikedThisPost(req,post_id)
-                );
+        return ResponseEntity.ok(
+                MyApiResponse.success(postService.deletePost((AppUser)currentUserDetails,postId),
+                "post deleted successfully")
+        );
     }
 
-    @DeleteMapping("/delete/{post_id}")
-    public ResponseEntity<?> deletePost(HttpServletRequest servletRequest,
-                                        @PathVariable("post_id") Long post_id
+    @PutMapping("/update")
+    public ResponseEntity<MyApiResponse<Boolean>> updatePost(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @Valid @RequestBody UpdatePostRequestDto requestDto
     ){
-        return ResponseHandler.generateResponse("post delete successfully",
-                HttpStatus.OK,
-                postService.deletePost(servletRequest,post_id));
+       return ResponseEntity.ok(
+               MyApiResponse.success(postService.updatePost((AppUser)currentUserDetails,requestDto),
+               "post updated successfully")
+       );
     }
 
-    @PutMapping("/update/{post_id}")
-    public ResponseEntity<?> updatePost(HttpServletRequest servletRequest,
-                                        @PathVariable("post_id") Long post_id,
-                                        @RequestParam String text
+    @GetMapping("/get-details/{postId}")
+    public ResponseEntity<MyApiResponse<PostResponseDto>> getPostDetails(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable("postId") Long postId
     ){
-        return ResponseHandler.generateResponse("post updated successfully",
-                HttpStatus.OK,
-                postService.updatePost(servletRequest,post_id,text));
+        PostResponseDto postResponseDto = postService.getPostDetails((AppUser)currentUserDetails,postId);
+       return ResponseEntity.ok(MyApiResponse.success(postResponseDto ,"post details get successfully"));
     }
-
-    @GetMapping("/get-details/{post_id}")
-    public ResponseEntity<?> getPostDetails(@PathVariable("post_id") Long postId){
-        return ResponseHandler.generateResponse("post details get successfully",
-                HttpStatus.OK,
-                postService.getPostDetails(postId));
-    }
-
-    //    @PostMapping("/like/{post_id}/{like_type}")
-//    public ResponseEntity<Object> likePost(HttpServletRequest request,
-//                                           @PathVariable("post_id") Long postId,
-//                                           @PathVariable("like_type") byte likeType
-//    ){
-//
-//        return postService.likePost(request,postId,likeType);
-//    }
 
 }
