@@ -1,8 +1,13 @@
 package com.example.server.service.impl;
 
 import com.example.server.dto.request.post.CreatePostRequestDto;
+import com.example.server.dto.request.post.GetRecentPostsRequestDto;
+import com.example.server.dto.response.FileResponseDto;
+import com.example.server.dto.response.user.AuthorResponseDto;
+import com.example.server.enums.ReactionType;
 import com.example.server.mapper.FileMapper;
 import com.example.server.mapper.PostMapper;
+import com.example.server.mapper.UserMapper;
 import com.example.server.model.AppUser;
 import com.example.server.model.Comment;
 import com.example.server.model.File;
@@ -17,14 +22,20 @@ import com.example.server.repository.AppUserRepository;
 import com.example.server.service.PostService;
 import com.example.server.service.UserService;
 import com.example.server.utils.fileStorage.FilesStorageService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +50,10 @@ public class PostServiceImp implements PostService {
     private final PostMapper postMapper;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
-   // private final PostLikeRepository likeRepository;
+    private final UserMapper userMapper;
+    private final ObjectMapper objectMapper;
+
+    // private final PostLikeRepository likeRepository;
 
     public Post getPostById(Long postId){
 //        Optional<Post> post = postRepository.findById(postId);
@@ -220,6 +234,19 @@ public class PostServiceImp implements PostService {
         return null;
     }
 
+    @Override
+    public Set<PostResponseDto> getRecentPosts(AppUser user, GetRecentPostsRequestDto req) {
+        Pageable pageable = Pageable.ofSize(req.getSize()).withPage(req.getPage());
+        List<Object[]> rawResults = postRepository.findRecentPosts(user.getUserId(), pageable);
+        Set<PostResponseDto> posts = new HashSet<>();
+
+        for (Object[] row : rawResults) {
+            PostResponseDto post = mapRowToPostResponseDto(row);
+            posts.add(post);
+        }
+        return posts;
+    }
+
 
     private PostResponseDto mapPostToPostResponce(Post post){
 //        //map post to postDto
@@ -271,4 +298,33 @@ public class PostServiceImp implements PostService {
         return Arrays.stream(multipartFiles).map(this.fileMapper::mapMultiPartFileToFileSchema)
                 .collect(Collectors.toSet());
     }
+
+    private PostResponseDto mapRowToPostResponseDto(Object[] row) {
+        try {
+            return PostResponseDto.builder()
+                    .postId(((Number) row[0]).longValue())
+                    .content((String) row[1])
+                    .commentsCount(((Number) row[2]).longValue())
+                    .reactionsCount(((Number) row[3]).longValue())
+                    .createdAt(((Instant) row[4]))
+                    .updatedAt(((Instant) row[5]))
+                    .author(objectMapper.readValue((String) row[6], AuthorResponseDto.class)) // Parse JSON to AuthorResponseDto
+                    .myReactionType(row[7] != null ? ReactionType.valueOf((String) row[7]) : null)
+                    .files(parseFilesJson((String) row[8])) // Parse JSON to Set<FileResponseDto>
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to map row to PostResponseDto", e);
+            throw new RuntimeException("Failed to map row to PostResponseDto", e);
+        }
+    }
+
+    private Set<FileResponseDto> parseFilesJson(String filesJson) {
+        try {
+            List<FileResponseDto> files = objectMapper.readValue(filesJson, new TypeReference<List<FileResponseDto>>() {});
+            return new HashSet<>(files); // Convert List to Set as required by PostResponseDto
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse files JSON", e);
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.example.server.mapper;
 
 import com.example.server.dto.request.SignUpRequestDto;
+import com.example.server.dto.response.user.AuthorResponseDto;
 import com.example.server.enums.UserRole;
 import com.example.server.model.AppUser;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,16 @@ public class UserMapper {
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .createdAt(Instant.now())
                 .userRole(UserRole.USER)
+                .build();
+    }
+
+    public AuthorResponseDto mapToAuthorResponseDto(AppUser appUser){
+        return AuthorResponseDto.builder()
+                .userId(appUser.getUserId())
+                .email(appUser.getEmail())
+                .firstName(appUser.getFirstName())
+                .lastName(appUser.getLastName())
+                .profilePictureUrl(null)
                 .build();
     }
 }

@@ -1,9 +1,12 @@
 package com.example.server.dto.response;
 
+import com.example.server.dto.response.user.AuthorResponseDto;
 import com.example.server.enums.ReactionType;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -13,9 +16,13 @@ public class PostResponseDto {
     private Long postId;
     private String content;
     private Long commentsCount;
-    private AppUserResponseDto author;
+    private Long reactionsCount;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private AuthorResponseDto author;
     private ReactionType myReactionType;
-    private Map<Byte,Long> userReactions;
+    //private Map<ReactionType,Integer> reactionsTypeCount;
+    private Set<FileResponseDto>files;
 }
 
 

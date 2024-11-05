@@ -18,6 +18,7 @@ import java.util.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicUpdate
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -52,5 +53,11 @@ public class Post {
             inverseJoinColumns = @JoinColumn(name = "reaction_id", referencedColumnName = "reactionId", foreignKey = @ForeignKey(name = "FK_post_reactions_reaction_id"))
     )
     private Set<UserReaction> userReactions;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true, cascade = CascadeType.ALL)
+    private Set<Comment> comments;
+
+    @Transient
+    private Integer commentsCount;
 
 }

@@ -1,17 +1,26 @@
 package com.example.server.service;
 
+import com.example.server.dto.request.comment.AddNewCommentRequestDto;
+import com.example.server.dto.request.comment.GetAllCommentsRequestDto;
+import com.example.server.dto.request.comment.UpdateCommentRequestDto;
+import com.example.server.dto.response.comment.CommentResponseDto;
+import com.example.server.model.AppUser;
 import com.example.server.model.Comment;
-import com.example.server.dto.request.CommentRequestDto;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseEntity;
+
+import java.util.Set;
 
 
 public interface CommentService {
-    ResponseEntity<?> writeComment(HttpServletRequest request, CommentRequestDto commentDto);
+   // Object writeComment(AppUser currentUser, AddNewCommentRequestDto commentDto);
 
-    Comment deleteComment(HttpServletRequest servletRequest, Long commentId);
+    boolean addNewComment(AppUser currentUser, AddNewCommentRequestDto commentDto);
 
-    Comment updateComment(HttpServletRequest servletRequest, Long commentId,String text);
+    boolean deleteComment(AppUser currentUser, Long commentId);
 
-    //CommentLike likeComment(HttpServletRequest request, Long commentId, byte like_type);
+
+    boolean updateComment(AppUser appUser, UpdateCommentRequestDto requestDto);
+
+    Set<CommentResponseDto> getCommentsOnPost(AppUser appUser, GetAllCommentsRequestDto getAllCommentsRequestDto);
+
 }

@@ -3,6 +3,7 @@ package com.example.server.controller;
 import com.example.server.dto.request.post.CreatePostRequestDto;
 import com.example.server.dto.request.post.GetRecentPostsRequestDto;
 import com.example.server.dto.response.MyApiResponse;
+import com.example.server.dto.response.PostResponseDto;
 import com.example.server.model.AppUser;
 import com.example.server.model.Post;
 import com.example.server.dto.response.ResponseHandler;
@@ -18,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -31,23 +34,17 @@ public class PostController {
                                                           @Valid @ModelAttribute CreatePostRequestDto createPostRequestDto
 
     ) {
-        return ResponseEntity.ok(MyApiResponse.success( postService.savePost((AppUser)currentUser, createPostRequestDto)!=null, "Post created successfully"));
+        Post savedPost = postService.savePost((AppUser)currentUser, createPostRequestDto);
+        return ResponseEntity.ok(MyApiResponse.success( savedPost!=null, "Post created successfully"));
     }
 
-    @PostMapping("/like/{post_id}/{like_type}")
-    public ResponseEntity<Object> likePost(HttpServletRequest request,
-                                           @PathVariable("post_id") Long postId,
-                                           @PathVariable("like_type") byte likeType
+    @GetMapping("/recent")
+    public ResponseEntity<MyApiResponse<Set<PostResponseDto>>> allPosts(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @Valid @ModelAttribute GetRecentPostsRequestDto req
     ){
-
-        return postService.likePost(request,postId,likeType);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<?> allPosts(@AuthenticationPrincipal UserDetails currentUser, @Valid @ModelAttribute GetRecentPostsRequestDto req){
-        return ResponseHandler.generateResponse("all posts successfully",
-                HttpStatus.OK,
-                 postService.getAllPosts(req));
+        Set<PostResponseDto> posts = postService.getRecentPosts((AppUser)currentUserDetails,req);
+        return ResponseEntity.ok(MyApiResponse.success(posts,"all posts get successfully"));
     }
 
     @GetMapping("/comments/all/{post_id}")
@@ -92,5 +89,14 @@ public class PostController {
                 HttpStatus.OK,
                 postService.getPostDetails(postId));
     }
+
+    //    @PostMapping("/like/{post_id}/{like_type}")
+//    public ResponseEntity<Object> likePost(HttpServletRequest request,
+//                                           @PathVariable("post_id") Long postId,
+//                                           @PathVariable("like_type") byte likeType
+//    ){
+//
+//        return postService.likePost(request,postId,likeType);
+//    }
 
 }

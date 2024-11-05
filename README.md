@@ -1,9 +1,5 @@
-# spring boot (social-network) rest api (Graduation Project)
-## - this is a (Prezophobia) social network rest api part of graduation project
-## - our graduation project is considered as treating for Glossophobia.
-# Business Description
+# spring boot (social-network) rest api (in-progress)
 
-Our business provides a social media platform where users can create profiles, share posts, and interact with other users. We have developed a backend system using Spring Boot and have exposed several interfaces for our frontend developers to use.
 
 ## UserService
 

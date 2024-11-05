@@ -1,6 +1,7 @@
 package com.example.server.mapper;
 
 
+import com.example.server.dto.response.FileResponseDto;
 import com.example.server.model.File;
 import com.example.server.utils.fileStorage.FileUtils;
 import com.example.server.utils.fileStorage.FilesStorageService;
@@ -22,6 +23,17 @@ public class FileMapper {
                 .fileUrl(newSavedFileName)
                 .fileSizeInBytes(multipartFile.getSize())
                 .fileType(multipartFile.getContentType())
+                .build();
+    }
+
+    public FileResponseDto mapFileToFileResponseDto(File file){
+        return FileResponseDto.builder()
+                .fileId(file.getFileId())
+                .fileUrl(file.getFileUrl())
+                .fileType(file.getFileType())
+                .fileSize(file.getFileSizeInBytes())
+                .fileName(file.getFileName())
+                .fileExtension(file.getFileExtension())
                 .build();
     }
 }

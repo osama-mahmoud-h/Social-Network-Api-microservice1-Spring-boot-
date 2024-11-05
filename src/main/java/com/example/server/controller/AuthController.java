@@ -3,7 +3,6 @@ package com.example.server.controller;
 import com.example.server.dto.response.LogInResponseDto;
 import com.example.server.dto.response.MyApiResponse;
 import com.example.server.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
