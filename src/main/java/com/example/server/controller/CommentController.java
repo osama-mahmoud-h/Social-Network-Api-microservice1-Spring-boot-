@@ -59,23 +59,23 @@ public class CommentController {
         return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
     }
 
-    @GetMapping("/replay")
-    public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> replayOnComment(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
-            @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
-            ){
-        Set<CommentResponseDto> retrievedComments = commentService.getReplayOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
-    }
+    // @GetMapping("/replay")
+    // public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> replayOnComment(
+    //         @AuthenticationPrincipal UserDetails currentUserDetails,
+    //         @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
+    //         ){
+    //     Set<CommentResponseDto> retrievedComments = commentService.getReplayOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
+    //     return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
+    // }
 
-    @GetMapping("/replies/all")
-    public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> allRepliesOnComment(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
-            @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
-            ){
-        Set<CommentResponseDto> retrievedComments = commentService.getAllRepliesOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
-    }
+    // @GetMapping("/replies/all")
+    // public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> allRepliesOnComment(
+    //         @AuthenticationPrincipal UserDetails currentUserDetails,
+    //         @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
+    //         ){
+    //     Set<CommentResponseDto> retrievedComments = commentService.getAllRepliesOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
+    //     return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
+    // }
     
 
 }
