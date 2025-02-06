@@ -1,0 +1,4 @@
+package com.example.server.dto.request.comment;
+
+public class UpdateCommentRequestDto {
+}
