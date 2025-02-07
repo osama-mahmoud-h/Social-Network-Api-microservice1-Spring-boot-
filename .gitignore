@@ -34,3 +34,6 @@ build/
 
 services/mainService/.env
 /src/main/resources/static/uploads/
+/services/mainService/target/
+/services/mainService/.env
+
