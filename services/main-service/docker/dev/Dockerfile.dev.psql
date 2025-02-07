@@ -1,0 +1,8 @@
+FROM postgres:16
+
+RUN apt-get update && \
+    apt-get install -y postgis postgresql-16-postgis-3 && \
+    apt-get clean
+
+# Copy the SQL script into the Docker image
+COPY docker/init_db.sql /docker-entrypoint-initdb.d/

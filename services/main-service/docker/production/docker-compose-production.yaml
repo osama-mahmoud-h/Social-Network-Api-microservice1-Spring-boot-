@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+        context: ../../
+        dockerfile: docker/production/Dockerfile.production.psql
+    container_name: production_db
+    env_file:
+      - ../../services/mainService/.env
+    environment:
+      POSTGRES_DB: ${DATABASE_PROD_NAME}
+      POSTGRES_USER: ${DATABASE_PROD_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PROD_PASSWORD}
+    volumes:
+      - db_data_prod:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+        - social_service_prod_network
+
+  app:
+    build:
+        context: ../../
+        dockerfile: docker/production/Dockerfile.production
+    container_name: production_api
+    env_file:
+      - ../../services/mainService/.env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DATABASE_PROD_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DATABASE_PROD_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DATABASE_PROD_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRE_IN_MS: ${JWT_EXPIRE_IN_MS}
+      JWT_SINGING_KEY: ${JWT_SINGING_KEY}
+      OPEN_API_DEV_URL: ${OPEN_API_DEV_URL}
+      OPEN_API_PRODUCTION_URL: ${OPEN_API_PRODUCTION_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FILE_UPLOAD_DIR: /uploads
+      MAIL_SERVICE_HOST: 'smtp.gmail.com'
+      MAIL_SERVICE_PORT: 587
+      MAIL_SERVICE_USERNAME: your_email@service.domain
+      MAIL_SERVICE_PASSWORD: 'google apps password'
+      SPRING_PROFILES_ACTIVE: production
+
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+    volumes:
+      - upload_dir_prod:/uploads
+    networks:
+      - social_service_prod_network
+
+volumes:
+  db_data_prod:
+  upload_dir_prod:
+
+networks:
+  social_service_prod_network:
+        driver: bridge
+
