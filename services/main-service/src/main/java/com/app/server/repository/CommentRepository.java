@@ -1,6 +1,7 @@
 package com.app.server.repository;
 
 import com.app.server.model.Comment;
+import org.apache.commons.lang3.function.Failable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -29,4 +30,7 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 
     @Query("SELECT c FROM Comment c WHERE c.commentId=:commentId AND c.author.userId=:userId")
     Optional<Comment> findByIdAndAuthorId(@Param("userId") Long userId, @Param("commentId") Long commentId);
+
+    @Query("SELECT c FROM Comment c WHERE c.parentComment.commentId=:parentCommentId")
+    List<Comment> findCommentByParentCommentId(@Param("parentCommentId") Long parentCommentId, Pageable pageable);
 }

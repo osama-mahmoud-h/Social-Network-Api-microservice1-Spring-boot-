@@ -1,6 +1,7 @@
 package com.app.server.service;
 
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
+import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
@@ -21,4 +22,7 @@ public interface CommentService {
 
     Set<CommentResponseDto> getCommentsOnPost(AppUser appUser, GetAllCommentsRequestDto getAllCommentsRequestDto);
 
+    boolean replayOnComment(AppUser appUser, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId);
+
+    Set<CommentResponseDto> getCommentReplies(AppUser appUser, GetAllCommentRepliesRequestDto getAllCommentsRequestDto);
 }

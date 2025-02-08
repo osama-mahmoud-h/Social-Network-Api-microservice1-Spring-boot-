@@ -1,6 +1,7 @@
 package com.app.server.service.impl;
 
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
+import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
@@ -59,6 +60,34 @@ public class CommentServiceImp implements CommentService {
                 .stream()
                 .map(commentMapper::mapCommentToCommentResponseDto)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean replayOnComment(AppUser appUser, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId) {
+        Comment parentComment = this.getCommentById(commentId);
+        if(parentComment.getParentComment() != null){
+            throw new CustomRuntimeException("Cannot replay on a replay", HttpStatus.BAD_REQUEST);
+        }
+
+        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(appUser, addNewCommentRequestDto);
+        replyToComment.setParentComment(parentComment);
+        commentRepository.save(replyToComment);
+
+        return true;
+    }
+
+    @Override
+    public Set<CommentResponseDto> getCommentReplies(AppUser appUser, GetAllCommentRepliesRequestDto getAllCommentsRequestDto) {
+        Pageable pageable = Pageable.ofSize(getAllCommentsRequestDto.getSize()).withPage(getAllCommentsRequestDto.getPage());
+        return commentRepository.findCommentByParentCommentId(getAllCommentsRequestDto.getCommentId(), pageable)
+                .stream()
+                .map(commentMapper::mapCommentToCommentResponseDto)
+                .collect(Collectors.toSet());
+    }
+
+    private Comment getCommentById(Long commentId){
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND));
     }
 
 }

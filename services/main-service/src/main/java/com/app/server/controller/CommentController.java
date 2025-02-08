@@ -1,6 +1,7 @@
 package com.app.server.controller;
 
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
+import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.MyApiResponse;
@@ -22,11 +23,14 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/add-new")
-    public ResponseEntity<?> writeComment(
+    public ResponseEntity<MyApiResponse<Boolean>> writeComment(
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestBody AddNewCommentRequestDto commentDto
     ) {
-        return ResponseEntity.ok(MyApiResponse.success(commentService.addNewComment((AppUser)currentUserDetails, commentDto),"comment added successfully"));
+        return ResponseEntity.ok(
+                MyApiResponse.success(commentService.addNewComment((AppUser)currentUserDetails, commentDto),
+                        "comment added successfully")
+        );
     }
 
     @DeleteMapping ("/delete/{comment_id}")
@@ -59,23 +63,24 @@ public class CommentController {
         return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
     }
 
-    // @GetMapping("/replay")
-    // public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> replayOnComment(
-    //         @AuthenticationPrincipal UserDetails currentUserDetails,
-    //         @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
-    //         ){
-    //     Set<CommentResponseDto> retrievedComments = commentService.getReplayOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
-    //     return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
-    // }
+     @PostMapping("/replay/{comment_id}")
+     public ResponseEntity<MyApiResponse<?>> replayOnComment(
+             @AuthenticationPrincipal UserDetails currentUserDetails,
+             @RequestBody AddNewCommentRequestDto addNewCommentRequestDto,
+             @PathVariable("comment_id") Long commentId
+             ){
+         Boolean replayed = commentService.replayOnComment((AppUser)currentUserDetails,addNewCommentRequestDto, commentId);
+         return ResponseEntity.ok(MyApiResponse.success(replayed,"replay added successfully"));
+     }
 
-    // @GetMapping("/replies/all")
-    // public ResponseEntity<MyApiResponse<Set<CommentResponseDto>> allRepliesOnComment(
-    //         @AuthenticationPrincipal UserDetails currentUserDetails,
-    //         @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
-    //         ){
-    //     Set<CommentResponseDto> retrievedComments = commentService.getAllRepliesOnComment((AppUser)currentUserDetails, getAllCommentsRequestDto);
-    //     return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
-    // }
+     @GetMapping("/replies/all")
+     public ResponseEntity<MyApiResponse<?>> allRepliesOnComment(
+             @AuthenticationPrincipal UserDetails currentUserDetails,
+             @ModelAttribute GetAllCommentRepliesRequestDto getAllReplies
+             ){
+         Set<CommentResponseDto> retrievedReplies= commentService.getCommentReplies((AppUser)currentUserDetails, getAllReplies);
+         return ResponseEntity.ok(MyApiResponse.success(retrievedReplies,"all comments fetched successfully"));
+     }
     
 
 }

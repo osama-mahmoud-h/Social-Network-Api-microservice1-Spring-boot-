@@ -46,12 +46,7 @@ public class Post {
     )
     private Set<File> files;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "post_reactions",
-            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "postId", foreignKey = @ForeignKey(name = "FK_post_reactions_post_id")),
-            inverseJoinColumns = @JoinColumn(name = "reaction_id", referencedColumnName = "reactionId", foreignKey = @ForeignKey(name = "FK_post_reactions_reaction_id"))
-    )
+    @OneToMany(fetch = FetchType.LAZY,  orphanRemoval = true, cascade = CascadeType.ALL)
     private Set<UserReaction> userReactions;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true, cascade = CascadeType.ALL)

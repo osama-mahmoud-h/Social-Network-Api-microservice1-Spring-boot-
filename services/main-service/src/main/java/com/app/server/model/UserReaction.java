@@ -1,6 +1,7 @@
 package com.app.server.model;
 
 
+import com.app.server.enums.ReactionTargetType;
 import com.app.server.enums.ReactionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,5 +31,11 @@ public class UserReaction {
     @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_reactions_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private AppUser author;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReactionTargetType reactionTargetType;  // POST or COMMENT
+
+    private Long targetId;  // postId or commentId
 
 }
