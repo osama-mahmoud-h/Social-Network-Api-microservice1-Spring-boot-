@@ -126,22 +126,22 @@ Overall, our backend system provides the necessary interfaces to create a full-f
 1. Clone the repository
 2. Run the following command to build the docker image
 ```bash
-docker-compose -f docker/dev/docker-compose-dev.yaml --env-file .env up -d  --build
+docker-compose-dev.yaml -f docker/dev/docker-compose-dev.yaml-dev.yaml --env-file .env up -d  --build
 ```
 this command will build the docker image and run the container in the background
 3. Run the following command to check the logs
 ```bash
-docker-compose -f docker/dev/docker-compose-dev.yaml logs -f
+docker-compose-dev.yaml -f docker/dev/docker-compose-dev.yaml-dev.yaml logs -f
 ```
 4. Run the following command to stop the container
 ```bash
-docker-compose -f docker/dev/docker-compose-dev.yaml down
+docker-compose-dev.yaml -f docker/dev/docker-compose-dev.yaml-dev.yaml down
 ```
 5. Run the following command to stop the container and remove the volume
 ```bash
-docker-compose -f docker/dev/docker-compose-dev.yaml down -v
+docker-compose-dev.yaml -f docker/dev/docker-compose-dev.yaml-dev.yaml down -v
 ```
 6. Run the following command to stop the container and remove the volume and remove the image
 ```bash
-docker-compose -f docker/dev/docker-compose-dev.yaml down -v --rmi all
+docker-compose-dev.yaml -f docker/dev/docker-compose-dev.yaml-dev.yaml down -v --rmi all
 ```
