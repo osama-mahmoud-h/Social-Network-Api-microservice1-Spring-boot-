@@ -1,6 +1,7 @@
 package com.app.server.mapper;
 
 import com.app.server.dto.request.SignUpRequestDto;
+import com.app.server.dto.response.AppUserResponseDto;
 import com.app.server.dto.response.user.AuthorResponseDto;
 import com.app.server.enums.UserRole;
 import com.app.server.model.AppUser;
@@ -34,6 +35,15 @@ public class UserMapper {
                 .firstName(appUser.getFirstName())
                 .lastName(appUser.getLastName())
                 .profilePictureUrl(null)
+                .build();
+    }
+
+    public AppUserResponseDto mapToAppUserResponseDto(AppUser appUser) {
+        return AppUserResponseDto.builder()
+                .userId(appUser.getUserId())
+                .email(appUser.getEmail())
+                .username(appUser.getFirstName() + " " + appUser.getLastName())
+                .image_url(null)
                 .build();
     }
 }

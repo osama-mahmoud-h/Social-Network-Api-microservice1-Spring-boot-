@@ -45,13 +45,6 @@ public class AppUser implements UserDetails {
   @Column(nullable = false)
   private Instant createdAt;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-          name = "user_friends",
-          joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_user_friends_user_id")),
-          inverseJoinColumns = @JoinColumn(name = "friend_id", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_user_friends_friend_id"))
-  )
-  private Set<AppUser> friends;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
