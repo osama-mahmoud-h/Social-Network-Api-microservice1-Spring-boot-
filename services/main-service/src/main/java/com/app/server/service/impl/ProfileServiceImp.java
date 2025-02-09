@@ -1,179 +1,85 @@
 package com.app.server.service.impl;
 
-import com.app.server.model.*;
-import com.app.server.dto.request.ProfileRequestDto;
-import com.app.server.dto.response.CommentsResponseDto;
+import com.app.server.dto.request.profile.UpdateProfileBioRequestDto;
 import com.app.server.dto.response.PostResponseDto;
-import com.app.server.dto.response.AppUserResponseDto;
-//import com.example.server.repository.FollowerRepository;
+import com.app.server.dto.response.ProfileResponseDto;
+import com.app.server.model.AppUser;
+import com.app.server.model.Profile;
 import com.app.server.repository.ProfileRepository;
 import com.app.server.repository.AppUserRepository;
 import com.app.server.service.ProfileService;
 import com.app.server.service.UserService;
 import com.app.server.utils.fileStorage.FilesStorageService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImp implements ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
-   // private final AuthenticatedUser authenticatedUser;
     private final FilesStorageService filesStorageService;
     private final AppUserRepository appUserRepository;
-   // private final FollowerRepository followerRepository;
 
+    //update profile bio
     @Override
-    public boolean uploadImage(HttpServletRequest httpServletRequest, MultipartFile image) {
-
-        return false;
-    }
-
-    @Override
-    public boolean updateBio(HttpServletRequest httpServletRequest, String bio) {
-
+    public boolean updateBio(AppUser appUser, UpdateProfileBioRequestDto requestDto) {
+        Profile profile = profileRepository.findByUserId(appUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+        profileRepository.updateBio(profile.getProfileId(), requestDto.getBio());
         return true;
     }
 
+    //update profile image
     @Override
-    public boolean updateAbout(HttpServletRequest httpServletRequest, String about) {
-
+    public boolean updateImage(AppUser appUser, MultipartFile file) {
+        Profile profile = profileRepository.findByUserId(appUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+        this.deleteOldImage(profile);
+        this.uploadProfileImage(file);
+        profileRepository.updateImage(profile.getProfileId(), filesStorageService.save(file));
         return true;
     }
 
+    /**
+     *TODO: Implement this method(get my reactions on each post), use pagination
+     * TODO: count the number of reactions on each post
+     * TODO: count the number of comments on each post
+     */
     @Override
-    public boolean updateEducation(HttpServletRequest httpServletRequest, String education) {
-        return false;
-    }
-
-    @Override
-    public boolean updateSkills(HttpServletRequest httpServletRequest, String[] skills) {
-        return false;
-    }
-
-    @Override
-    public List<Post> getUserPosts(HttpServletRequest servletRequest){
+    public Set<PostResponseDto> getMyPosts(AppUser appUser) {
         return null;
     }
 
+    /**
+     * TODO: enhance profile response dto form
+     */
     @Override
-    public List<Post> getUserStaredPosts(HttpServletRequest httpServletRequest){
-        return null;
-    }
-
-    @Override
-    public List<AppUserResponseDto> getFollowers(HttpServletRequest servletRequest){
-        return null;
-    }
-
-
-
-    @Override
-    public List<AppUserResponseDto> getFollowing(HttpServletRequest servletRequest){
-        return null;
-    }
-
-    @Override
-    @Transactional
-    public String follow(HttpServletRequest servletRequest, Long user_id){
-        return null;
-
-    }
-
-    @Override
-    public boolean isFollowing(Long followerId, Long followedId){
-        return false;
-    }
-
-    @Override
-    public Profile getProfile(Long user_id) {
-        return null;
-    }
-
-    @Override
-    public Profile updateProfile(HttpServletRequest httpServletRequest,
-                                 ProfileRequestDto profileDto
-    ){
-//        Optional<User> user  = authenticatedUser.getCurrentUser(httpServletRequest);
-//
-//        Profile profile= user.get().getProfile();
-//
-//        profile.setBio(profileDto.getBio());
-//        profile.setAboutUser(profileDto.getAboutUser());
-//       // profile.getSkills().addAll(profileDto.getSiklls());
-//        profile.setEducation(profileDto.getEducation());
-//
-//        profileRepository.save(profile);
-
-        return null;
-    }
-    
-    @Override
-    public List<PostResponseDto> allPosts(HttpServletRequest httpServletRequests){
-//        Optional<User> user = authenticatedUser.getCurrentUser(httpServletRequests);
-//       // getProfile(user.get().getId());
-//        Set<Post>posts = user.get().getPosts();
-//        List<PostResponceDto> allPosts = new ArrayList<>();
-//        for (Post post : posts) {
-//            PostResponceDto postDto = this.mapPostToPostResponce(post);
-//            allPosts.add(postDto);
-//        }
-        return null;
+    public ProfileResponseDto getProfile(AppUser appUser) {
+        Profile profile = profileRepository.findByUserId(appUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+        return ProfileResponseDto.builder()
+                .aboutUser(profile.getAboutUser())
+                .bio(profile.getBio())
+                .imageUrl(profile.getImageUrl())
+                .build();
     }
 
 
 
-    private PostResponseDto mapPostToPostResponce(Post post){
-//        //map post to postDto
-//        PostResponceDto  postResponceDto = new PostResponceDto();
-//        postResponceDto.setId(post.getId());
-//        postResponceDto.setText(post.getText());
-//        postResponceDto.setImages_url(post.getImages_url());
-//        postResponceDto.setVedio_url(post.getVedio_url());
-//        postResponceDto.setFile_url(post.getFile_url());
-//      //  postResponceDto.setLikes(post.getLikesCount());
-//        //create author dto
-//        AppUserResponseDto authorDto = mapUserToUserResponce(post.getAuthor());
-//
-//        //set Author
-//        postResponceDto.setAuthor(authorDto);
-
-        return null;
-    }
-    private CommentsResponseDto mapCommentToCommentResponce(Comment comment){
-//        //map post to postDto
-//        CommentsResponseDto commentDto = new CommentsResponseDto();
-//        commentDto.setId(comment.getId());
-//        commentDto.setText(comment.getText());
-//
-//        //create author dto
-//        AppUserResponseDto authorDto = mapUserToUserResponce(comment.getAuthor());
-//
-//        //set Author
-//        commentDto.setAuthor(authorDto);
-//
-//        return commentDto;
-        return null;
+    private boolean deleteOldImage(Profile profile) {
+        if (profile.getImageUrl() != null) {
+            filesStorageService.deleteFile(profile.getImageUrl());
+        }
+        return true;
     }
 
-    private AppUserResponseDto mapUserToUserResponce(User user){
-        //create author dto
-//        AppUserResponseDto authorDto = new AppUserResponseDto();
-//        authorDto.setId(user.getId());
-//        authorDto.setUsername(user.getUsername());
-//        authorDto.setEmail(user.getEmail());
-//        authorDto.setImage_url(user.getProfile().getImage_url());
-
-        return null;
+    private String uploadProfileImage(MultipartFile file) {
+        return filesStorageService.save(file);
     }
-
 
 
 }
