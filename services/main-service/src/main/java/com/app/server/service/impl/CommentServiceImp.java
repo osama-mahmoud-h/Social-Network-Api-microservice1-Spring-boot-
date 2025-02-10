@@ -1,16 +1,19 @@
 package com.app.server.service.impl;
 
+import com.app.server.dto.notification.NotificationEvent;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
+import com.app.server.enums.NotificationType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
 import com.app.server.model.*;
 //import com.example.server.repository.CommentLikeRepository;
 import com.app.server.service.CommentService;
 import com.app.server.repository.CommentRepository;
+import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -25,11 +28,13 @@ import java.util.stream.Collectors;
 public class CommentServiceImp implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final NotificationService notificationService;
 
     @Override
     public boolean addNewComment(AppUser currentUser, AddNewCommentRequestDto commentDto) {
         Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, commentDto);
         commentRepository.save(newComment);
+        this.sendNewCommentNotification(currentUser, newComment);
         return true;
     }
 
@@ -73,6 +78,8 @@ public class CommentServiceImp implements CommentService {
         replyToComment.setParentComment(parentComment);
         commentRepository.save(replyToComment);
 
+        this.sendReplyCommentNotification(appUser, replyToComment);
+
         return true;
     }
 
@@ -88,6 +95,28 @@ public class CommentServiceImp implements CommentService {
     private Comment getCommentById(Long commentId){
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND));
+    }
+
+    private void sendNewCommentNotification(AppUser currentUser, Comment comment){
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .type(NotificationType.COMMENTED_YOUR_POST)
+                .senderId(currentUser.getUserId())
+                .receiverId(comment.getPost().getAuthor().getUserId())
+                .message(currentUser.getUserId() + " commented on your post")
+                .build();
+
+        notificationService.sendNotification(notificationEvent);
+    }
+
+    private void sendReplyCommentNotification(AppUser currentUser, Comment comment){
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .type(NotificationType.REPLIED_TO_YOUR_COMMENT)
+                .senderId(currentUser.getUserId())
+                .receiverId(comment.getParentComment().getAuthor().getUserId())
+                .message(currentUser.getUserId() + " replied on your comment")
+                .build();
+
+        notificationService.sendNotification(notificationEvent);
     }
 
 }

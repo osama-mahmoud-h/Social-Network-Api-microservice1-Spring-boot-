@@ -1,8 +1,10 @@
 package com.app.server.service.impl;
 
+import com.app.server.dto.notification.NotificationEvent;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
+import com.app.server.enums.NotificationType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
 import com.app.server.mapper.PostMapper;
@@ -14,6 +16,7 @@ import com.app.server.dto.response.PostResponseDto;
 import com.app.server.repository.FileRepository;
 import com.app.server.repository.PostRepository;
 import com.app.server.service.PostService;
+import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +36,7 @@ public class PostServiceImp implements PostService {
     private final PostMapper postMapper;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
-
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -46,7 +49,10 @@ public class PostServiceImp implements PostService {
         newPost.setFiles(new HashSet<>(savedFiles));
         newPost.setAuthor(currentUser);
 
-        return this.postRepository.save(newPost);
+        this.postRepository.save(newPost);
+        this.sendNewPostNotification(currentUser, newPost);
+        //TODO :return post response dto
+        return null;
     }
 
 
@@ -93,5 +99,16 @@ public class PostServiceImp implements PostService {
     private Set<File> uploadFiles(MultipartFile[] multipartFiles){
         return Arrays.stream(multipartFiles).map(this.fileMapper::mapMultiPartFileToFileSchema)
                 .collect(Collectors.toSet());
+    }
+
+    private void sendNewPostNotification(AppUser user, Post post){
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .receiverId(user.getUserId())
+                .senderId(user.getUserId())
+                .type(NotificationType.POSTED_NEW_CONTENT)
+                .message("New post from " + user.getUsername())
+                .build();
+
+        this.notificationService.sendNotification(notificationEvent);
     }
 }
