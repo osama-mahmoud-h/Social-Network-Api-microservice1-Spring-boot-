@@ -1,0 +1,46 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<configuration>-->
+<!--    <include resource="org/springframework/boot/logging/logback/defaults.xml" />-->
+<!--    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />-->
+
+
+<!--    &lt;!&ndash; Logstash appender for sending logs to Logstash &ndash;&gt;-->
+<!--    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--        <destination>localhost:5000</destination> &lt;!&ndash; Updated for Docker container &ndash;&gt;-->
+<!--        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />-->
+<!--    </appender>-->
+
+<!--    &lt;!&ndash; File appender for persistent logs &ndash;&gt;-->
+<!--    <appender name="FILE" class="ch.qos.logback.core.FileAppender">-->
+<!--        <file>logs/app.log</file>-->
+<!--        <append>true</append> &lt;!&ndash; Append to the existing file &ndash;&gt;-->
+<!--        <encoder>-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    &lt;!&ndash; Filter to suppress specific logger noise (example: Hibernate SQL logs) &ndash;&gt;-->
+<!--    <logger name="org.hibernate.SQL" level="WARN" />-->
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN" />-->
+
+<!--    &lt;!&ndash; Root logger &ndash;&gt;-->
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="CONSOLE" />-->
+<!--        <appender-ref ref="LOGSTASH" />-->
+<!--        <appender-ref ref="FILE" />-->
+<!--    </root>-->
+<!--</configuration>-->
+
+
+        <!-- for local debugging -->
+
+<configuration>
+<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+<springProperty scope="context" name="springAppName" source="spring.application.name" />
+
+<root level="INFO">
+    <appender-ref ref="CONSOLE" />
+</root>
+</configuration>
