@@ -18,7 +18,7 @@ public class File {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long fileId;
 
-    @Column(length = 128)
+    @Column(length = 255)
     private String fileName;
 
     @Column(length = 128)

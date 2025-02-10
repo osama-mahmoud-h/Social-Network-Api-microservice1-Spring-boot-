@@ -3,6 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+## ignore traget at any level
+**/target/
 
 ### STS ###
 .apt_generated
@@ -31,6 +33,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### logs ##
+logs/
+**/*.log
 
 services/mainService/.env
 /src/main/resources/static/uploads/

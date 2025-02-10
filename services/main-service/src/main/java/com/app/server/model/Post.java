@@ -46,7 +46,8 @@ public class Post {
     )
     private Set<File> files;
 
-    @OneToMany(fetch = FetchType.LAZY,  orphanRemoval = true, cascade = CascadeType.ALL)
+    //@OneToMany(fetch = FetchType.LAZY,  orphanRemoval = true, cascade = CascadeType.ALL)
+    @Transient
     private Set<UserReaction> userReactions;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true, cascade = CascadeType.ALL)

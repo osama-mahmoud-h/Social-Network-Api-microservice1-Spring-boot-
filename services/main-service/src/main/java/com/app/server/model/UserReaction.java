@@ -36,6 +36,7 @@ public class UserReaction {
     @Column(nullable = false)
     private ReactionTargetType reactionTargetType;  // POST or COMMENT
 
+    @Column(nullable = false)
     private Long targetId;  // postId or commentId
 
 }

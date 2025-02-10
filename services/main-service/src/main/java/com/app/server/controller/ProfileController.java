@@ -1,12 +1,14 @@
 package com.app.server.controller;
 
 
+import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.profile.UpdateProfileBioRequestDto;
 import com.app.server.dto.response.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
-import com.app.server.dto.response.ProfileResponseDto;
+import com.app.server.dto.response.profile.ProfileResponseDto;
 import com.app.server.model.AppUser;
 import com.app.server.service.ProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,8 +54,11 @@ public class ProfileController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<MyApiResponse<Set<PostResponseDto>>> getMyPosts(@AuthenticationPrincipal UserDetails currentUserDetails){
-        Set<PostResponseDto> posts = profileService.getMyPosts((AppUser) currentUserDetails);
+    public ResponseEntity<MyApiResponse<?>> getMyPosts(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @ModelAttribute @Valid GetRecentPostsRequestDto requestDto
+    ){
+        Set<PostResponseDto> posts = profileService.getMyPosts((AppUser) currentUserDetails, requestDto);
         return ResponseEntity.ok(MyApiResponse.success(posts, "Posts get successfully"));
     }
 

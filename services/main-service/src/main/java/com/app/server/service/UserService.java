@@ -16,5 +16,5 @@ public interface UserService {
 
     Boolean register(@Valid @RequestBody SignUpRequestDto signUpRequestDto);
 
-    AppUser getUser(Long userId);
+   // AppUser getUser(Long userId);
 }

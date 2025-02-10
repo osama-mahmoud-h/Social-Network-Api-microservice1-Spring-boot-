@@ -17,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface UserReactionsRepository  extends JpaRepository<UserReaction, Long> {
 
-    @Query("SELECT ur FROM UserReaction ur WHERE ur.author = :authorId AND ur.targetId = :targetId AND ur.reactionTargetType = :reactionTargetType")
+    @Query("SELECT ur FROM UserReaction ur WHERE ur.author.userId = :authorId AND ur.targetId = :targetId AND ur.reactionTargetType = :reactionTargetType")
     Optional<UserReaction> findByAuthorAndTargetIdAndReactionTargetType(@Param("authorId") Long authorId,
                                                                         @Param("targetId") Long targetId,
                                                                         @Param("reactionTargetType") String reactionTargetType);
