@@ -15,7 +15,6 @@ services:
   kafka:
     image: bitnami/kafka:latest
     container_name: kafka
-    restart: always
     depends_on:
       - zookeeper
     environment:

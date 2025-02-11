@@ -10,6 +10,6 @@ import semsem.notificationservice.service.KafkaConsumer;
 public class KafkaConsumerImpl implements KafkaConsumer {
     @KafkaListener(topics = "notification-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
     public void listen(ConsumerRecord<String, NotificationEvent> record) {
-        System.out.println("Received event: " + record);
+        System.out.println("Received event: " + record.value());
     }
 }
