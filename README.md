@@ -114,11 +114,15 @@ Overall, our backend system provides the necessary interfaces to create a full-f
 ## How to run social-network rest api (using docker && docker-compose)
 1. Clone the repository
 2. Run the following command to build the docker image
-3. Run ELK stack using the following command
+3. Run ELK stack on docker and docker-compose
 ```bash
 docker-compose -f docker-compose-elk.yaml up -d
 ```
-4. Run the following command to start the services.
+4. Run kafka using the following command
+```bash
+
+docker-compose -f docker-compose-kafka.yaml up -d
+5. Run the following command to start the services.
 ```bash
 docker-compose-dev.yaml -f docker-compose-dev.yaml-dev.yaml --env-file .env up -d  --build
 ```
