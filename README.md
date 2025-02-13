@@ -12,13 +12,9 @@ and provide full-text search using elasticsearch, and also provide a notificatio
 - Rate limiting using Redis
 - Caching using Redis
 - Logging using ELK stack (Elasticsearch, Logstash, Kibana)
-- Monitoring using Spring Boot Actuator.
 - Dockerized using Docker and Docker Compose
-- CI/CD using GitHub Actions
 - API documentation using Swagger
-- Security using Spring Security Keycloak
-- Load balancing using Nginx
-- Circuit breaking using Resilience4j
+- Security using Spring Security jwt
 
 ## Architecture
 The system is designed using a microservice architecture, with each service responsible for a specific set of functionalities. The services communicate with each other using RESTful APIs and message queues. The architecture consists of the following services:
@@ -37,11 +33,9 @@ The system is designed using a microservice architecture, with each service resp
 - **Logging Service**: Responsible for logging using ELK stack.
 - **Security Service**: Responsible for security using Spring Security Keycloak.
 - **Load Balancer Service**: Responsible for load balancing using Nginx.
-- **Circuit Breaker Service**: Responsible for circuit breaking using Resilience4j.
 - **Rate Limiting Service**: Responsible for rate limiting using Redis.
 - **Caching Service**: Responsible for caching using Redis.
 - **API Documentation Service**: Responsible for API documentation using Swagger.
-- **CI/CD Service**: Responsible for CI/CD using GitHub Actions.
 - **Docker Service**: Responsible for containerization using Docker and Docker Compose.
 
 The services are deployed as Docker containers and managed using Docker Compose. The system is designed to be scalable, fault-tolerant, and secure.
@@ -79,7 +73,6 @@ The system is built using the following technologies:
 - **Keycloak**: For identity and access management.
 - **Eureka**: For service discovery.
 - **Nginx**: For load balancing.
-- **Resilience4j**: For circuit breaking.
 - **Redis**: For rate limiting and caching.
 - **Swagger**: For API documentation.
 - **GitHub Actions**: For CI/CD using GitHub Actions.
@@ -87,10 +80,7 @@ The system is built using the following technologies:
 ## Services
 The system consists of the following services:
 
-- **User Service**: Responsible for user authentication and registration.
-- **Profile Service**: Responsible for managing user profiles.
-- **Post Service**: Responsible for managing user posts.
-- **Comment Service**: Responsible for managing user comments.
+- **Main Service**: Responsible for user authentication and registration and handling user profile, post, and comment management.
 - **Search Service**: Responsible for full-text search using Elasticsearch.
 - **Notification Service**: Responsible for sending notifications using Kafka.
 - **Chat Service**: Responsible for chat functionality using Websocket.
@@ -101,7 +91,6 @@ The system consists of the following services:
 - **Logging Service**: Responsible for logging using ELK stack.
 - **Security Service**: Responsible for security using Spring Security Keycloak.
 - **Load Balancer Service**: Responsible for load balancing using Nginx.
-- **Circuit Breaker Service**: Responsible for circuit breaking using Resilience4j.
 - **Rate Limiting Service**: Responsible for rate limiting using Redis.
 - **Caching Service**: Responsible for caching using Redis.
 - **API Documentation Service**: Responsible for API documentation using Swagger.
@@ -115,7 +104,7 @@ The system uses the following database schema:
 ![Alt Text](images/schema.png)
 
 ## Microservices Architecture
-![Alt Text](images/architecture.png)
+![Alt Text](images/microservice-diagram.png)
 
 
 Overall, our backend system provides the necessary interfaces to create a full-featured social media platform. Our frontend developers can utilize these interfaces to create a seamless user experience, while our backend team ensures the reliability and scalability of the system.

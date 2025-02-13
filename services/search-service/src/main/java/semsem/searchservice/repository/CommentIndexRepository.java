@@ -3,34 +3,38 @@ package semsem.searchservice.repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import semsem.searchservice.model.PostIndex;
+import semsem.searchservice.model.CommentIndex;
 
 import java.util.List;
 
 @Repository
-public interface PostIndexRepository extends ElasticsearchRepository<PostIndex, String> {
-    // ✅ Full-text fuzzy search across multiple fields
+public interface CommentIndexRepository extends ElasticsearchRepository<CommentIndex, String> {
+
+    //1. ✅ Full-text fuzzy search using the content field
     @Query("""
             {
-              "multi_match": {
-                "query": "?0",
-                "fields": ["content", "title"],
-                "fuzziness": "AUTO"
+              "match": {
+                "content": {
+                  "query": "?0",
+                  "fuzziness": "AUTO"
+                }
               }
             }
-         """)
-    List<PostIndex> fuzzyFullTextSearch(String keyword, Pageable pageable);
+            """)
+    List<CommentIndex> fuzzyFullTextSearch(String content, Pageable pageable);
 
+    //2. ✅ find all comments by postId
     @Query("""
             {
-              "match_all": {}
+              "match": {
+                "postId": "?0"
+              }
             }
             """)
-    List<PostIndex> findAllPosts(Pageable pageable);
+    List<CommentIndex> findByPostId(String postId, Pageable pageable);
 
-    // ✅ Update post content by id
+    //3. ✅ Update comment content by id
     @Query("""
             {
               "script": {
@@ -44,9 +48,9 @@ public interface PostIndexRepository extends ElasticsearchRepository<PostIndex, 
               }
             }
             """)
-    void updatePostContent(String postId, String newContent);
+    void updateCommentContent(String commentId, String newContent);
 
-    // ✅ Delete post by id
+    //4. ✅ Delete comment by id
     @Query("""
             {
               "query": {
@@ -56,7 +60,8 @@ public interface PostIndexRepository extends ElasticsearchRepository<PostIndex, 
               }
             }
             """)
-    void deletePostById(String postId);
+    void deleteCommentById(String commentId);
+
 
 
 }

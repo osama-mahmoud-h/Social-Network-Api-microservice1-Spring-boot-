@@ -1,25 +1,31 @@
 package semsem.searchservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import semsem.searchservice.dto.response.PostIndexResponseDto;
+import semsem.searchservice.mapper.PostIndexMapper;
 import semsem.searchservice.model.PostIndex;
 import semsem.searchservice.repository.PostIndexRepository;
 import semsem.searchservice.service.PostIndexService;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostIndexServiceImpl implements PostIndexService {
     private final PostIndexRepository postIndexRepository;
+    private final PostIndexMapper postIndexMapper;
 
     // ✅ Full-text fuzzy search across multiple fields
     @Override
-    public List<PostIndex> fuzzyFullTextSearch(String keyword) {
-        List<PostIndex> posts =  postIndexRepository.fuzzyFullTextSearch(keyword);
+    public Set<PostIndexResponseDto> fuzzyFullTextSearch(String keyword, int size, int page) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
 
-        System.out.println("searched posts :"+ posts);
-        return posts;
+        return postIndexRepository.fuzzyFullTextSearch(keyword, pageable).stream()
+                .map(postIndexMapper::mapPostIndexToPostIndexResponseDto)
+                .collect(Collectors.toSet());
     }
 
     @Override
