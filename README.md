@@ -1,4 +1,7 @@
 # spring boot (social-network) rest api (in-progress)
+
+### ***Note***: The system still under development, so some services may not work as expected.
+
 This project is a microservice-based social network backend system built using Spring Boot. It provides a set of RESTful APIs for user authentication, profile management, post management, and comment management.
 and provide full-text search using elasticsearch, and also provide a notification system using kafka, and also provide a chat system using websocket.
 ## Features
@@ -104,7 +107,7 @@ The system uses the following database schema:
 ![Alt Text](images/schema.png)
 
 ## Microservices Architecture
-![Alt Text](images/microservice-diagram.png)
+![Alt Text](images/microservice-diagram.jpg)
 
 
 Overall, our backend system provides the necessary interfaces to create a full-featured social media platform. Our frontend developers can utilize these interfaces to create a seamless user experience, while our backend team ensures the reliability and scalability of the system.
@@ -122,10 +125,14 @@ docker-compose -f docker-compose-elk.yaml up -d
 ```bash
 
 docker-compose -f docker-compose-kafka.yaml up -d
+```
+
 5. Run the following command to start the services.
 ```bash
 docker-compose-dev.yaml -f docker-compose-dev.yaml-dev.yaml --env-file .env up -d  --build
 ```
+
+### ***Note***: The system still under development, so some services may not work as expected.
 
 3 The system will be up and running on the following ports:
 - **Main Service**: http://localhost:8083
