@@ -87,6 +87,15 @@ The system consists of the following services:
 - **Search Service**: Responsible for full-text search using Elasticsearch.
 - **Notification Service**: Responsible for sending notifications using Kafka.
 - **Chat Service**: Responsible for chat functionality using Websocket.
+   - what done:
+     - [x] setup websocket server.
+     - [x] connect to mongodb.
+     - [x] handle tracking online users in-memory i.e.(leave, join)
+     - [x] handle sending ,receiving messages.
+   - TODO:
+   - [ ] securing websocket connection.
+   - [ ] handle authorization.
+   - [ ] send messages offline.
 - **Gateway Service**: Responsible for routing requests to the appropriate services.
 - **Config Service**: Responsible for managing configuration properties.
 - **Discovery Service**: Responsible for service discovery using Eureka.
