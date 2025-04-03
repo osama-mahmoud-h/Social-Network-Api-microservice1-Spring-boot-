@@ -9,6 +9,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import semsem.chatservice.dto.response.EventMessageResponseDto;
+import semsem.chatservice.enums.EventMessageType;
 import semsem.chatservice.model.AppUser;
 import semsem.chatservice.service.UserService;
 
@@ -38,6 +40,17 @@ public class AppUserController {
     @GetMapping("/users")
     public ResponseEntity<List<AppUser>> getConnectedUsers() {
         return ResponseEntity.ok(userService.getConnectedUsers());
+    }
+
+    @MessageMapping("/getActiveUsers")
+    public void getActiveUsers() {
+        List<AppUser> activeUsers = userService.getConnectedUsers();
+        EventMessageResponseDto eventMessage = EventMessageResponseDto.builder()
+                .eventType(EventMessageType.GET_ACTIVE_USERS)
+                .data(activeUsers)
+                .build();
+        System.out.println("Active users: " + activeUsers);
+        simpMessagingTemplate.convertAndSend("/topic/public", eventMessage);
     }
 
 

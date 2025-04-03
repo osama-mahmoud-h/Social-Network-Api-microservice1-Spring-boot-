@@ -11,6 +11,7 @@ public class PostedNewContentHandler  implements NotificationHandler {
     private static final Logger log = LoggerFactory.getLogger(PostedNewContentHandler.class);
     @Override
     public void handle(NotificationEvent event) {
+        System.out.println("PostedNewContentHandler = " + event);
         log.info("Handling friendship request for user: {} ", event.getReceiverId());
 
     }

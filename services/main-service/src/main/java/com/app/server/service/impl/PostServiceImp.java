@@ -1,10 +1,13 @@
 package com.app.server.service.impl;
 
 import com.app.server.dto.notification.NotificationEvent;
+import com.app.server.dto.notification.post.PostEventDto;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
+import com.app.server.enums.KafkaTopics;
 import com.app.server.enums.NotificationType;
+import com.app.server.enums.PostActionType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
 import com.app.server.mapper.PostMapper;
@@ -50,7 +53,7 @@ public class PostServiceImp implements PostService {
         newPost.setAuthor(currentUser);
 
         this.postRepository.save(newPost);
-        this.sendNewPostNotification(currentUser, newPost);
+        this.sendNewPostNotification(newPost);
         //TODO :return post response dto
         return null;
     }
@@ -70,20 +73,29 @@ public class PostServiceImp implements PostService {
 
     @Override
     public boolean deletePost(AppUser user, Long postId){
+        Post post = this.postRepository.findById(postId).
+                orElseThrow(() -> new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND));
         int rowAffected = this.postRepository.deletePostById(user.getUserId(), postId);
         if(rowAffected == 0){
             throw new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND);
         }
+
+        this.sendPostDeleteNotification(post);
+
         return true;
     }
 
 
     @Override
     public boolean updatePost(AppUser appUser, UpdatePostRequestDto requestDto) {
+        Post post = this.postRepository.findById(requestDto.getPostId())
+                .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
+
         int rowAffected = this.postRepository.updatePostById(appUser.getUserId(), requestDto.getPostId(), requestDto.getContent());
         if(rowAffected == 0){
             throw new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND);
         }
+        this.sendPostUpdateNotification(post);
         return true;
     }
 
@@ -97,18 +109,34 @@ public class PostServiceImp implements PostService {
     }
 
     private Set<File> uploadFiles(MultipartFile[] multipartFiles){
+        if(multipartFiles == null || multipartFiles.length == 0){
+            return Collections.emptySet();
+        }
         return Arrays.stream(multipartFiles).map(this.fileMapper::mapMultiPartFileToFileSchema)
                 .collect(Collectors.toSet());
     }
 
-    private void sendNewPostNotification(AppUser user, Post post){
-        NotificationEvent notificationEvent = NotificationEvent.builder()
-                .receiverId(user.getUserId())
-                .senderId(user.getUserId())
-                .type(NotificationType.POSTED_NEW_CONTENT)
-                .message("New post from " + user.getUsername())
+    private void sendPostNotification(PostActionType actionType, Post post) {
+        PostEventDto postEventDto = PostEventDto.builder()
+                .actionType(actionType)
+                .post(post)
+                .postId(post.getPostId())
                 .build();
 
-        this.notificationService.sendNotification(notificationEvent);
+        this.notificationService.sendNotification(postEventDto, KafkaTopics.POST_EVENTS);
     }
+
+    private void sendNewPostNotification(Post post) {
+        sendPostNotification(PostActionType.CREATE, post);
+    }
+
+    private void sendPostDeleteNotification(Post post) {
+        sendPostNotification(PostActionType.DELETE, post);
+    }
+
+    private void sendPostUpdateNotification(Post post) {
+        sendPostNotification(PostActionType.UPDATE, post);
+    }
+
+
 }

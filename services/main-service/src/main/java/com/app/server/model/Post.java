@@ -8,6 +8,7 @@ import org.hibernate.annotations.*;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 
@@ -19,7 +20,7 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @DynamicUpdate
-public class Post {
+public class Post implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @SequenceGenerator(name = "post_sequence", sequenceName = "post_sequence", allocationSize = 50)  // Adjust allocationSize as needed

@@ -11,6 +11,7 @@ public class RepliedToCommentHandler  implements NotificationHandler {
     private static final Logger log = LoggerFactory.getLogger(RepliedToCommentHandler.class);
     @Override
     public void handle(NotificationEvent event) {
+        System.out.println("RepliedToCommentHandler = " + event);
        log.info("Handling friendship request for user: {} ", event.getReceiverId());
 
     }

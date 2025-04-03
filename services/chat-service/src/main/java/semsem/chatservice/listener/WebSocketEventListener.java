@@ -11,8 +11,12 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import semsem.chatservice.dto.response.EventMessageResponseDto;
+import semsem.chatservice.enums.EventMessageType;
 import semsem.chatservice.service.ActiveUserService;
 import semsem.chatservice.utils.OnlineUserVal;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -41,7 +45,12 @@ public class WebSocketEventListener {
 
         activeUserService.userConnected(sessionId, user);
 
-        simpMessagingTemplate.convertAndSend("/topic/public", activeUserService.getAllActiveUsers());
+        List<OnlineUserVal> activeUsers = activeUserService.getAllActiveUsers();
+        EventMessageResponseDto eventMessage = EventMessageResponseDto.builder()
+                .eventType(EventMessageType.GET_ACTIVE_USERS)
+                .data(activeUsers)
+                .build();
+        simpMessagingTemplate.convertAndSend("/topic/public", eventMessage);
     }
 
     @EventListener

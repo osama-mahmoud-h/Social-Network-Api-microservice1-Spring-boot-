@@ -7,9 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.dto.NotificationEvent;
+import semsem.notificationservice.enums.KafkaTopics;
 import semsem.notificationservice.enums.NotificationType;
 import semsem.notificationservice.factory.NotificationHandlerFactory;
 import semsem.notificationservice.service.KafkaConsumer;
+
+import static semsem.notificationservice.enums.KafkaTopics.POST_EVENTS;
 
 @Service
 @RequiredArgsConstructor
@@ -27,4 +30,17 @@ public class KafkaConsumerImpl implements KafkaConsumer {
 
         log.info("Notification event processed: {}", type);
     }
+
+    @KafkaListener(topics = "post-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
+    public void listenPostEvents(ConsumerRecord<String, Object> record) {
+        System.out.println("Post event received: " + record.value());
+        log.info("Post event received: {}", record.value());
+    }
+
+    @KafkaListener(topics = "comment-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
+    public void listenCommentEvents(ConsumerRecord<String, Object> record) {
+        System.out.println("Comment event received: " + record.value());
+        log.info("Comment event received: {}", record.value());
+    }
+
 }

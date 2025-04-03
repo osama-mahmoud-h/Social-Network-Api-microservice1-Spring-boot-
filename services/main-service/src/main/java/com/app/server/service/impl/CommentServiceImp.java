@@ -1,11 +1,14 @@
 package com.app.server.service.impl;
 
 import com.app.server.dto.notification.NotificationEvent;
+import com.app.server.dto.notification.comment.CommentEventDto;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
+import com.app.server.enums.CommentActionType;
+import com.app.server.enums.KafkaTopics;
 import com.app.server.enums.NotificationType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
@@ -34,16 +37,18 @@ public class CommentServiceImp implements CommentService {
     public boolean addNewComment(AppUser currentUser, AddNewCommentRequestDto commentDto) {
         Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, commentDto);
         commentRepository.save(newComment);
-        this.sendNewCommentNotification(currentUser, newComment);
+        this.sendNewCommentNotification(newComment);
         return true;
     }
 
     @Override
     public boolean deleteComment(AppUser currentUser, Long commentId) {
+        Comment comment = this.getCommentById(commentId);
         int rowsAffected = commentRepository.deleteByIdAndAuthorId(currentUser.getUserId(), commentId);
         if(rowsAffected == 0){
             throw new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND);
         }
+        this.sendDeleteCommentNotification(comment);
         return true;
     }
 
@@ -55,6 +60,8 @@ public class CommentServiceImp implements CommentService {
         }
         Comment mappedComment = commentMapper.mapUpdateCommentRequestDtoToComment(comment.get(), requestDto);
         commentRepository.save(mappedComment);
+
+        this.sendUpdateCommentNotification(mappedComment);
         return true;
     }
 
@@ -78,8 +85,7 @@ public class CommentServiceImp implements CommentService {
         replyToComment.setParentComment(parentComment);
         commentRepository.save(replyToComment);
 
-        this.sendReplyCommentNotification(appUser, replyToComment);
-
+        this.sendReplyCommentNotification(replyToComment);
         return true;
     }
 
@@ -97,26 +103,29 @@ public class CommentServiceImp implements CommentService {
                 .orElseThrow(() -> new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND));
     }
 
-    private void sendNewCommentNotification(AppUser currentUser, Comment comment){
-        NotificationEvent notificationEvent = NotificationEvent.builder()
-                .type(NotificationType.COMMENTED_YOUR_POST)
-                .senderId(currentUser.getUserId())
-                .receiverId(comment.getPost().getAuthor().getUserId())
-                .message(currentUser.getUserId() + " commented on your post")
+    private void sendCommentNotification(Comment comment, CommentActionType actionType){
+        CommentEventDto commentEventDto = CommentEventDto.builder()
+                .comment(comment)
+                .commentId(comment.getCommentId())
+                .actionType(actionType)
                 .build();
-
-        notificationService.sendNotification(notificationEvent);
+        this.notificationService.sendNotification(commentEventDto, KafkaTopics.COMMENT_EVENTS);
     }
 
-    private void sendReplyCommentNotification(AppUser currentUser, Comment comment){
-        NotificationEvent notificationEvent = NotificationEvent.builder()
-                .type(NotificationType.REPLIED_TO_YOUR_COMMENT)
-                .senderId(currentUser.getUserId())
-                .receiverId(comment.getParentComment().getAuthor().getUserId())
-                .message(currentUser.getUserId() + " replied on your comment")
-                .build();
+    private void sendNewCommentNotification(Comment comment){
+        this.sendCommentNotification(comment, CommentActionType.CREATE);
+    }
 
-        notificationService.sendNotification(notificationEvent);
+    private void sendUpdateCommentNotification(Comment comment){
+        this.sendCommentNotification(comment, CommentActionType.UPDATE);
+    }
+
+    private void sendDeleteCommentNotification(Comment comment){
+        this.sendCommentNotification(comment, CommentActionType.DELETE);
+    }
+
+    private void sendReplyCommentNotification(Comment comment){
+        this.sendCommentNotification(comment, CommentActionType.REPLY);
     }
 
 }
