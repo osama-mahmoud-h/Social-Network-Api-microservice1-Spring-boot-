@@ -2,6 +2,7 @@ package com.app.server.repository;
 
 import com.app.server.model.AppUser;
 import com.app.server.model.Friendship;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,14 +22,123 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
 
     @Transactional
     @Modifying
-    @Query("UPDATE Friendship f SET f.status = :status WHERE f.id = :id")
+    @Query("UPDATE Friendship f SET f.status = :status WHERE f.friendshipId = :id")
     void updateFriendshipStatusById(@Param("id") Long id, @Param("status") String status);
 
-//    @Query("SELECT f.user1 FROM Friendship f WHERE (f.user2.userId = :userId OR f.user1.userId = :userId) AND f.status = 'ACCEPTED'")
-//    List<AppUser> findFriendsByUserId(Long userId);
-//
-    @Query("SELECT f.user1 FROM Friendship f WHERE (f.user2.userId = :userId OR f.user1.userId = :userId) AND f.status = :status")
+
+    @Query(value = """
+           SELECT u.* FROM users u
+           JOIN friendships f ON
+             (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
+             (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+           WHERE f.status = :status
+           """,
+            countQuery = """
+            SELECT COUNT(*) FROM users u
+            JOIN friendships f ON
+              (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
+              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+            WHERE f.status = :status
+           """, nativeQuery = true)
     List<AppUser> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
+    @Query(value = "SELECT u.* FROM users u " +
+            "JOIN friendships f ON " +
+            "  (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR " +
+            "  (f.user_id2 = :userId AND f.user_id1 = u.user_id) " +
+            "WHERE f.status = 'ACCEPTED'",
+            countQuery = "SELECT COUNT(*) FROM friendships f " +
+                    "WHERE (f.user_id1 = :userId OR f.user_id2 = :userId) " +
+                    "AND f.status = 'ACCEPTED'",
+            nativeQuery = true)
+    List<AppUser> findFriendsPaginated(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT CASE WHEN f.user1.userId = :userId THEN f.user2 ELSE f.user1 END " +
+            "FROM Friendship f " +
+            "WHERE (f.user1.userId = :userId OR f.user2.userId = :userId) " +
+            "AND f.status = 'ACCEPTED' " +
+            "AND (:searchTerm IS NULL OR " +
+            "   (CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END) " +
+            "   LIKE %:searchTerm%) " +
+            "ORDER BY " +
+            "CASE WHEN :sortDir = 'asc' THEN " +
+            "   CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END " +
+            "END ASC, " +
+            "CASE WHEN :sortDir = 'desc' THEN " +
+            "   CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END " +
+            "END DESC")
+    List<AppUser> findFriendsWithFilter(
+            @Param("userId") Long userId,
+            @Param("searchTerm") String searchTerm,
+            @Param("sortDir") String sortDirection);
+
+    @Query(value = "SELECT COUNT(*) FROM (" +
+            "    SELECT user_id2 AS friend_id FROM friendships " +
+            "    WHERE user_id1 = :userId1 AND status = 'ACCEPTED' " +
+            "    UNION ALL " +
+            "    SELECT user_id1 AS friend_id FROM friendships " +
+            "    WHERE user_id2 = :userId1 AND status = 'ACCEPTED'" +
+            ") AS user1_friends " +
+            "JOIN (" +
+            "    SELECT user_id2 AS friend_id FROM friendships " +
+            "    WHERE user_id1 = :userId2 AND status = 'ACCEPTED' " +
+            "    UNION ALL " +
+            "    SELECT user_id1 AS friend_id FROM friendships " +
+            "    WHERE user_id2 = :userId2 AND status = 'ACCEPTED'" +
+            ") AS user2_friends ON user1_friends.friend_id = user2_friends.friend_id",
+            nativeQuery = true)
+    int getCountOfMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
+
+    @Query("SELECT u FROM AppUser u WHERE u.userId IN (" +
+            "    SELECT CASE WHEN f1.user1.userId = :userId1 THEN f1.user2.userId ELSE f1.user1.userId END " +
+            "    FROM Friendship f1 " +
+            "    WHERE (f1.user1.userId = :userId1 OR f1.user2.userId = :userId1) AND f1.status = 'ACCEPTED'" +
+            ") AND u.userId IN (" +
+            "    SELECT CASE WHEN f2.user1.userId = :userId2 THEN f2.user2.userId ELSE f2.user1.userId END " +
+            "    FROM Friendship f2 " +
+            "    WHERE (f2.user1.userId = :userId2 OR f2.user2.userId = :userId2) AND f2.status = 'ACCEPTED'" +
+            ")")
+    List<AppUser> findMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
+
+    @Query(value = """
+    WITH 
+    -- Get all direct friends
+    direct_friends AS (
+        SELECT CASE 
+            WHEN user_id1 = :userId THEN user_id2 
+            WHEN user_id2 = :userId THEN user_id1 
+        END AS friend_id
+        FROM friendships
+        WHERE (user_id1 = :userId OR user_id2 = :userId)
+        AND status = 'ACCEPTED'
+    ),
+    
+    -- Get friends of friends (excluding self)
+    friends_of_friends AS (
+        SELECT DISTINCT
+            CASE
+                WHEN f.user_id1 IN (SELECT friend_id FROM direct_friends) THEN f.user_id2
+                WHEN f.user_id2 IN (SELECT friend_id FROM direct_friends) THEN f.user_id1
+            END AS potential_friend_id
+        FROM friendships f
+        WHERE (f.user_id1 IN (SELECT friend_id FROM direct_friends) OR
+              f.user_id2 IN (SELECT friend_id FROM direct_friends))
+        AND f.status = 'ACCEPTED'
+        AND CASE
+            WHEN f.user_id1 IN (SELECT friend_id FROM direct_friends) THEN f.user_id2
+            WHEN f.user_id2 IN (SELECT friend_id FROM direct_friends) THEN f.user_id1
+        END != :userId
+    )
+    
+    -- Final selection with all conditions
+    SELECT u.* FROM users u
+    JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM friendships f
+        WHERE (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
+              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+    )
+    LIMIT 10
+    """, nativeQuery = true)
+    List<AppUser> findFriendSuggestions(@Param("userId") Long userId);
 }

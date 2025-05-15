@@ -22,4 +22,10 @@ public interface FriendshipService {
     Set<AppUserResponseDto> getFriends(AppUser currentUser);
 
     Set<AppUserResponseDto> getFriendRequests(AppUser currentUser);
+
+    int getMutualFriendsCount(AppUser currentUserDetails, Long friendId);
+
+    Set<AppUserResponseDto> getMutualFriends(AppUser currentUserDetails, Long friendId);
+
+    Set<AppUserResponseDto> suggestFriends(AppUser currentUserDetails);
 }

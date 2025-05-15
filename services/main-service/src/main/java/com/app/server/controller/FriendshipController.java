@@ -18,7 +18,7 @@ import java.util.Set;
 @Tag(name = "Friendship", description = "The Friendship API")
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/friendship")
-public class friendshipController {
+public class FriendshipController {
 
     private final FriendshipService friendshipService;
 
@@ -92,6 +92,34 @@ public class friendshipController {
         return ResponseEntity.ok(MyApiResponse.success(friendRequests, "Friend requests retrieved"));
     }
 
+    //get mutual friends count
+    @GetMapping("/get-mutual-friends-count/{friend_id}")
+    public ResponseEntity<MyApiResponse<Integer>> getMutualFriendsCount(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable("friend_id") Long friendId
+    ) {
+        int mutualFriendsCount = friendshipService.getMutualFriendsCount((AppUser) currentUserDetails, friendId);
+        return ResponseEntity.ok(MyApiResponse.success(mutualFriendsCount, "Mutual friends count retrieved"));
+    }
+
+    // get mutual friends
+    @GetMapping("/get-mutual-friends/{friend_id}")
+    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getMutualFriends(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable("friend_id") Long friendId
+    ) {
+        Set<AppUserResponseDto> mutualFriends = friendshipService.getMutualFriends((AppUser) currentUserDetails, friendId);
+        return ResponseEntity.ok(MyApiResponse.success(mutualFriends, "Mutual friends retrieved"));
+    }
+
+    // suggest friends
+    @GetMapping("/suggest-friends")
+    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> suggestFriends(
+            @AuthenticationPrincipal UserDetails currentUserDetails
+    ) {
+        Set<AppUserResponseDto> suggestedFriends = friendshipService.suggestFriends((AppUser) currentUserDetails);
+        return ResponseEntity.ok(MyApiResponse.success(suggestedFriends, "Suggested friends retrieved"));
+    }
 
 
 }

@@ -66,7 +66,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         if(this.isMyFriend(currentUser, Optional.of(friendship))) {
             throw new CustomRuntimeException("You are already friends", HttpStatus.CONFLICT);
         }else if (this.isPendingFriendRequest(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getId(), FriendshipStatus.ACCEPTED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED.toString());
             this.sendFriendRequestAcceptedNotification(currentUser, getUserById(friendId));
             return true;
         }
@@ -91,7 +91,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
         if(isMyFriend(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getId(), FriendshipStatus.BLOCKED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.BLOCKED.toString());
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);
@@ -103,7 +103,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
         if(isMyFriend(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getId(), FriendshipStatus.ACCEPTED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED.toString());
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);
@@ -127,6 +127,27 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     public Set<AppUserResponseDto> getFriendRequests(AppUser currentUser) {
         return getFriendsByStatus(currentUser, FriendshipStatus.PENDING);
+    }
+
+    @Override
+    public int getMutualFriendsCount(AppUser currentUserDetails, Long friendId) {
+        return friendshipServiceRepository.getCountOfMutualFriends(currentUserDetails.getUserId(), friendId);
+    }
+
+    @Override
+    public Set<AppUserResponseDto> getMutualFriends(AppUser currentUserDetails, Long friendId) {
+        return friendshipServiceRepository.findMutualFriends(currentUserDetails.getUserId(), friendId)
+                .stream()
+                .map(userMapper::mapToAppUserResponseDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<AppUserResponseDto> suggestFriends(AppUser currentUserDetails) {
+        return friendshipServiceRepository.findFriendSuggestions(currentUserDetails.getUserId())
+                .stream()
+                .map(userMapper::mapToAppUserResponseDto)
+                .collect(Collectors.toSet());
     }
 
     private Set<AppUserResponseDto> getFriendsByStatus(AppUser currentUser, FriendshipStatus status) {
