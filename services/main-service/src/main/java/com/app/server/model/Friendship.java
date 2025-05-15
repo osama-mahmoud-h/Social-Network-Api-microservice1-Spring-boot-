@@ -19,7 +19,7 @@ public class Friendship {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long friendshipId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id1", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_friendships_user_id1"))
