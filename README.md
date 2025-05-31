@@ -121,7 +121,7 @@ The system uses the following database schema:
 
 Overall, our backend system provides the necessary interfaces to create a full-featured social media platform. Our frontend developers can utilize these interfaces to create a seamless user experience, while our backend team ensures the reliability and scalability of the system.
 ### api documentation 
-![Alt Text](images/apidoc.png)
+![Alt Text](images/swagger-doc.png)
 
 ## How to run social-network rest api (using docker && docker-compose)
 1. Clone the repository
