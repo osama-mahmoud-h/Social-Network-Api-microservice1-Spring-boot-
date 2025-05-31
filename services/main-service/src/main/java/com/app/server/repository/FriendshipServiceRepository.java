@@ -40,7 +40,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
               (f.user_id2 = :userId AND f.user_id1 = u.user_id)
             WHERE f.status = :status
            """, nativeQuery = true)
-    List<AppUser> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+    List<Object[]> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
     @Query(value = "SELECT u.* FROM users u " +
             "JOIN friendships f ON " +
@@ -101,12 +101,12 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     List<AppUser> findMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
     @Query(value = """
-    WITH 
+    WITH
     -- Get all direct friends
     direct_friends AS (
-        SELECT CASE 
-            WHEN user_id1 = :userId THEN user_id2 
-            WHEN user_id2 = :userId THEN user_id1 
+        SELECT CASE
+            WHEN user_id1 = :userId THEN user_id2
+            WHEN user_id2 = :userId THEN user_id1
         END AS friend_id
         FROM friendships
         WHERE (user_id1 = :userId OR user_id2 = :userId)
@@ -140,5 +140,5 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     )
     LIMIT 10
     """, nativeQuery = true)
-    List<AppUser> findFriendSuggestions(@Param("userId") Long userId);
+    List<Object[]> findFriendSuggestions(@Param("userId") Long userId);
 }

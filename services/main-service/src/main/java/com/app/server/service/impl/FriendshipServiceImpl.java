@@ -144,17 +144,25 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public Set<AppUserResponseDto> suggestFriends(AppUser currentUserDetails) {
-        return friendshipServiceRepository.findFriendSuggestions(currentUserDetails.getUserId())
-                .stream()
-                .map(userMapper::mapToAppUserResponseDto)
-                .collect(Collectors.toSet());
+        return friendshipServiceRepository.findFriendSuggestions(currentUserDetails.getUserId()).stream()
+                        .map(this::mapRawUserToResponseDto).collect(Collectors.toSet());
+
+    }
+
+    private AppUserResponseDto mapRawUserToResponseDto(Object[] row) {
+        return new AppUserResponseDto(
+                (Long) row[0], // userId
+                (String) row[3] + " " + (String) row[4], // username
+                (String) row[2], // email
+                null  // image_url
+        );
     }
 
     private Set<AppUserResponseDto> getFriendsByStatus(AppUser currentUser, FriendshipStatus status) {
         return friendshipServiceRepository.findFriendsByUserIdAndStatus(
                         currentUser.getUserId(), status.toString()
                 ).stream()
-                .map(userMapper::mapToAppUserResponseDto)
+                .map(this::mapRawUserToResponseDto)
                 .collect(Collectors.toSet());
     }
 
