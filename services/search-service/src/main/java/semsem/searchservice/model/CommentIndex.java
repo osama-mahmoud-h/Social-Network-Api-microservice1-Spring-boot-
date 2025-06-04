@@ -1,11 +1,9 @@
 package semsem.searchservice.model;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.CompletionField;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.*;
 import org.springframework.data.elasticsearch.core.suggest.Completion;
 import semsem.searchservice.enums.IndexType;
 
@@ -13,9 +11,11 @@ import java.time.Instant;
 
 @Document(indexName = "comment_index")
 @Data
+@Builder
 public class CommentIndex {
-    @Id
-    private String commentId;
+    @Id // Use @Id for unique identifier
+    private String id; // This will be the unique identifier for the comment index
+    private Long commentId;
     @Field(type = FieldType.Text, fielddata = true)
     private IndexType indexType;
 
@@ -24,6 +24,7 @@ public class CommentIndex {
     private Long postId;
     private Long authorId;
     private Long parentCommentId;
+
     private Instant createdAt;
     private Instant updatedAt;
 

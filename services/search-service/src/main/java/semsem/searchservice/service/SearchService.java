@@ -1,9 +1,10 @@
 package semsem.searchservice.service;
 
-import java.io.IOException;
-import java.util.List;
+import semsem.searchservice.dto.request.SearchMultiIndexesRequestDto;
+
+import java.util.Set;
 
 public interface SearchService {
-    List<Object> searchAcrossIndices(String searchTerm, int size, int page);
 
+    Set<?> searchAcrossMultiIndices(SearchMultiIndexesRequestDto searchMultiIndexesRequestDto) ;
 }

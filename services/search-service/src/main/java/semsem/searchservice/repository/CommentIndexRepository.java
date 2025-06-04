@@ -62,6 +62,4 @@ public interface CommentIndexRepository extends ElasticsearchRepository<CommentI
             """)
     void deleteCommentById(String commentId);
 
-
-
 }

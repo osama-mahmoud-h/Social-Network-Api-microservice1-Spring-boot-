@@ -12,5 +12,6 @@ public interface PostIndexService {
     // ✅ Full-text fuzzy search across multiple fields
     Set<PostIndexResponseDto> fuzzyFullTextSearch(String keyword, int size, int page);
 
-    void save(PostIndex postIndex);
+    String save(PostIndex postIndex);
+    List<PostIndexResponseDto> findAllPosts(int size, int page);
 }

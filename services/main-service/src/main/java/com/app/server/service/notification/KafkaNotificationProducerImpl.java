@@ -21,7 +21,7 @@ public class KafkaNotificationProducerImpl implements KafkaNotificationProducer 
 
     @Override
     public void sendNotification(Object event, KafkaTopics topic) {
-        kafkaTemplate.send(topic.getValue(), event);
-        System.out.println("general Notification sent: topic= "+topic +" , event= "+ event);
+        kafkaTemplate.send(topic.getValue().toLowerCase(), event);
+        System.out.println("general Notification sent: topic= "+topic.getValue().toLowerCase() +" , event= "+ event);
     }
 }

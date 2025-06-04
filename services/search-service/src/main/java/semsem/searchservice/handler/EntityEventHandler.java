@@ -5,5 +5,5 @@ import semsem.searchservice.enums.EntityEventType;
 
 public interface EntityEventHandler {
      EntityEventType getEventType() ;
-        void handleEvent(EntityEventDto entityEventDto);
+     void handleEvent(Object entityDto);
 }

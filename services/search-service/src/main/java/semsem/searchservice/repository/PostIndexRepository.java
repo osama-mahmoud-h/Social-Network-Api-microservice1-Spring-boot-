@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface PostIndexRepository extends ElasticsearchRepository<PostIndex, String> {
     // ✅ Full-text fuzzy search across multiple fields
-    @Query("""
+    @Query(value = """
             {
               "multi_match": {
                 "query": "?0",

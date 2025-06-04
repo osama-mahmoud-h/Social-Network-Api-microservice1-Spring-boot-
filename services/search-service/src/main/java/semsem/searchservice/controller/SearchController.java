@@ -2,11 +2,12 @@ package semsem.searchservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import semsem.searchservice.dto.request.SearchMultiIndexesRequestDto;
+import semsem.searchservice.enums.IndexType;
 import semsem.searchservice.service.SearchService;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -20,19 +21,9 @@ public class SearchController {
     // ✅ Return search results
     // ✅ Return search results with highlighting
     @GetMapping("/general")
-    public ResponseEntity<?> search(
-            @RequestParam String searchTerm,
-            @RequestParam int size,
-            @RequestParam int page
-    ) {
-        return ResponseEntity.ok(searchService.searchAcrossIndices(searchTerm, size, page));
+    public ResponseEntity<Set<?>> search(
+            @ModelAttribute SearchMultiIndexesRequestDto searchMultiIndexesRequestDto
+            ) {
+        return ResponseEntity.ok(searchService.searchAcrossMultiIndices(searchMultiIndexesRequestDto));
     }
-
-//    // ✅ Get suggestions for search input
-//    @GetMapping("/suggestions")
-//    public ResponseEntity<?> getSuggestions(
-//            @RequestParam String inputText
-//    ) {
-//        return ResponseEntity.ok(searchService.getSuggestions(inputText));
-//    }
 }

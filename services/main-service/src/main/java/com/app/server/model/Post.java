@@ -1,5 +1,7 @@
 package com.app.server.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
@@ -30,8 +32,10 @@ public class Post implements Serializable {
     private String content;
 
     @Column(nullable = false, updatable = false)
+    @JsonDeserialize(as = InstantDeserializer.class)
     private Instant createdAt;
 
+    @JsonDeserialize(as = InstantDeserializer.class)
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)

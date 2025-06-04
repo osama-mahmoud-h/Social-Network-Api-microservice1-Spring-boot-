@@ -123,6 +123,8 @@ public class PostServiceImp implements PostService {
                 .postId(post.getPostId())
                 .build();
 
+        System.out.println("Sending post notification: createdAt: " + post.getCreatedAt() + ", updatedAt: " + post.getUpdatedAt());
+
         this.notificationService.sendNotification(postEventDto, KafkaTopics.POST_EVENTS);
     }
 
