@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  chat-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      #network: host  # uncomment if you wanna use host networking.
+    container_name: chat-service
+    ports:
+      - "8761:8761"
+    networks:
+      - social_service_dev_network
+
+  database:
+    image: mongo:latest
+    container_name: chat-service-db
+    ports:
+      - "27018:27017"
+    volumes:
+      - chat-service-db-data:/data/db
+    networks:
+        - social_service_dev_network
+
+networks:
+  social_service_dev_network:
+    external: true
+
+volumes:
+    chat-service-db-data:
+        driver: local

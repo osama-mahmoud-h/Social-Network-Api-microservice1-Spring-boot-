@@ -10,7 +10,7 @@ services:
     ports:
       - "2181:2181"
     networks:
-        - kafka-net
+        - social_service_dev_network
 
   kafka:
     image: bitnami/kafka:latest
@@ -28,11 +28,11 @@ services:
     volumes:
         - kafka-data:/bitnami/kafka/data
     networks:
-        - kafka-net
+        - social_service_dev_network
 
 networks:
-  kafka-net:
-    driver: bridge
+  social_service_dev_network:
+    external: true
 volumes:
   kafka-data:
     driver: local

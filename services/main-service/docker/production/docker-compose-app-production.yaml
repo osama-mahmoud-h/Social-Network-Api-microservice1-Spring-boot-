@@ -58,5 +58,5 @@ volumes:
 
 networks:
   social_service_prod_network:
-        driver: bridge
+    external: true
 

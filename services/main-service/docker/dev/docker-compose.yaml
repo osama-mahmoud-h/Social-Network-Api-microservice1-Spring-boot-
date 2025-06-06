@@ -7,7 +7,7 @@ services:
       context: ../../
       dockerfile: docker/dev/Dockerfile.dev.psql
     env_file:
-      - ../../services/mainService/.env
+      - ../../.env
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
@@ -26,7 +26,7 @@ services:
         dockerfile: docker/dev/Dockerfile.dev
 
     env_file:
-      - ../../services/mainService/.env
+      - ../../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DATABASE_NAME}
       SPRING_DATASOURCE_USERNAME: ${DATABASE_USERNAME}
@@ -59,4 +59,4 @@ volumes:
 
 networks:
   social_service_dev_network:
-    driver: bridge
+    external: true

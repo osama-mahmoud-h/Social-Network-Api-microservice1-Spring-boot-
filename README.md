@@ -127,23 +127,85 @@ Overall, our backend system provides the necessary interfaces to create a full-f
 ### api documentation 
 ![Alt Text](images/swagger-doc.png)
 
-## How to run social-network rest api (using docker && docker-compose)
-1. Clone the repository
-2. Run the following command to build the docker image
-3. Run ELK stack on docker and docker-compose
-```bash
-docker-compose -f docker-compose-elk.yaml up -d
-```
-4. Run kafka using the following command
-```bash
+### Deployment Architecture
+```plaintext
+.
+├── docker
+│   ├── docker-compose-kafka.yml
+│   ├── docker-dev-entrypoint.sh
+│   └── elk-stack-docker
+│       ├── docker-compose-elk.yml
+│       └── logstash.conf
+├── docker-compose-dev.yaml
+├── docker-compose-prod.yaml
+└── services
+    ├── chat-service
+    │   ├── docker
+    │   │   └── dev
+    │   │       ├── docker-compose.yml
+    │   │       └── Dockerfile
+    ├── discovery-service
+    │   ├── docker
+    │   │   └── dev
+    │   │       ├── docker-compose.yml
+    │   │       └── Dockerfile
+    ├── gateway-service
+    │   ├── docker
+    │   │   └── dev
+    │   │       ├── docker-compose.yml
+    │   │       └── Dockerfile
+    ├── main-service
+    │   ├── docker
+    │   │   ├── dev
+    │   │   │   ├── docker-compose.yaml
+    │   │   │   ├── Dockerfile.dev
+    │   │   │   └── Dockerfile.dev.psql
+    │   │   └── production
+    │   │       ├── docker-compose-app-production.yaml
+    │   │       ├── Dockerfile.production
+    │   │       └── Dockerfile.production.psql
+    ├── notification-service
+    │   ├── docker
+    │   │   └── dev
+    │   │       ├── docker-compose.yml
+    │   │       └── Dockerfile
+    └── search-service
+        ├── docker
+        │   └── dev
+        │       ├── docker-compose.yml
+        │       └── Dockerfile
 
-docker-compose -f docker-compose-kafka.yaml up -d
 ```
+1. **Clone the repository**
 
-5. Run the following command to start the services.
-```bash
-docker-compose-dev.yaml -f docker-compose-dev.yaml-dev.yaml --env-file .env up -d  --build
-```
+2. **Open a terminal and go to the `docker` directory**
+    ```bash
+    cd docker
+    ```
+
+3. **Run the bash script to start all Docker containers automatically**  
+   On **Linux/macOS**:
+    ```bash
+    chmod +x docker-dev-entrypoint.sh
+    ./docker-dev-entrypoint.sh
+    ```
+
+   On **Windows (Git Bash or WSL)**:
+    ```bash
+    bash docker-dev-entrypoint.sh
+    ```
+
+---
+
+### 🛠️ Notes
+- Ensure Docker Engine and Docker Compose are installed and running.
+- If you face permission issues, try:
+    ```bash
+    chmod +x docker-dev-entrypoint.sh
+    ```
+- Make sure the script uses **LF (Unix) line endings**, not Windows-style `CRLF`.
+
+---
 
 ### ***Note***: The system still under development, so some services may not work as expected.
 
