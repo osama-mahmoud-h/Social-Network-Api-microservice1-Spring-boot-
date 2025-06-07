@@ -115,6 +115,13 @@ The system consists of the following services:
 - [ ] **Keycloak Service**: Responsible for identity and access management using Keycloak.
 - [ ] **Eureka Service**: Responsible for service discovery using Eureka.
 
+## UML Diagram
+### 1. Use-Case Diagram
+![Alt Text](images/use-case.drawio.png)
+
+### 2. Use-Sequence Diagram
+![Alt Text](images/use-sequence.drawio.png)
+
 ## Database Schema
 The system uses the following database schema:
 ![Alt Text](images/schema.png)
