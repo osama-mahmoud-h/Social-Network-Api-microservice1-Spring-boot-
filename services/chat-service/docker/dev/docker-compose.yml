@@ -1,14 +1,13 @@
-version: '3.8'
 
 services:
   chat-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
       #network: host  # uncomment if you wanna use host networking.
     container_name: chat-service
     ports:
-      - "8761:8761"
+      - "8086:8086"
     networks:
       - social_service_dev_network
 

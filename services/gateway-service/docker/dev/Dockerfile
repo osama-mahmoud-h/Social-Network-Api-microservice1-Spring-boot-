@@ -15,5 +15,5 @@ RUN mvn clean package -DskipTests
 FROM openjdk:17-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar gateway-service.jar
-EXPOSE 8761
+EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "gateway-service.jar"]

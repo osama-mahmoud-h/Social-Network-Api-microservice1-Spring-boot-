@@ -1,14 +1,13 @@
-version: '3.8'
 
 services:
   gateway-service:
     build:
       context: ../..
       dockerfile: docker/dev/Dockerfile
-      network: host  # uncomment if you wanna use host networking.
+      #network: host  # uncomment if you wanna use host networking.
     container_name: gateway-service
     ports:
-      - "8761:8761"
+      - "8081:8081"
     networks:
       - social_service_dev_network
 

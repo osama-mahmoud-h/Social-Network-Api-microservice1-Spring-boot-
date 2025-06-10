@@ -1,14 +1,13 @@
-version: '3.8'
 
 services:
   discovery-service:
     build:
-      context: .
-      dockerfile: Dockerfile
-      network: host  # ✅ FIX
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
+      #network: host  # ✅ FIX
     container_name: eureka-server
     ports:
-      - "8761:8761"
+      - "8084:8084"
     networks:
       - social_service_dev_network
 

@@ -1,38 +1,50 @@
-version: '3.8'
 
 services:
   zookeeper:
-    image: bitnami/zookeeper:latest
-    container_name: zookeeper
-    restart: always
+    image: confluentinc/cp-zookeeper:latest
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
     networks:
         - social_service_dev_network
 
   kafka:
-    image: bitnami/kafka:latest
-    container_name: kafka
+    image: confluentinc/cp-kafka:latest
     depends_on:
       - zookeeper
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
     ports:
       - "9092:9092"
-    volumes:
-        - kafka-data:/bitnami/kafka/data
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
-        - social_service_dev_network
+      - social_service_dev_network
+    volumes:
+      - kafka-data:/bitnami/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "9093:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - social_service_dev_network
 
 networks:
   social_service_dev_network:
     external: true
+
 volumes:
   kafka-data:
     driver: local

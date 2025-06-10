@@ -3,8 +3,8 @@ FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
 # Copy the full project to resolve parent POMs
-COPY pom.xml .
-COPY src ./src
+COPY ../../pom.xml .
+COPY ../../src ./src
 
 # Download dependencies (and resolve parent POM)
 #RUN mvn dependency:go-offline
@@ -16,5 +16,5 @@ RUN mvn clean package -DskipTests
 FROM openjdk:17-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar eureka-server.jar
-EXPOSE 8761
+EXPOSE 8085
 ENTRYPOINT ["java", "-jar", "eureka-server.jar"]
