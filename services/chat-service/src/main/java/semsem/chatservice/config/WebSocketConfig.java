@@ -15,14 +15,9 @@ import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
-    private final ObjectMapper objectMapper ;
-
-    // Add a no-argument constructor
-    public WebSocketConfig() {
-        this.objectMapper = new ObjectMapper(); // Initialize with a default ObjectMapper
-    }
+    private final AuthHandshakeInterceptor authHandshakeInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -34,6 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
+                .addInterceptors(authHandshakeInterceptor) //
                 .setAllowedOriginPatterns("*")
                 .withSockJS()
                 ;
@@ -41,20 +37,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
 
-    @Override
-    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setObjectMapper(this.objectMapper);
 
-        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
-        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
-        converter.setContentTypeResolver(resolver);
-
-        messageConverters.add(new StringMessageConverter());
-        messageConverters.add(new ByteArrayMessageConverter());
-        messageConverters.add(converter);
-
-        return false;
-    }
 
 }

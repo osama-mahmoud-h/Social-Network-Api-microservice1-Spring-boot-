@@ -9,24 +9,14 @@ import com.app.server.dto.request.LoginRequestDto;
 import com.app.server.dto.request.SignUpRequestDto;
 import com.app.server.repository.ProfileRepository;
 import com.app.server.repository.AppUserRepository;
-import com.app.server.security.jwt.JwtService;
 import com.app.server.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.util.ClassUtil.getRootCause;
 
@@ -34,29 +24,19 @@ import static com.fasterxml.jackson.databind.util.ClassUtil.getRootCause;
 @AllArgsConstructor
 public class UserServiceImp implements UserService {
     private static final Logger log = LoggerFactory.getLogger(UserServiceImp.class);
-    private  AuthenticationManager authenticationManager;
     private AppUserRepository userRepository;
-    private JwtService jwtService;
     private final UserMapper userMapper;
     private final ProfileRepository profileRepository;
 
     @Override
     public LogInResponseDto login(LoginRequestDto request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        } catch (AuthenticationException ex) {
-            throw new BadCredentialsException("Invalid phoneNumber or password. ");
-        }
-
-        AppUser user = this.getUserByEmail(request.getEmail());
-        String jwt =  jwtService.generateToken(user);
-
-        return userMapper.mapToLogInResponseDto(user, jwt);
+        // Authentication is now handled by auth-service
+        // This method should be removed or call auth-service
+        throw new UnsupportedOperationException("Authentication is handled by auth-service");
     }
 
     @Override
-    public Boolean register(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
+    public Boolean register(@Valid SignUpRequestDto signUpRequestDto){
         try {
             AppUser user = userMapper.mapSignUpRequestDtoToUser(signUpRequestDto);
             userRepository.save(user);

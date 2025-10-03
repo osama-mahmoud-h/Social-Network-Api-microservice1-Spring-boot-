@@ -10,12 +10,14 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>services/auth-service</module>
         <module>services/main-service</module>
         <module>services/search-service</module>
         <module>services/notification-service</module>
         <module>services/chat-service</module>
         <module>services/discovery-service</module>
         <module>services/gateway-service</module>
+        <module>shared/security-lib</module>
     </modules>
 
     <dependencyManagement>

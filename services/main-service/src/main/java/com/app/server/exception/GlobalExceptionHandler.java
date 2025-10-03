@@ -1,7 +1,7 @@
 package com.app.server.exception;
 
 import com.app.server.exception.user.UserNotFoundException;
-import io.jsonwebtoken.security.SignatureException;
+//import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,15 +47,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<ApiErrorResponse> handleSignatureException(SignatureException ex) {
-        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .message(ex.getMessage())
-                .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
-    }
+//    @ExceptionHandler(SignatureException.class)
+//    public ResponseEntity<ApiErrorResponse> handleSignatureException(SignatureException ex) {
+//        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+//                .timestamp(LocalDateTime.now())
+//                .message(ex.getMessage())
+//                .statusCode(HttpStatus.UNAUTHORIZED.value())
+//                .build();
+//        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+//    }
 
     @ExceptionHandler(ServletException.class)
     public ResponseEntity<ApiErrorResponse> handleServletException(ServletException ex) {

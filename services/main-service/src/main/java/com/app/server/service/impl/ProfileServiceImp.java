@@ -58,7 +58,7 @@ public class ProfileServiceImp implements ProfileService {
 
     @Override
     public Set<PostResponseDto> getMyPosts(AppUser appUser, GetRecentPostsRequestDto requestDto) {
-        return this.postService.getRecentPosts(appUser, requestDto);
+        return this.postService.getRecentPosts(appUser.getUserId(), requestDto);
     }
 
     @Override
