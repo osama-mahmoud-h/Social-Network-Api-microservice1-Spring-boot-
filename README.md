@@ -1,11 +1,12 @@
 # Spring Boot Social Network Microservices (In Development)
 
-### ⚠️ **Development Status**: This system is under active development. Some services may not work as expected. ⚠️
+### Development Status: This system is under active development. Some services may not work as expected.
 
 This project is a microservice-based social network backend system built using Spring Boot. It provides RESTful APIs for user authentication, profile management, post management, comment management, friendship features, full-text search using Elasticsearch, notification system using Kafka, and real-time chat using WebSocket.
 
 **Last Updated**: September 2025
-## ✅ Implemented Features
+
+## Implemented Features
 - [x] **User authentication (login, registration)**
 - [x] **User profile management** (update profile picture, bio, skills)
 - [x] **User post management** (create, view, update posts)
@@ -18,7 +19,7 @@ This project is a microservice-based social network backend system built using S
 - [x] **Security using Spring Security JWT**
 - [x] **Dockerized services** (individual containers per service)
 
-## 🚧 In Progress / Partial Implementation
+## In Progress / Partial Implementation
 - [ ] **Rate limiting using Redis** (setup started)
 - [ ] **Caching using Redis** (infrastructure ready)
 - [ ] **ELK stack logging**
@@ -29,7 +30,7 @@ This project is a microservice-based social network backend system built using S
     - [ ] Main docker-compose.yml file
     - [ ] Complete system orchestration
 
-## 📋 TODO - High Priority Features
+## TODO - High Priority Features
 - [ ] **Chat Service Security**
     - [ ] JWT authentication for WebSocket connections
     - [ ] Authorization for chat rooms
@@ -47,19 +48,19 @@ This project is a microservice-based social network backend system built using S
     - [ ] Keycloak integration for SSO
     - [ ] Role-based access control enhancement
 
-## 🏗️ Current Architecture Status
+## Current Architecture Status
 
-### ✅ Implemented Services
+### Implemented Services
 - **Main Service** (Port: 8083) - Core business logic, authentication, posts, comments, friendships
 - **Search Service** - Elasticsearch integration for full-text search
 - **Notification Service** - Kafka-based notification system
 - **Chat Service** - WebSocket-based real-time messaging
 
-### 🔧 Services in Development
+### Services in Development
 - **Discovery Service** - Eureka service registry (skeleton created)
 - **Gateway Service** - API Gateway for routing (skeleton created)
 
-### 📋 Planned Services
+### Planned Services
 - [ ] **Config Service** - Centralized configuration management
 - [ ] **Monitoring Service** - Health checks and metrics
 - [ ] **Security Service** - Enhanced Keycloak integration
@@ -67,9 +68,9 @@ This project is a microservice-based social network backend system built using S
 
 The services are deployed as Docker containers and managed using Docker Compose. The system is designed to be scalable, fault-tolerant, and secure.
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-### ✅ Currently Used
+### Currently Used
 - **Backend**: Spring Boot, Spring Data JPA, Spring Security
 - **Database**: PostgreSQL (Main), MongoDB (Chat), Elasticsearch (Search)
 - **Messaging**: Apache Kafka
@@ -79,13 +80,13 @@ The services are deployed as Docker containers and managed using Docker Compose.
 - **Build Tool**: Maven
 - **Language**: Java 17+
 
-### 🔧 Partially Implemented
+### Partially Implemented
 - **Caching**: Redis (infrastructure ready)
 - **Logging**: ELK Stack (Docker setup complete)
 - **Service Discovery**: Eureka (service created, not integrated)
 - **API Gateway**: Spring Cloud Gateway (basic setup)
 
-### 📋 Planned Integrations
+### Planned Integrations
 - **Authentication**: Keycloak for SSO
 - **Load Balancing**: Nginx
 - **Circuit Breaker**: Resilience4j
@@ -93,54 +94,54 @@ The services are deployed as Docker containers and managed using Docker Compose.
 - **CI/CD**: GitHub Actions
 - **Container Orchestration**: Complete Docker Compose setup
 
-## 🔍 Service Details & Status
+## Service Details & Status
 
-### **Main Service** ✅ (Port: 8083)
+### Main Service (Port: 8083)
 **Status**: Fully functional
-- ✅ User authentication & registration (JWT)
-- ✅ Profile management (bio, skills, profile picture)
-- ✅ Post management (CRUD operations)
-- ✅ Comment management (nested comments)
-- ✅ Friendship system (requests, mutual friends, suggestions)
-- ✅ File upload handling
-- ✅ Swagger documentation available at `/swagger-ui.html`
+- User authentication and registration with JWT tokens
+- Profile management including bio, skills, and profile picture
+- Post management with full CRUD operations
+- Comment management with support for nested comments
+- Friendship system featuring requests, mutual friends, and friend suggestions
+- File upload handling for user content
+- Swagger documentation available at `/swagger-ui.html`
 
-### **Chat Service** ⚠️ (WebSocket)
+### Chat Service (WebSocket)
 **Status**: Basic functionality implemented, security pending
-- ✅ WebSocket server setup
-- ✅ MongoDB integration
-- ✅ Online user tracking (join/leave)
-- ✅ Real-time message sending/receiving
-- ❌ **TODO**: JWT authentication for WebSocket
-- ❌ **TODO**: Room-based authorization
-- ❌ **TODO**: Offline message storage
+- WebSocket server setup complete
+- MongoDB integration for message persistence
+- Online user tracking with join and leave events
+- Real-time message sending and receiving
+- **TODO**: JWT authentication for WebSocket connections
+- **TODO**: Room-based authorization
+- **TODO**: Offline message storage
 
-### **Search Service** ✅
+### Search Service
 **Status**: Integrated with Elasticsearch
-- ✅ Full-text search capabilities
-- ✅ Kafka integration for automatic indexing
-- ✅ Search across posts and users
+- Full-text search capabilities across the platform
+- Kafka integration for automatic content indexing
+- Search functionality across posts and user profiles
 
-### **Notification Service** ✅
+### Notification Service
 **Status**: Kafka-based messaging working
-- ✅ Kafka producer/consumer setup
-- ✅ Event-driven notifications
-- ✅ Multi-service communication
+- Kafka producer and consumer setup complete
+- Event-driven notification system
+- Multi-service communication established
 
-### **Discovery Service** 🔧 (Eureka)
+### Discovery Service (Eureka)
 **Status**: Service created but not integrated
-- ✅ Basic Eureka server setup
-- ❌ **TODO**: Client registration from other services
-- ❌ **TODO**: Load balancing configuration
+- Basic Eureka server setup complete
+- **TODO**: Client registration from other services
+- **TODO**: Load balancing configuration
 
-### **Gateway Service** 🔧 (Spring Cloud Gateway)
+### Gateway Service (Spring Cloud Gateway)
 **Status**: Skeleton created
-- ✅ Basic gateway structure
-- ❌ **TODO**: Route configuration
-- ❌ **TODO**: Security integration
-- ❌ **TODO**: Load balancing setup
+- Basic gateway structure in place
+- **TODO**: Route configuration
+- **TODO**: Security integration
+- **TODO**: Load balancing setup
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 The system uses a **centralized authentication** approach with JWT tokens managed by a dedicated Auth Service.
 
@@ -246,14 +247,14 @@ public interface AuthServiceClient {
 4. Deserializes JSON response to `TokenValidationResponse`
 
 ### Security Features Implemented
-✅ Centralized authentication service
-✅ JWT-based stateless authentication
-✅ Token revocation tracking in database
-✅ Gateway-level authentication filtering
-✅ Service-level security filters
-✅ Role-based access control (RBAC)
-✅ Multi-device logout support
-✅ Token expiration validation
+- Centralized authentication service
+- JWT-based stateless authentication
+- Token revocation tracking in database
+- Gateway-level authentication filtering
+- Service-level security filters
+- Role-based access control (RBAC)
+- Multi-device logout support
+- Token expiration validation
 
 ### Authentication Endpoints (Auth Service)
 | Endpoint | Method | Description |
@@ -332,7 +333,7 @@ Overall, our backend system provides the necessary interfaces to create a full-f
         │       └── Dockerfile
 
 ```
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 - **Docker** and **Docker Compose** installed
@@ -380,7 +381,7 @@ If the main docker-compose.yml is missing, start services individually:
    # Other services...
    ```
 
-## 🌐 Service Endpoints
+## Service Endpoints
 
 Once running, access the services at:
 - **Main Service API**: http://localhost:8083
@@ -389,9 +390,9 @@ Once running, access the services at:
 - **Elasticsearch**: http://localhost:9200
 - **Kibana**: http://localhost:5601
 
-## 🔧 Development Hints & Next Steps
+## Development Hints & Next Steps
 
-### **Immediate TODOs (High Priority)**
+### Immediate TODOs (High Priority)
 1. **Fix Docker Orchestration**
    - Create main `docker-compose.yml` file
    - Ensure all services start together
@@ -407,14 +408,14 @@ Once running, access the services at:
    - Set up load balancing
    - Integrate with Eureka discovery
 
-### **Development Setup Issues**
-⚠️ **Known Issues**:
+### Development Setup Issues
+**Known Issues**:
 - Main docker-compose.yml file is missing (referenced but not created)
 - Services may not communicate properly without service discovery
 - Chat service WebSocket lacks authentication
 - ELK integration incomplete
 
-### **Testing Endpoints**
+### Testing Endpoints
 ```bash
 # Register user
 curl -X POST http://localhost:8083/api/auth/signup \
@@ -429,15 +430,15 @@ curl -X POST http://localhost:8083/api/auth/signin \
 
 ---
 
-## 📋 Comprehensive Project TODO List
+## Comprehensive Project TODO List
 
-### ** Critical Priority**
+### Critical Priority
 - [ ] **Create main docker-compose.yml** - Referenced everywhere but missing
 - [ ] **Fix WebSocket security** - No authentication currently
 - [ ] **Complete service discovery** - Eureka client integration
 - [ ] **API Gateway routing** - Configure proper request routing
 
-### ** Infrastructure & DevOps**
+### Infrastructure & DevOps
 - [ ] **Monitoring Setup**
   - [ ] Integrate Spring Boot Actuator in all services
   - [ ] Set up Prometheus + Grafana
@@ -451,7 +452,7 @@ curl -X POST http://localhost:8083/api/auth/signin \
   - [ ] Structured logging with correlation IDs
   - [ ] Log aggregation setup
 
-### ** Security & Performance**
+### Security & Performance
 - [ ] **Chat Service Security**
   - [ ] JWT token validation in WebSocket handshake
   - [ ] Room-based authorization
@@ -465,7 +466,7 @@ curl -X POST http://localhost:8083/api/auth/signin \
   - [ ] Cache invalidation strategies
   - [ ] Session management
 
-### ** Feature Enhancements**
+### Feature Enhancements
 - [ ] **Chat Improvements**
   - [ ] File sharing in chat
   - [ ] Message reactions and replies
@@ -481,7 +482,7 @@ curl -X POST http://localhost:8083/api/auth/signin \
   - [ ] Push notifications
   - [ ] Notification preferences
 
-### ** Testing & Quality**
+### Testing & Quality
 - [ ] **Test Coverage**
   - [ ] Unit tests for all services
   - [ ] Integration tests
@@ -492,7 +493,7 @@ curl -X POST http://localhost:8083/api/auth/signin \
   - [ ] Code coverage reports
   - [ ] Security vulnerability scanning
 
-### ** Documentation**
+### Documentation
 - [ ] **API Documentation**
   - [ ] Complete OpenAPI specifications
   - [ ] Postman collections
@@ -504,7 +505,7 @@ curl -X POST http://localhost:8083/api/auth/signin \
 
 ---
 
-### ⚠️ **Current Development Status Summary**
+### Current Development Status Summary
 - **Working**: Main service, basic chat, search, notifications
 - **Needs Work**: Security, service discovery, Docker orchestration
 - **Missing**: Main docker-compose, proper logging, monitoring

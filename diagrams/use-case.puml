@@ -1,0 +1,44 @@
+@startuml use-case
+left to right direction
+skinparam packageStyle rectangle
+
+actor User
+actor Admin
+
+rectangle "Social Network System" {
+  usecase "Register/Login" as UC1
+  usecase "Manage Profile" as UC2
+  usecase "Create Post" as UC3
+  usecase "Comment on Post" as UC4
+  usecase "React to Post" as UC5
+  usecase "Send Friend Request" as UC6
+  usecase "Accept/Reject Request" as UC7
+  usecase "Search Users/Posts" as UC8
+  usecase "Chat with Friends" as UC9
+  usecase "Receive Notifications" as UC10
+  usecase "Moderate Content" as UC11
+  usecase "View Analytics" as UC12
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+
+Admin --> UC11
+Admin --> UC12
+Admin --> UC8
+
+UC3 ..> UC10 : triggers
+UC4 ..> UC10 : triggers
+UC5 ..> UC10 : triggers
+UC6 ..> UC10 : triggers
+UC7 ..> UC10 : triggers
+
+@enduml
