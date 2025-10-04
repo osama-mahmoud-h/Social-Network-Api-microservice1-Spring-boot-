@@ -1,40 +1,40 @@
 #!/bin/bash
 
-# Create shared network via Docker for all services ✅
-echo "Ensuring Docker network exists..."
-docker network inspect social_service_dev_network >/dev/null 2>&1 || \
-docker network create social_service_dev_network
+# Unified Docker Compose for Social Network Microservices
+# This script starts all services using a single docker-compose file
 
-# Start the services in detached mode
+echo "=========================================="
+echo "Starting Social Network Microservices"
+echo "=========================================="
 
-echo "Running Gateway ELK-stack"
-# 1. run ELK stack
-docker-compose -f ./elk-stack-docker/docker-compose-elk.yml up -d --force-recreate --remove-orphans
+# Stop and remove any existing containers
+echo "Cleaning up existing containers..."
+docker-compose -f docker-compose-all.yml down --remove-orphans
 
-echo "Running Gateway kafka"
-# 2. run Kafka
-docker-compose -f docker-compose-kafka.yml up -d --force-recreate --remove-orphans
+# Start all services with the unified docker-compose file
+echo "Starting all services..."
+docker-compose -f docker-compose-all.yml up -d --build
 
-echo "Running Discovery Service"
-# 3. run discovery service (Eureka) ✅
-docker-compose -f ../services/discovery-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
-
-echo "Running Gateway Service"
-# 4. run gateway-service ✅
-docker-compose -f ../services/gateway-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
-
-echo "Running Main Service"
-# 5. run main-service
-#docker-compose -f ../services/main-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
-
-echo "Running Search Service"
-# 6. run search-service
-docker-compose -f ../services/search-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
-
-echo "Running Notification Service"
-# 7. run notification-service
-docker-compose -f ../services/notification-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
-
-echo "Running Chat Service"
-# 8. run chat-service
-docker-compose -f ../services/chat-service/docker/dev/docker-compose.yml up -d --force-recreate --remove-orphans
+echo ""
+echo "=========================================="
+echo "All services are starting up!"
+echo "=========================================="
+echo ""
+echo "Service URLs:"
+echo "  - Eureka Dashboard:      http://localhost:8761"
+echo "  - Gateway Service:       http://localhost:8081"
+echo "  - Auth Service:          http://localhost:8087"
+echo "  - Main Service:          http://localhost:8082"
+echo "  - Search Service:        http://localhost:8084"
+echo "  - Notification Service:  http://localhost:8085"
+echo "  - Chat Service:          http://localhost:8086"
+echo ""
+echo "Infrastructure URLs:"
+echo "  - Kafka UI:              http://localhost:9093"
+echo "  - Elasticsearch:         http://localhost:9200"
+echo "  - Kibana:                http://localhost:5601"
+echo ""
+echo "=========================================="
+echo "To view logs: docker-compose -f docker-compose-all.yml logs -f [service-name]"
+echo "To stop all:  docker-compose -f docker-compose-all.yml down"
+echo "=========================================="
