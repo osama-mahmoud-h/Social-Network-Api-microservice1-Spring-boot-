@@ -38,11 +38,11 @@
         </dependency>
 
         <!-- Shared Security Library -->
-        <dependency>
-            <groupId>com.app.shared</groupId>
-            <artifactId>security-lib</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.app.shared</groupId>-->
+<!--            <artifactId>security-lib</artifactId>-->
+<!--            <version>0.0.1-SNAPSHOT</version>-->
+<!--        </dependency>-->
 
         <!-- OpenFeign for service communication -->
         <dependency>
