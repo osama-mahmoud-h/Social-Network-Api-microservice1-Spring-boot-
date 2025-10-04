@@ -10,21 +10,19 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 
 @Configuration
-@Profile("dev")
 public class OpenAPIConfig {
 
-    @Value("${osama_mh.openapi.dev-url}")
+    @Value("${osama_mh.openapi.dev-url:http://localhost:8083}")
     private String devUrl;
 
-    @Value("${osama_mh.openapi.prod-url}")
+    @Value("${osama_mh.openapi.prod-url:http://localhost:8082}")
     private String prodUrl;
 
-    @Value("${osama_mh.openapi.localhost-url}")
+    @Value("${osama_mh.openapi.localhost-url:http://localhost:8083}")
     private String localhostUrl;
 
     @Bean
@@ -57,19 +55,19 @@ public class OpenAPIConfig {
 
 
         Info info = new Info()
-                .title("Tutorial Management API")
+                .title("Social Network API")
                 .version("1.0")
                 .contact(contact)
-                .description("This API exposes endpoints to manage tutorials.").termsOfService("https://www.bezkoder.com/terms")
+                .description("This API exposes endpoints for the Social Network microservices application.")
+                .termsOfService("https://www.bezkoder.com/terms")
                 .license(mitLicense);
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(devServer, prodServer, localhostServer))
+                .servers(List.of(localhostServer, devServer, prodServer))
                 .addSecurityItem(new SecurityRequirement().addList("jwtAuth"))
                 .components(new io.swagger.v3.oas.models.Components()
                 .addSecuritySchemes("jwtAuth", securityScheme)
                 );
-       // return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
     }
 }
