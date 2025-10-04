@@ -1,0 +1,46 @@
+@startuml use-sequence
+participant Client
+participant Gateway
+participant "Auth Service" as Auth
+participant "Main Service" as Main
+participant "Chat Service" as Chat
+participant "Search Service" as Search
+participant Kafka
+participant Database
+
+== User Login ==
+Client -> Gateway: POST /api/auth/login
+Gateway -> Auth: Forward credentials
+Auth -> Database: Validate user
+Database --> Auth: User data
+Auth -> Auth: Generate JWT tokens
+Auth -> Database: Store token
+Auth --> Gateway: JWT + User info
+Gateway --> Client: AuthResponse
+
+== Authenticated Request ==
+Client -> Gateway: GET /api/posts (Bearer token)
+Gateway -> Auth: Validate token
+Auth -> Database: Check token status
+Auth --> Gateway: Valid + user context
+Gateway -> Main: Forward request (X-User-Id header)
+Main -> Database: Fetch posts
+Main --> Gateway: Posts data
+Gateway --> Client: Response
+
+== Create Post with Notification ==
+Client -> Main: POST /api/posts (with token)
+Main -> Database: Save post
+Main -> Kafka: Publish post_created event
+Kafka -> Search: Index post
+Kafka -> "Notification Service": Notify followers
+Main --> Client: Post created
+
+== Real-time Chat ==
+Client -> Chat: WebSocket connect
+Chat -> Auth: Validate JWT
+Auth --> Chat: User validated
+Chat -> "MongoDB": Store message
+Chat --> Client: Message delivered
+
+@enduml

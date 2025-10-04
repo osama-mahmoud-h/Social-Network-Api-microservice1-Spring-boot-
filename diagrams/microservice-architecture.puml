@@ -1,0 +1,76 @@
+@startuml microservice-architecture
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<gateway>> LightBlue
+  BackgroundColor<<service>> LightGreen
+  BackgroundColor<<database>> LightYellow
+  BackgroundColor<<infra>> LightGray
+}
+
+rectangle "Client Applications" as Client
+
+component "Gateway Service\n:8086" <<gateway>> as Gateway
+component "Discovery Service\n:8761" <<gateway>> as Discovery
+
+component "Auth Service\n:8087" <<service>> as Auth
+component "Main Service\n:8083" <<service>> as Main
+component "Chat Service\n:8084" <<service>> as Chat
+component "Search Service\n:8085" <<service>> as Search
+component "Notification Service" <<service>> as Notify
+
+database "PostgreSQL" <<database>> as Postgres
+database "MongoDB" <<database>> as Mongo
+database "Elasticsearch" <<database>> as Elastic
+queue "Kafka" <<infra>> as Kafka
+database "Redis" <<infra>> as Redis
+
+Client --> Gateway : HTTPS
+
+Gateway --> Auth : Validate Token
+Gateway --> Main : Route Requests
+Gateway --> Chat : Route Requests
+Gateway --> Search : Route Requests
+
+Gateway ..> Discovery : Service Discovery
+Auth ..> Discovery : Register
+Main ..> Discovery : Register
+Chat ..> Discovery : Register
+Search ..> Discovery : Register
+Notify ..> Discovery : Register
+
+Auth --> Postgres : User & Token Data
+Main --> Postgres : Posts, Comments, Friends
+Chat --> Mongo : Messages
+Search --> Elastic : Indexed Content
+
+Main --> Kafka : Publish Events
+Search --> Kafka : Consume Events
+Notify --> Kafka : Consume Events
+
+Main ..> Redis : Cache (planned)
+Gateway ..> Redis : Rate Limiting (planned)
+
+Main ..> Auth : Token Validation (Feign)
+Chat ..> Auth : Token Validation (Feign)
+Search ..> Auth : Token Validation (Feign)
+
+note right of Gateway
+  Entry point for all requests
+  Authentication filtering
+  Load balancing
+end note
+
+note right of Auth
+  Centralized authentication
+  JWT token management
+  User validation
+end note
+
+note right of Kafka
+  Event-driven messaging
+  Async communication
+  Post indexing & notifications
+end note
+
+@enduml
