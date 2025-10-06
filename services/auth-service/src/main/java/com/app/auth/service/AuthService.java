@@ -3,11 +3,12 @@ package com.app.auth.service;
 import com.app.auth.dto.AuthResponse;
 import com.app.auth.dto.RegisterRequest;
 import com.app.auth.dto.TokenValidationResponse;
+import com.app.auth.enums.UserRole;
 import com.app.auth.event.UserCreatedEvent;
 import com.app.auth.mapper.AuthMapper;
 import com.app.auth.model.Token;
 import com.app.auth.model.User;
-//import com.app.auth.publisher.UserEventPublisher;
+import com.app.auth.publisher.UserEventPublisher;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
-   // private final UserEventPublisher userEventPublisher;
+    private final UserEventPublisher userEventPublisher;
 
     @Transactional
     public AuthResponse authenticate(Authentication authentication) {
@@ -75,7 +77,10 @@ public class AuthService {
                 return TokenValidationResponse.invalid("Invalid token");
             }
 
-            return TokenValidationResponse.valid(user.getId(), user.getEmail(), user.getRoles());
+            // Convert UserRole enum to String
+            Set<UserRole> roleNames = user.getRoles();
+
+            return TokenValidationResponse.valid(user.getId(), user.getEmail(), roleNames);
 
         } catch (Exception e) {
             log.error("Token validation failed: {}", e.getMessage());
@@ -136,7 +141,7 @@ public class AuthService {
 
         // Publish UserCreatedEvent to Kafka for main-service
         UserCreatedEvent event = authMapper.mapToUserCreatedEvent(user);
-        //userEventPublisher.publishUserCreated(event);
+        userEventPublisher.publishUserCreated(event);
 
         return authMapper.mapToAuthResponse(accessToken, refreshToken, 3600L, user);
     }

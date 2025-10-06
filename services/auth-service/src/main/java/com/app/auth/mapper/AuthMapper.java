@@ -57,7 +57,7 @@ public class AuthMapper {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .createdAt(user.getCreatedAt())
-                .eventType(UserEventType.USER_CREATED)
+                .eventType(UserEventType.USER_CREATED.name())
                 .build();
     }
 }

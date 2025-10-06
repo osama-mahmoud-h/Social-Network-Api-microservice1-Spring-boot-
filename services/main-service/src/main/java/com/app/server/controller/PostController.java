@@ -47,6 +47,7 @@ public class PostController {
     public ResponseEntity<MyApiResponse<Boolean>> savePost(@Valid @ModelAttribute CreatePostRequestDto createPostRequestDto
     ) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
+        System.out.println("currentUserId = " + currentUserId);
         Post savedPost = postService.savePost(currentUserId, createPostRequestDto);
         return ResponseEntity.ok(MyApiResponse.success( savedPost!=null, "Post created successfully"));
     }
@@ -64,6 +65,7 @@ public class PostController {
             @Valid @ModelAttribute GetRecentPostsRequestDto req
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
+        System.out.println("currentUserId = " + currentUserId);
         Set<PostResponseDto> posts = postService.getRecentPosts(currentUserId, req);
         return ResponseEntity.ok(MyApiResponse.success(posts,"all posts get successfully"));
     }

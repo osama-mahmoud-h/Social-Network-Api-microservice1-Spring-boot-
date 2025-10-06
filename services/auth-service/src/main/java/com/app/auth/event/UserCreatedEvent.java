@@ -1,6 +1,5 @@
 package com.app.auth.event;
 
-import com.app.auth.enums.UserEventType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +22,5 @@ public class UserCreatedEvent {
     private String email;
     private String phoneNumber;
     private Instant createdAt;
-    private UserEventType eventType = UserEventType.USER_CREATED;
+    private String eventType;
 }
