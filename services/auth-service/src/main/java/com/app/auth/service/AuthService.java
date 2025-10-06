@@ -8,7 +8,7 @@ import com.app.auth.event.UserCreatedEvent;
 import com.app.auth.mapper.AuthMapper;
 import com.app.auth.model.Token;
 import com.app.auth.model.User;
-//import com.app.auth.publisher.UserEventPublisher;
+import com.app.auth.publisher.UserEventPublisher;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
-   // private final UserEventPublisher userEventPublisher;
+    private final UserEventPublisher userEventPublisher;
 
     @Transactional
     public AuthResponse authenticate(Authentication authentication) {
@@ -141,7 +141,7 @@ public class AuthService {
 
         // Publish UserCreatedEvent to Kafka for main-service
         UserCreatedEvent event = authMapper.mapToUserCreatedEvent(user);
-        //userEventPublisher.publishUserCreated(event);
+        userEventPublisher.publishUserCreated(event);
 
         return authMapper.mapToAuthResponse(accessToken, refreshToken, 3600L, user);
     }

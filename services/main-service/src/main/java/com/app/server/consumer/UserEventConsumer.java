@@ -1,6 +1,7 @@
 package com.app.server.consumer;
 
 import com.app.server.event.UserCreatedEvent;
+import com.app.server.mapper.UserProfileMapper;
 import com.app.server.model.UserProfile;
 import com.app.server.repository.UserProfileRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -18,10 +17,19 @@ public class UserEventConsumer {
 
     private final UserProfileRepository userProfileRepository;
     private final ObjectMapper objectMapper;
+    private final UserProfileMapper userProfileMapper;
 
     @KafkaListener(topics = "user-events", groupId = "main-service-group")
     public void consumeUserEvent(String eventJson) {
         try {
+            log.debug("Received event: {}", eventJson);
+
+            // Handle null or empty messages
+            if (eventJson == null || eventJson.trim().isEmpty()) {
+                log.warn("Received null or empty event, skipping");
+                return;
+            }
+
             // Parse event to determine type
             UserCreatedEvent event = objectMapper.readValue(eventJson, UserCreatedEvent.class);
 
@@ -29,10 +37,13 @@ public class UserEventConsumer {
                 handleUserCreated(event);
             } else if ("USER_UPDATED".equals(event.getEventType())) {
                 handleUserUpdated(event);
+            } else {
+                log.warn("Unknown event type: {}", event.getEventType());
             }
 
         } catch (Exception e) {
-            log.error("Error processing user event: {}", e.getMessage(), e);
+            log.error("Error processing user event: {}, raw message: {}", e.getMessage(), eventJson, e);
+            // Don't rethrow - let the message be committed and move on
         }
     }
 
@@ -46,15 +57,7 @@ public class UserEventConsumer {
         }
 
         // Create UserProfile
-        UserProfile userProfile = UserProfile.builder()
-                .userId(event.getUserId())
-                .firstName(event.getFirstName())
-                .lastName(event.getLastName())
-                .email(event.getEmail())
-                .phoneNumber(event.getPhoneNumber())
-                .createdAt(event.getCreatedAt())
-                .syncedAt(Instant.now())
-                .build();
+        UserProfile userProfile = userProfileMapper.mapCreatedEventToUserProfile(event);
 
         userProfileRepository.save(userProfile);
         log.info("Created UserProfile for userId: {}", event.getUserId());
@@ -66,12 +69,8 @@ public class UserEventConsumer {
         UserProfile userProfile = userProfileRepository.findById(event.getUserId())
                 .orElseThrow(() -> new RuntimeException("UserProfile not found for userId: " + event.getUserId()));
 
-        // Update fields
-        userProfile.setFirstName(event.getFirstName());
-        userProfile.setLastName(event.getLastName());
-        userProfile.setEmail(event.getEmail());
-        userProfile.setPhoneNumber(event.getPhoneNumber());
-        userProfile.setSyncedAt(Instant.now());
+        // Update fields using mapper
+        userProfileMapper.updateUserProfileFromEvent(userProfile, event);
 
         userProfileRepository.save(userProfile);
         log.info("Updated UserProfile for userId: {}", event.getUserId());
