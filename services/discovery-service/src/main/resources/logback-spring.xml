@@ -10,7 +10,7 @@
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"spring_app_name":"${springAppName:-main-service}"}</customFields>
+            <customFields>{"spring_app_name":"${springAppName:-discovery-service}"}</customFields>
         </encoder>
         <!-- Reconnection settings -->
         <keepAliveDuration>5 minutes</keepAliveDuration>
@@ -26,9 +26,9 @@
 
     <!-- File appender for local backup -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/main-service.log</file>
+        <file>logs/discovery-service.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/main-service-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/discovery-service-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -37,13 +37,11 @@
     </appender>
 
     <!-- Suppress verbose logging from specific packages -->
-    <logger name="org.hibernate.SQL" level="WARN" />
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN" />
-    <logger name="org.springframework.web" level="INFO" />
-    <logger name="com.zaxxer.hikari" level="WARN" />
+    <logger name="com.netflix.eureka" level="INFO" />
+    <logger name="com.netflix.discovery" level="INFO" />
 
     <!-- Application-specific logging -->
-    <logger name="com.app.main" level="DEBUG" />
+    <logger name="com.app.discovery" level="DEBUG" />
 
     <!-- Root logger -->
     <root level="INFO">
