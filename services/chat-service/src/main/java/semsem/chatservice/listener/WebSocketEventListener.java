@@ -13,10 +13,12 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import semsem.chatservice.dto.response.EventMessageResponseDto;
 import semsem.chatservice.enums.EventMessageType;
+import semsem.chatservice.security.WebSocketAuthenticationHelper;
 import semsem.chatservice.service.ActiveUserService;
 import semsem.chatservice.utils.OnlineUserVal;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -24,26 +26,25 @@ import java.util.List;
 public class WebSocketEventListener {
     private final ActiveUserService activeUserService;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final WebSocketAuthenticationHelper webSocketAuthenticationHelper;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         //log.info("New WebSocket connection established - sessionId: {}", headerAccessor.getSessionId());
-        System.out.println("New WebSocket connection established - sessionId: "+headerAccessor.getSessionId());
+        System.out.println("New WebSocket connection established - sessionId: "+headerAccessor.getSessionAttributes());
 
-        String username = headerAccessor.getNativeHeader("username").get(0);
-        String customUserSessionId = headerAccessor.getNativeHeader("sessionId").get(0);
-        String sessionId = headerAccessor.getSessionId();
+        String username = webSocketAuthenticationHelper.getEmail(headerAccessor);
 
       //  System.out.println("headerAccessor: "+headerAccessor);
 
         OnlineUserVal user = OnlineUserVal.builder()
-                .sessionId(sessionId)
+                .sessionId(null)
                 .username(username)
-                .customUserSessionId(customUserSessionId)
+                .customUserSessionId(null)
                 .build();
 
-        activeUserService.userConnected(sessionId, user);
+        //activeUserService.userConnected(null, user);
 
         List<OnlineUserVal> activeUsers = activeUserService.getAllActiveUsers();
         EventMessageResponseDto eventMessage = EventMessageResponseDto.builder()
