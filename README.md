@@ -18,13 +18,14 @@ This project is a microservice-based social network backend system built using S
 - [x] **API documentation using Swagger**
 - [x] **Security using Spring Security JWT**
 - [x] **Dockerized services** (individual containers per service)
+- [x] **ELK stack logging** (Elasticsearch, Logstash, Kibana)
+    - [x] ELK stack Docker setup
+    - [x] Service integration with ELK
+    - [x] Centralized logging for all microservices
 
 ## In Progress / Partial Implementation
 - [ ] **Rate limiting using Redis** (setup started)
 - [ ] **Caching using Redis** (infrastructure ready)
-- [ ] **ELK stack logging**
-    - [x] ELK stack Docker setup
-    - [ ] Service integration with ELK
 - [ ] **Docker Compose orchestration**
     - [x] Individual service containers
     - [ ] Main docker-compose.yml file

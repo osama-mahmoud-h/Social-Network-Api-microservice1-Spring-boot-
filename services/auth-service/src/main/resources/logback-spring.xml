@@ -4,13 +4,15 @@
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
 
     <springProperty scope="context" name="springAppName" source="spring.application.name" />
+    <!-- Correct Spring property syntax -->
     <springProperty name="LOGSTASH_HOST" source="logstash.host" defaultValue="localhost"/>
     <springProperty name="LOGSTASH_PORT" source="logstash.port" defaultValue="5000"/>
+
     <!-- Logstash appender for sending logs to ELK stack -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"spring_app_name":"${springAppName:-main-service}"}</customFields>
+            <customFields>{"spring_app_name":"${springAppName:-auth-service}"}</customFields>
         </encoder>
         <!-- Reconnection settings -->
         <keepAliveDuration>5 minutes</keepAliveDuration>
@@ -26,9 +28,9 @@
 
     <!-- File appender for local backup -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/main-service.log</file>
+        <file>logs/auth-service.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/main-service-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/auth-service-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -43,7 +45,7 @@
     <logger name="com.zaxxer.hikari" level="WARN" />
 
     <!-- Application-specific logging -->
-    <logger name="com.app.main" level="DEBUG" />
+    <logger name="com.app.auth" level="DEBUG" />
 
     <!-- Root logger -->
     <root level="INFO">
