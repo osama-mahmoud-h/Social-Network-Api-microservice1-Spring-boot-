@@ -1,9 +1,6 @@
 package com.app.server.repository;
 
 
-import com.app.server.enums.ReactionTargetType;
-import com.app.server.enums.ReactionType;
-import com.app.server.model.AppUser;
 import com.app.server.model.UserReaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

@@ -2,13 +2,11 @@ package com.app.server.service;
 
 
 import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
-import com.app.server.model.AppUser;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import com.app.server.model.UserProfile;
 
 public interface ReactionService {
-    Object reactToPost(AppUser appUser, ReactToEntityRequestDto reactToEntityRequestDto, Long postId);
+    Object reactToPost(UserProfile userProfile, ReactToEntityRequestDto reactToEntityRequestDto, Long postId);
 
     //reactToComment method is not implemented in the original code snippet
-    Boolean reactToComment(AppUser appUser, ReactToEntityRequestDto reactToEntityRequestDto, Long commentId);
+    Boolean reactToComment(UserProfile userProfile, ReactToEntityRequestDto reactToEntityRequestDto, Long commentId);
 }

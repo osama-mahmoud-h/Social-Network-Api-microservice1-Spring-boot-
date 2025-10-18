@@ -145,6 +145,19 @@ services:
           memory: "500MB"
 
   # ======================= Databases =======================
+  #redis
+  redis:
+      image: redis:latest
+      container_name: redis
+      ports:
+      - "6379:6379"
+      networks:
+      - social_service_dev_network
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
 
   # PostgreSQL for auth-service
   auth-db:

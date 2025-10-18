@@ -23,11 +23,11 @@ public class Friendship {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id1", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_friendships_user_id1"))
-    private AppUser user1;
+    private UserProfile user1;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id2", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_friendships_user_id2"))
-    private AppUser user2;
+    private UserProfile user2;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

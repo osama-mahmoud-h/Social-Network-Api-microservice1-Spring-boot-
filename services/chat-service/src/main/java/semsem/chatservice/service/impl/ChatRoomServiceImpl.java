@@ -25,6 +25,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                 .or(() -> Optional.of(this.createNewChatRoom(senderId, receiverId)));
     }
 
+    @Override
+    public String createChatId(String senderId, String receiverId) {
+        return this.generateChatId(senderId, receiverId);
+    }
+
     private String createNewChatRoom(String senderId, String receiverId) {
         String chatId = this.generateChatId(senderId, receiverId);
 

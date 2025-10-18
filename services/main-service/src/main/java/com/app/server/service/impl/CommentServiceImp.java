@@ -1,6 +1,5 @@
 package com.app.server.service.impl;
 
-import com.app.server.dto.notification.NotificationEvent;
 import com.app.server.dto.notification.comment.CommentEventDto;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
@@ -9,11 +8,10 @@ import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
 import com.app.server.enums.CommentActionType;
 import com.app.server.enums.KafkaTopics;
-import com.app.server.enums.NotificationType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
-import com.app.server.model.*;
-//import com.example.server.repository.CommentLikeRepository;
+import com.app.server.model.Comment;
+import com.app.server.model.UserProfile;
 import com.app.server.service.CommentService;
 import com.app.server.repository.CommentRepository;
 import com.app.server.service.notification.NotificationService;
@@ -34,7 +32,7 @@ public class CommentServiceImp implements CommentService {
     private final NotificationService notificationService;
 
     @Override
-    public boolean addNewComment(AppUser currentUser, AddNewCommentRequestDto commentDto) {
+    public boolean addNewComment(UserProfile currentUser, AddNewCommentRequestDto commentDto) {
         Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, commentDto);
         commentRepository.save(newComment);
         this.sendNewCommentNotification(newComment);
@@ -42,7 +40,7 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
-    public boolean deleteComment(AppUser currentUser, Long commentId) {
+    public boolean deleteComment(UserProfile currentUser, Long commentId) {
         Comment comment = this.getCommentById(commentId);
         int rowsAffected = commentRepository.deleteByIdAndAuthorId(currentUser.getUserId(), commentId);
         if(rowsAffected == 0){
@@ -53,8 +51,8 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
-    public boolean updateComment(AppUser appUser, UpdateCommentRequestDto requestDto){
-        Optional<Comment> comment = commentRepository.findByIdAndAuthorId(appUser.getUserId(), requestDto.getCommentId());
+    public boolean updateComment(UserProfile userProfile, UpdateCommentRequestDto requestDto){
+        Optional<Comment> comment = commentRepository.findByIdAndAuthorId(userProfile.getUserId(), requestDto.getCommentId());
         if(comment.isEmpty()){
             throw new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND);
         }
@@ -66,7 +64,7 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
-    public Set<CommentResponseDto> getCommentsOnPost(AppUser appUser, GetAllCommentsRequestDto requestDto){
+    public Set<CommentResponseDto> getCommentsOnPost(UserProfile userProfile, GetAllCommentsRequestDto requestDto){
         Pageable pageable = Pageable.ofSize(requestDto.getSize()).withPage(requestDto.getPage());
         return commentRepository.findCommentByPostId(requestDto.getPostId(), pageable)
                 .stream()
@@ -75,13 +73,13 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
-    public boolean replayOnComment(AppUser appUser, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId) {
+    public boolean replayOnComment(UserProfile userProfile, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId) {
         Comment parentComment = this.getCommentById(commentId);
         if(parentComment.getParentComment() != null){
             throw new CustomRuntimeException("Cannot replay on a replay", HttpStatus.BAD_REQUEST);
         }
 
-        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(appUser, addNewCommentRequestDto);
+        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(userProfile, addNewCommentRequestDto);
         replyToComment.setParentComment(parentComment);
         commentRepository.save(replyToComment);
 
@@ -90,7 +88,7 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
-    public Set<CommentResponseDto> getCommentReplies(AppUser appUser, GetAllCommentRepliesRequestDto getAllCommentsRequestDto) {
+    public Set<CommentResponseDto> getCommentReplies(UserProfile userProfile, GetAllCommentRepliesRequestDto getAllCommentsRequestDto) {
         Pageable pageable = Pageable.ofSize(getAllCommentsRequestDto.getSize()).withPage(getAllCommentsRequestDto.getPage());
         return commentRepository.findCommentByParentCommentId(getAllCommentsRequestDto.getCommentId(), pageable)
                 .stream()

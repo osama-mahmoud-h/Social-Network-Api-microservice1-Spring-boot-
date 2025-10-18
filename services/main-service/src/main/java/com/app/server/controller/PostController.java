@@ -5,7 +5,6 @@ import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
 import com.app.server.dto.response.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
-import com.app.server.model.AppUser;
 import com.app.server.model.Post;
 import com.app.server.service.PostService;
 import com.app.shared.security.utils.SecurityUtils;

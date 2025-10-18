@@ -29,7 +29,7 @@ public class Profile {
     @OneToOne(fetch = FetchType.LAZY, optional = false,cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_profiles_user_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private AppUser user;
+    private UserProfile user;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false,cascade = CascadeType.MERGE)
     @JoinColumn(name = "address_id", referencedColumnName = "addressId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_profiles_address_id"))

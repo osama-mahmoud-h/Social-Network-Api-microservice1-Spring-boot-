@@ -32,7 +32,7 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private AppUser author;
+    private UserProfile author;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "post_id", referencedColumnName = "postId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_post_id"))

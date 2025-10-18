@@ -9,14 +9,13 @@ import com.app.server.enums.PostActionType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
 import com.app.server.mapper.PostMapper;
-import com.app.server.model.AppUser;
 import com.app.server.model.File;
 import com.app.server.model.Post;
 import com.app.server.dto.response.PostResponseDto;
-//import com.example.server.repository.PostLikeRepository;
-import com.app.server.repository.AppUserRepository;
+import com.app.server.model.UserProfile;
 import com.app.server.repository.FileRepository;
 import com.app.server.repository.PostRepository;
+import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.PostService;
 import com.app.server.service.UserService;
 import com.app.server.service.notification.NotificationService;
@@ -41,13 +40,13 @@ public class PostServiceImp implements PostService {
     private final FileRepository fileRepository;
     private final NotificationService notificationService;
     private final UserService userService;
-    private final AppUserRepository appUserRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     @Transactional
     public Post savePost(Long currentUser, CreatePostRequestDto createPostRequestDto){
         Post newPost = this.postMapper.mapCreatePostRequestDtoToPost(createPostRequestDto);
-        AppUser author = appUserRepository.getAppUsersByUserId(currentUser)
+        UserProfile author = userProfileRepository.getAppUsersByUserId(currentUser)
                 .orElseThrow(() -> new CustomRuntimeException("User not found", HttpStatus.NOT_FOUND));
 
         Set<File> uploadedFiles = this.uploadFiles(createPostRequestDto.getFiles());

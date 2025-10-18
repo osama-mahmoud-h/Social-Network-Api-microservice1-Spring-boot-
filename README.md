@@ -285,6 +285,9 @@ Overall, our backend system provides the necessary interfaces to create a full-f
 ### api documentation 
 ![Alt Text](images/swagger-doc.png)
 
+chat srevice client image
+![Alt Text](images/chat-service-client.png)
+
 ### Deployment Architecture
 ```plaintext
 .

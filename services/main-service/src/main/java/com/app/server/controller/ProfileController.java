@@ -6,7 +6,7 @@ import com.app.server.dto.request.profile.UpdateProfileBioRequestDto;
 import com.app.server.dto.response.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.profile.ProfileResponseDto;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 import com.app.server.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -46,7 +46,7 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestBody UpdateProfileBioRequestDto bioRequestDto
     ){
-        boolean bioUpdated = profileService.updateBio((AppUser) currentUserDetails, bioRequestDto);
+        boolean bioUpdated = profileService.updateBio((UserProfile) currentUserDetails, bioRequestDto);
         return ResponseEntity.ok(MyApiResponse.success(bioUpdated, "Bio updated successfully"));
     }
 
@@ -60,7 +60,7 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestParam("image") MultipartFile image
     ){
-        boolean imageUpdated = profileService.updateImage((AppUser) currentUserDetails, image);
+        boolean imageUpdated = profileService.updateImage((UserProfile) currentUserDetails, image);
         return ResponseEntity.ok(MyApiResponse.success(imageUpdated, "Image updated successfully"));
     }
 
@@ -71,7 +71,7 @@ public class ProfileController {
     })
     @GetMapping("/get")
     public ResponseEntity<MyApiResponse<ProfileResponseDto>> getProfile(@AuthenticationPrincipal UserDetails currentUserDetails){
-        ProfileResponseDto profile = profileService.getProfile((AppUser) currentUserDetails);
+        ProfileResponseDto profile = profileService.getProfile((UserProfile) currentUserDetails);
         return ResponseEntity.ok(MyApiResponse.success(profile, "Profile get successfully"));
     }
 
@@ -85,7 +85,7 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @ModelAttribute @Valid GetRecentPostsRequestDto requestDto
     ){
-        Set<PostResponseDto> posts = profileService.getMyPosts((AppUser) currentUserDetails, requestDto);
+        Set<PostResponseDto> posts = profileService.getMyPosts((UserProfile) currentUserDetails, requestDto);
         return ResponseEntity.ok(MyApiResponse.success(posts, "Posts get successfully"));
     }
 

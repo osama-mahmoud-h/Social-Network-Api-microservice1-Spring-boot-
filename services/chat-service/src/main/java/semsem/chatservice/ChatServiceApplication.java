@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = {"com.app.shared.security.client"})
+@EnableFeignClients(basePackages = {"com.app.shared.security.client", "semsem.chatservice.client"})
 public class ChatServiceApplication {
 
     public static void main(String[] args) {

@@ -5,24 +5,24 @@ import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 
 import java.util.Set;
 
 
 public interface CommentService {
-   // Object writeComment(AppUser currentUser, AddNewCommentRequestDto commentDto);
+   // Object writeComment(UserProfile currentUser, AddNewCommentRequestDto commentDto);
 
-    boolean addNewComment(AppUser currentUser, AddNewCommentRequestDto commentDto);
+    boolean addNewComment(UserProfile currentUser, AddNewCommentRequestDto commentDto);
 
-    boolean deleteComment(AppUser currentUser, Long commentId);
+    boolean deleteComment(UserProfile currentUser, Long commentId);
 
 
-    boolean updateComment(AppUser appUser, UpdateCommentRequestDto requestDto);
+    boolean updateComment(UserProfile userProfile, UpdateCommentRequestDto requestDto);
 
-    Set<CommentResponseDto> getCommentsOnPost(AppUser appUser, GetAllCommentsRequestDto getAllCommentsRequestDto);
+    Set<CommentResponseDto> getCommentsOnPost(UserProfile userProfile, GetAllCommentsRequestDto getAllCommentsRequestDto);
 
-    boolean replayOnComment(AppUser appUser, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId);
+    boolean replayOnComment(UserProfile userProfile, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId);
 
-    Set<CommentResponseDto> getCommentReplies(AppUser appUser, GetAllCommentRepliesRequestDto getAllCommentsRequestDto);
+    Set<CommentResponseDto> getCommentReplies(UserProfile userProfile, GetAllCommentRepliesRequestDto getAllCommentsRequestDto);
 }

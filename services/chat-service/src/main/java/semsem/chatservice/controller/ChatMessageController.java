@@ -10,7 +10,6 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import semsem.chatservice.dto.request.ChatRoomMessageDto;
 import semsem.chatservice.dto.request.NewPrivateChatMessageRequestDto;
 import semsem.chatservice.dto.request.NewPublicChatMessageRequestDto;
 import semsem.chatservice.dto.response.ChatMessageResponseDto;
@@ -18,7 +17,6 @@ import semsem.chatservice.security.WebSocketAuthenticationHelper;
 import semsem.chatservice.service.ChatMessageService;
 
 import java.util.List;
-import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,140 +24,102 @@ import java.util.Objects;
 public class ChatMessageController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatMessageService chatMessageService;
-    private final  WebSocketAuthenticationHelper webSocketAuthenticationHelper;
-
-   @MessageMapping("/chat")
-    public void saveNewMessage(
-            @Payload NewPublicChatMessageRequestDto requestDto,
-            SimpMessageHeaderAccessor headerAccessor) {
-
-        // Extract authenticated user data from WebSocket session using helper
-        Long userId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String email = webSocketAuthenticationHelper.getEmail(headerAccessor);
-
-        log.info("Message received from authenticated user - ID: {}, Email: {}", userId, email);
-
-        // You can now use userId instead of relying on the client to send it
-        // This prevents users from impersonating other users
-
-        ChatMessageResponseDto savedMessage = chatMessageService.saveMessage(requestDto);
-        simpMessagingTemplate.convertAndSendToUser(savedMessage.getReceiverId(),"/queue/messages", savedMessage);
-    }
-
-    @GetMapping("/messages/{senderId}/{receiverId}")
-    public ResponseEntity<List<ChatMessageResponseDto>> getConversations(
-            @PathVariable("senderId") String senderId,
-            @PathVariable("receiverId") String receiverId
-    ) {
-        return ResponseEntity.ok(chatMessageService.getConversations(senderId, receiverId));
-    }
-
-    @MessageMapping("/message.sendPrivateMessage")
-    public void handlePrivateMessage(
-            @Payload NewPrivateChatMessageRequestDto msg,
-            SimpMessageHeaderAccessor headerAccessor) {
-
-        // Extract authenticated user data from WebSocket session using helper
-        Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String email = webSocketAuthenticationHelper.getEmail(headerAccessor);
-
-        log.info("Private message from user ID: {}, Email: {} to receiver: {}",
-                authenticatedUserId, email, msg.getReceiverId());
-
-        // Security: Verify the sender ID matches the authenticated user
-        // This prevents users from spoofing messages as other users
-        if (!webSocketAuthenticationHelper.verifySender(headerAccessor, msg.getSenderId())) {
-            log.warn("User {} attempted to send message as user {}", authenticatedUserId, msg.getSenderId());
-            return; // Reject the message
-        }
-
-        simpMessagingTemplate.convertAndSendToUser(msg.getReceiverId(), "/private", msg);
-    }
+    private final WebSocketAuthenticationHelper webSocketAuthenticationHelper;
 
     /**
-     * Handle public chat room messages
-     * Endpoint: /app/chat.sendMessage
-     * Broadcasts to: /topic/chat/{room}
+     * Handle private messages between friends
+     * Endpoint: /app/private.sendMessage
+     * Validates friendship before sending
      */
-    @MessageMapping("/chat.sendMessage")
-    public void handlePublicChatMessage(
-            @Payload ChatRoomMessageDto messageDto,
+    @MessageMapping("/private.sendMessage")
+    public void handlePrivateMessage(
+            @Payload NewPrivateChatMessageRequestDto msg,
             SimpMessageHeaderAccessor headerAccessor) {
 
         // Extract authenticated user data from WebSocket session
         Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
         String email = webSocketAuthenticationHelper.getEmail(headerAccessor);
+        String token = webSocketAuthenticationHelper.getToken(headerAccessor);
 
-        log.info("Public chat message from user: {} (ID: {}) in room: {}",
-                email, authenticatedUserId, messageDto.getRoom());
+        log.info("Private message from user ID: {}, Email: {} to receiver: {}",
+                authenticatedUserId, email, msg.getReceiverId());
 
-        // Add timestamp
-        messageDto.setTimestamp(java.time.Instant.now().toString());
+        // Security: Verify the sender ID matches the authenticated user
+        if (!webSocketAuthenticationHelper.verifySender(headerAccessor, msg.getSenderId())) {
+            log.warn("User {} attempted to send message as user {}", authenticatedUserId, msg.getSenderId());
+            return; // Reject the message
+        }
 
-        // Broadcast message to all users subscribed to this room
-        simpMessagingTemplate.convertAndSend(
-                "/topic/chat/" + messageDto.getRoom(),
-                messageDto
-        );
+        try {
+            // Save message with friend validation
+            ChatMessageResponseDto savedMessage = chatMessageService.savePrivateMessage(
+                    msg,
+                    "Bearer " + token,
+                    authenticatedUserId
+            );
+
+            // Send to receiver
+            simpMessagingTemplate.convertAndSendToUser(
+                    msg.getReceiverId(),
+                    "/queue/messages",
+                    savedMessage
+            );
+
+            // Send confirmation to sender
+            simpMessagingTemplate.convertAndSendToUser(
+                    msg.getSenderId(),
+                    "/queue/messages",
+                    savedMessage
+            );
+
+            log.info("Private message sent successfully: messageId={}", savedMessage.getId());
+        } catch (RuntimeException e) {
+            log.error("Failed to send private message: {}", e.getMessage());
+            // Could send error message back to sender
+            simpMessagingTemplate.convertAndSendToUser(
+                    msg.getSenderId(),
+                    "/queue/errors",
+                    e.getMessage()
+            );
+        }
     }
 
     /**
-     * Handle user joining a chat room
-     * Endpoint: /app/chat.addUser
-     * Broadcasts to: /topic/chat/{room}
+     * REST endpoint to get conversation history between two users
+     * GET /api/messages/{senderId}/{receiverId}
      */
-    @MessageMapping("/chat.addUser")
-    public void handleUserJoin(
-            @Payload ChatRoomMessageDto messageDto,
-            SimpMessageHeaderAccessor headerAccessor) {
-
-        // Extract authenticated user data
-        Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String email = webSocketAuthenticationHelper.getEmail(headerAccessor);
-
-        // Store user info in WebSocket session
-        Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", messageDto.getSender());
-        headerAccessor.getSessionAttributes().put("room", messageDto.getRoom());
-
-        log.info("User joined room: {} - User: {} (ID: {})",
-                messageDto.getRoom(), email, authenticatedUserId);
-
-        // Add timestamp
-        messageDto.setTimestamp(java.time.Instant.now().toString());
-        messageDto.setContent(messageDto.getSender() + " joined the chat");
-
-        // Broadcast join message to room
-        simpMessagingTemplate.convertAndSend(
-                "/topic/chat/" + messageDto.getRoom(),
-                messageDto
-        );
+    @GetMapping("/api/messages/{senderId}/{receiverId}")
+    public ResponseEntity<List<ChatMessageResponseDto>> getConversations(
+            @PathVariable("senderId") String senderId,
+            @PathVariable("receiverId") String receiverId
+    ) {
+        log.info("Fetching conversation history between {} and {}", senderId, receiverId);
+        return ResponseEntity.ok(chatMessageService.getConversations(senderId, receiverId));
     }
 
     /**
-     * Handle user leaving a chat room
-     * Endpoint: /app/chat.removeUser
-     * Broadcasts to: /topic/chat/{room}
+     * REST endpoint to send a private message
+     * POST /api/messages/send
      */
-    @MessageMapping("/chat.removeUser")
-    public void handleUserLeave(
-            @Payload ChatRoomMessageDto messageDto,
-            SimpMessageHeaderAccessor headerAccessor) {
+    @PostMapping("/api/messages/send")
+    public ResponseEntity<?> sendPrivateMessage(
+            @RequestBody NewPrivateChatMessageRequestDto requestDto,
+            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") Long authenticatedUserId
+    ) {
+        log.info("REST: Sending private message from userId={} to userId={}", requestDto.getSenderId(), requestDto.getReceiverId());
 
-        // Extract authenticated user data
-        Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String email = webSocketAuthenticationHelper.getEmail(headerAccessor);
+        try {
+            ChatMessageResponseDto savedMessage = chatMessageService.savePrivateMessage(
+                    requestDto,
+                    token,
+                    authenticatedUserId
+            );
 
-        log.info("User left room: {} - User: {} (ID: {})",
-                messageDto.getRoom(), email, authenticatedUserId);
-
-        // Add timestamp
-        messageDto.setTimestamp(java.time.Instant.now().toString());
-        messageDto.setContent(messageDto.getSender() + " left the chat");
-
-        // Broadcast leave message to room
-        simpMessagingTemplate.convertAndSend(
-                "/topic/chat/" + messageDto.getRoom(),
-                messageDto
-        );
+            return ResponseEntity.ok(savedMessage);
+        } catch (RuntimeException e) {
+            log.error("Failed to send private message: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

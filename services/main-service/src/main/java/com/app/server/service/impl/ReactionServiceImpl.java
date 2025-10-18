@@ -4,7 +4,7 @@ import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
 import com.app.server.enums.ReactionTargetType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.UserReactionMapper;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 import com.app.server.model.UserReaction;
 import com.app.server.repository.CommentRepository;
 import com.app.server.repository.PostRepository;
@@ -26,16 +26,16 @@ public class ReactionServiceImpl implements ReactionService {
     private final UserReactionMapper reactionMapper;
 
     @Override
-    public Boolean reactToPost(AppUser appUser, ReactToEntityRequestDto reactToEntityRequestDto, Long postId) {
+    public Boolean reactToPost(UserProfile userProfile, ReactToEntityRequestDto reactToEntityRequestDto, Long postId) {
         postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         Optional<UserReaction> oldPostReaction = userReactionsRepository.findByAuthorAndTargetIdAndReactionTargetType(
-                appUser.getUserId(),
+                userProfile.getUserId(),
                 postId,
                 ReactionTargetType.POST.toString()
         );
 
         if(isFirstReaction(oldPostReaction)) {
-            UserReaction userReactedPost = reactionMapper.mapToUserPostReaction(reactToEntityRequestDto, appUser, postId);
+            UserReaction userReactedPost = reactionMapper.mapToUserPostReaction(reactToEntityRequestDto, userProfile, postId);
             userReactionsRepository.save(userReactedPost);
             return true;
         }else if(oldPostReaction.isPresent() && isTheSameReaction(oldPostReaction.get(), reactToEntityRequestDto)) {
@@ -48,16 +48,16 @@ public class ReactionServiceImpl implements ReactionService {
 
     //reactToComment method is not implemented in the original code snippet
     @Override
-    public Boolean reactToComment(AppUser appUser, ReactToEntityRequestDto reactToEntityRequestDto, Long commentId) {
+    public Boolean reactToComment(UserProfile userProfile, ReactToEntityRequestDto reactToEntityRequestDto, Long commentId) {
         commentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("Comment not found"));
         Optional<UserReaction> oldCommentReaction = userReactionsRepository.findByAuthorAndTargetIdAndReactionTargetType(
-                appUser.getUserId(),
+                userProfile.getUserId(),
                 commentId,
                 ReactionTargetType.COMMENT.toString()
         );
 
         if (isFirstReaction(oldCommentReaction)) {
-            UserReaction userReactedComment = reactionMapper.mapToUserCommentReaction(reactToEntityRequestDto, appUser, commentId);
+            UserReaction userReactedComment = reactionMapper.mapToUserCommentReaction(reactToEntityRequestDto, userProfile, commentId);
             userReactionsRepository.save(userReactedComment);
             return true;
         } else if (oldCommentReaction.isPresent() && isTheSameReaction(oldCommentReaction.get(), reactToEntityRequestDto)) {
