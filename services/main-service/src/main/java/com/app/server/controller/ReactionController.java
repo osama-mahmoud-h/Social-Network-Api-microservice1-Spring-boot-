@@ -1,7 +1,7 @@
 package com.app.server.controller;
 
 import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 import com.app.server.service.ReactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,7 +39,7 @@ public class ReactionController {
             @RequestBody ReactToEntityRequestDto reactToEntityRequestDto,
             @Parameter(description = "Post ID to react to") @PathVariable("post_id") Long postId
     ){
-        return ResponseEntity.ok(reactionService.reactToPost((AppUser) currentUserDetails, reactToEntityRequestDto, postId));
+        return ResponseEntity.ok(reactionService.reactToPost((UserProfile) currentUserDetails, reactToEntityRequestDto, postId));
     }
 
     @Operation(summary = "React to a comment", description = "Add, update or remove a reaction on a comment")
@@ -54,6 +54,6 @@ public class ReactionController {
             @RequestBody ReactToEntityRequestDto reactToEntityRequestDto,
             @Parameter(description = "Comment ID to react to") @PathVariable("comment_id") Long commentId
     ){
-        return ResponseEntity.ok(reactionService.reactToComment((AppUser) currentUserDetails, reactToEntityRequestDto, commentId));
+        return ResponseEntity.ok(reactionService.reactToComment((UserProfile) currentUserDetails, reactToEntityRequestDto, commentId));
     }
 }

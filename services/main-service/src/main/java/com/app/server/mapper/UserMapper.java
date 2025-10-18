@@ -4,8 +4,7 @@ import com.app.server.dto.request.SignUpRequestDto;
 import com.app.server.dto.response.AppUserResponseDto;
 import com.app.server.dto.response.LogInResponseDto;
 import com.app.server.dto.response.user.AuthorResponseDto;
-import com.app.server.enums.UserRole;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,19 +16,19 @@ import java.time.Instant;
 public class UserMapper {
     private final PasswordEncoder passwordEncoder;
 
-    public AppUser mapSignUpRequestDtoToUser(SignUpRequestDto requestDto) {
-        return AppUser.builder()
+    public UserProfile mapSignUpRequestDtoToUser(SignUpRequestDto requestDto) {
+        return UserProfile.builder()
                 .email(requestDto.getEmail())
-                .password(requestDto.getPassword())
+                //.password(requestDto.getPassword())
                 .firstName(requestDto.getFirstName())
                 .lastName(requestDto.getLastName())
-                .password(passwordEncoder.encode(requestDto.getPassword()))
+               // .password(passwordEncoder.encode(requestDto.getPassword()))
                 .createdAt(Instant.now())
-                .userRole(UserRole.USER)
+                //.userRole(UserRole.USER)
                 .build();
     }
 
-    public AuthorResponseDto mapToAuthorResponseDto(AppUser appUser){
+    public AuthorResponseDto mapToAuthorResponseDto(UserProfile appUser){
         return AuthorResponseDto.builder()
                 .userId(appUser.getUserId())
                 .email(appUser.getEmail())
@@ -39,7 +38,7 @@ public class UserMapper {
                 .build();
     }
 
-    public AppUserResponseDto mapToAppUserResponseDto(AppUser appUser) {
+    public AppUserResponseDto mapToAppUserResponseDto(UserProfile appUser) {
         return AppUserResponseDto.builder()
                 .userId(appUser.getUserId())
                 .email(appUser.getEmail())
@@ -48,7 +47,7 @@ public class UserMapper {
                 .build();
     }
 
-    public LogInResponseDto mapToLogInResponseDto(AppUser appUser, String jwt) {
+    public LogInResponseDto mapToLogInResponseDto(UserProfile appUser, String jwt) {
         return LogInResponseDto.builder()
                 .token(jwt)
                 .userId(appUser.getUserId())

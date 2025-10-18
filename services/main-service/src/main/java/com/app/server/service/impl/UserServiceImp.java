@@ -3,12 +3,12 @@ package com.app.server.service.impl;
 import com.app.server.dto.response.LogInResponseDto;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.UserMapper;
-import com.app.server.model.AppUser;
 import com.app.server.model.Profile;
 import com.app.server.dto.request.LoginRequestDto;
 import com.app.server.dto.request.SignUpRequestDto;
+import com.app.server.model.UserProfile;
 import com.app.server.repository.ProfileRepository;
-import com.app.server.repository.AppUserRepository;
+import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ import static com.fasterxml.jackson.databind.util.ClassUtil.getRootCause;
 @AllArgsConstructor
 public class UserServiceImp implements UserService {
     private static final Logger log = LoggerFactory.getLogger(UserServiceImp.class);
-    private AppUserRepository userRepository;
+    private UserProfileRepository userRepository;
     private final UserMapper userMapper;
     private final ProfileRepository profileRepository;
 
@@ -38,7 +38,7 @@ public class UserServiceImp implements UserService {
     @Override
     public Boolean register(@Valid SignUpRequestDto signUpRequestDto){
         try {
-            AppUser user = userMapper.mapSignUpRequestDtoToUser(signUpRequestDto);
+            UserProfile user = userMapper.mapSignUpRequestDtoToUser(signUpRequestDto);
             userRepository.save(user);
             createUserProfile(user);
             return true;
@@ -52,19 +52,19 @@ public class UserServiceImp implements UserService {
         }
     }
 
-    private void createUserProfile(AppUser user) {
+    private void createUserProfile(UserProfile user) {
         Profile profile =  Profile.builder()
                 .user(user)
                 .build();
         profileRepository.save(profile);
     }
 
-    private AppUser getAppUserById(Long userId){
+    private UserProfile getAppUserById(Long userId){
        return userRepository.findUserByUserId(userId)
                 .orElseThrow(() -> new CustomRuntimeException("User not found", HttpStatus.NOT_FOUND));
     }
 
-    private AppUser getUserByEmail(String email){
+    private UserProfile getUserByEmail(String email){
         return userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new CustomRuntimeException("User not found", HttpStatus.NOT_FOUND));
     }

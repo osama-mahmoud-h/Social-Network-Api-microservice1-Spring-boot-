@@ -41,7 +41,7 @@ public class Post implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_posts_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private AppUser author;
+    private UserProfile author;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

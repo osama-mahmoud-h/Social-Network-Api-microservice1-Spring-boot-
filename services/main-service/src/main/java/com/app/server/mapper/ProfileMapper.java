@@ -1,7 +1,6 @@
 package com.app.server.mapper;
 
 import com.app.server.dto.response.profile.ProfileResponseDto;
-import com.app.server.model.AppUser;
 import com.app.server.model.Profile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

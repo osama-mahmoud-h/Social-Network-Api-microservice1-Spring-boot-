@@ -13,6 +13,7 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import semsem.chatservice.dto.response.EventMessageResponseDto;
 import semsem.chatservice.enums.EventMessageType;
+import semsem.chatservice.repository.RedisOnlineUserRepository;
 import semsem.chatservice.security.WebSocketAuthenticationHelper;
 import semsem.chatservice.service.ActiveUserService;
 import semsem.chatservice.utils.OnlineUserVal;
@@ -24,46 +25,46 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
-    private final ActiveUserService activeUserService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketAuthenticationHelper webSocketAuthenticationHelper;
-
+    private final RedisOnlineUserRepository redisOnlineUserRepository;
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         //log.info("New WebSocket connection established - sessionId: {}", headerAccessor.getSessionId());
         System.out.println("New WebSocket connection established - sessionId: "+headerAccessor.getSessionAttributes());
+        Long userId = webSocketAuthenticationHelper.getUserId(headerAccessor);
 
-        String username = webSocketAuthenticationHelper.getEmail(headerAccessor);
+        if (Objects.nonNull(userId)) {
+          redisOnlineUserRepository.addOnlineUser(userId.toString());
+          long onlineUsersCount = redisOnlineUserRepository.getOnlineUserCount();
 
-      //  System.out.println("headerAccessor: "+headerAccessor);
+            System.out.println("User connected - userId: " + userId +
+                    ", sessionId: " + headerAccessor.getSessionId() +
+                    ", total online users: " + onlineUsersCount);
 
-        OnlineUserVal user = OnlineUserVal.builder()
-                .sessionId(null)
-                .username(username)
-                .customUserSessionId(null)
-                .build();
+            simpMessagingTemplate.convertAndSend("/topic/public", redisOnlineUserRepository.getAllOnlineUsers());
+        } else {
+            System.out.println("WebSocket connection established without valid user info - sessionId: " + headerAccessor.getSessionId());
+        }
 
-        //activeUserService.userConnected(null, user);
-
-        List<OnlineUserVal> activeUsers = activeUserService.getAllActiveUsers();
-        EventMessageResponseDto eventMessage = EventMessageResponseDto.builder()
-                .eventType(EventMessageType.GET_ACTIVE_USERS)
-                .data(activeUsers)
-                .build();
-        simpMessagingTemplate.convertAndSend("/topic/public", eventMessage);
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        //log.info("WebSocket connection closed - sessionId: {}", headerAccessor.getSessionId());
-       // String customUserSessionId = headerAccessor.getNativeHeader("sessionId").get(0);
-        activeUserService.userDisconnected(headerAccessor.getSessionId());
+        Long userId = webSocketAuthenticationHelper.getUserId(headerAccessor);
+        if (Objects.nonNull(userId)) {
+            redisOnlineUserRepository.removeOnlineUser(userId.toString());
+            long onlineUsersCount = redisOnlineUserRepository.getOnlineUserCount();
 
-        System.out.println("WebSocket connection closed - sessionId: "+ headerAccessor.getSessionId()+
-                ", users count: "+activeUserService.getAllActiveUsers().size());
+            System.out.println("User disconnected - userId: " + userId +
+                    ", sessionId: " + headerAccessor.getSessionId() +
+                    ", total online users: " + onlineUsersCount);
 
-        simpMessagingTemplate.convertAndSend("/topic/public", activeUserService.getAllActiveUsers());
+            simpMessagingTemplate.convertAndSend("/topic/public", redisOnlineUserRepository.getAllOnlineUsers());
+        } else {
+            System.out.println("WebSocket disconnection without valid user info - sessionId: " + headerAccessor.getSessionId());
+        }
     }
 }

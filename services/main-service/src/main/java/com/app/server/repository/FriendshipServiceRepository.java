@@ -1,7 +1,7 @@
 package com.app.server.repository;
 
-import com.app.server.model.AppUser;
 import com.app.server.model.Friendship;
+import com.app.server.model.UserProfile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -27,14 +27,14 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
 
 
     @Query(value = """
-           SELECT u.* FROM users u
+           SELECT u.* FROM user_profiles u
            JOIN friendships f ON
              (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
            WHERE f.status = :status
            """,
             countQuery = """
-            SELECT COUNT(*) FROM users u
+            SELECT COUNT(*) FROM user_profiles u
             JOIN friendships f ON
               (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
               (f.user_id2 = :userId AND f.user_id1 = u.user_id)
@@ -42,7 +42,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
            """, nativeQuery = true)
     List<Object[]> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
-    @Query(value = "SELECT u.* FROM users u " +
+    @Query(value = "SELECT u.* FROM user_profiles u " +
             "JOIN friendships f ON " +
             "  (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR " +
             "  (f.user_id2 = :userId AND f.user_id1 = u.user_id) " +
@@ -51,7 +51,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
                     "WHERE (f.user_id1 = :userId OR f.user_id2 = :userId) " +
                     "AND f.status = 'ACCEPTED'",
             nativeQuery = true)
-    List<AppUser> findFriendsPaginated(@Param("userId") Long userId, Pageable pageable);
+    List<UserProfile> findFriendsPaginated(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT CASE WHEN f.user1.userId = :userId THEN f.user2 ELSE f.user1 END " +
             "FROM Friendship f " +
@@ -67,7 +67,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
             "CASE WHEN :sortDir = 'desc' THEN " +
             "   CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END " +
             "END DESC")
-    List<AppUser> findFriendsWithFilter(
+    List<UserProfile> findFriendsWithFilter(
             @Param("userId") Long userId,
             @Param("searchTerm") String searchTerm,
             @Param("sortDir") String sortDirection);
@@ -89,7 +89,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
             nativeQuery = true)
     int getCountOfMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
-    @Query("SELECT u FROM AppUser u WHERE u.userId IN (" +
+    @Query("SELECT u FROM UserProfile u WHERE u.userId IN (" +
             "    SELECT CASE WHEN f1.user1.userId = :userId1 THEN f1.user2.userId ELSE f1.user1.userId END " +
             "    FROM Friendship f1 " +
             "    WHERE (f1.user1.userId = :userId1 OR f1.user2.userId = :userId1) AND f1.status = 'ACCEPTED'" +
@@ -98,7 +98,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
             "    FROM Friendship f2 " +
             "    WHERE (f2.user1.userId = :userId2 OR f2.user2.userId = :userId2) AND f2.status = 'ACCEPTED'" +
             ")")
-    List<AppUser> findMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
+    List<UserProfile> findMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
     @Query(value = """
     WITH
@@ -131,7 +131,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     )
     
     -- Final selection with all conditions
-    SELECT u.* FROM users u
+    SELECT u.* FROM user_profiles u
     JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
     WHERE NOT EXISTS (
         SELECT 1 FROM friendships f

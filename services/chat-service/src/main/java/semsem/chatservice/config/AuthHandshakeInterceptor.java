@@ -34,7 +34,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
 
             // Try to get token from different sources
             String token = extractToken(httpRequest);
-            log.debug("Extracted token for WebSocket handshake");
+            log.info("Extracted token for WebSocket handshake");
             System.out.println("Extracted token for WebSocket handshake: " + token);
 
             if (token != null) {

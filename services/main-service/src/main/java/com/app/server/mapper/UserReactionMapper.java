@@ -3,8 +3,7 @@ package com.app.server.mapper;
 
 import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
 import com.app.server.enums.ReactionTargetType;
-import com.app.server.model.AppUser;
-import com.app.server.model.Post;
+import com.app.server.model.UserProfile;
 import com.app.server.model.UserReaction;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class UserReactionMapper {
 
     public UserReaction mapToUserPostReaction(ReactToEntityRequestDto reactToEntityRequestDto,
-                                              AppUser author,
+                                              UserProfile author,
                                               Long postId) {
         return UserReaction.builder()
                 .reactionType(reactToEntityRequestDto.getReactionType())
@@ -24,7 +23,7 @@ public class UserReactionMapper {
     }
 
     public UserReaction mapToUserCommentReaction(ReactToEntityRequestDto reactToEntityRequestDto,
-                                                 AppUser author,
+                                                 UserProfile author,
                                                  Long commentId) {
         return UserReaction.builder()
                 .reactionType(reactToEntityRequestDto.getReactionType())

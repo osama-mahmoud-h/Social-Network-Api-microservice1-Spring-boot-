@@ -2,6 +2,7 @@ package semsem.chatservice.mapper;
 
 
 import org.springframework.stereotype.Component;
+import semsem.chatservice.dto.request.NewPrivateChatMessageRequestDto;
 import semsem.chatservice.dto.request.NewPublicChatMessageRequestDto;
 import semsem.chatservice.dto.response.ChatMessageResponseDto;
 import semsem.chatservice.model.ChatMessage;
@@ -15,6 +16,15 @@ public class ChatMessageMapper {
                         .receiverId(newChatMessageRequestDto.getReceiverId())
                         .content(newChatMessageRequestDto.getContent())
                         .messageType(newChatMessageRequestDto.getMessageType())
+                        .build();
+    }
+
+    public ChatMessage mapPrivateChatMessageRequestToChatMessage(NewPrivateChatMessageRequestDto requestDto) {
+        return ChatMessage.builder()
+                        .senderId(requestDto.getSenderId())
+                        .receiverId(requestDto.getReceiverId())
+                        .content(requestDto.getContent())
+                        .messageType(requestDto.getMessageType())
                         .build();
     }
 

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import semsem.chatservice.enums.UserStatus;
 import semsem.chatservice.model.AppUser;
 import semsem.chatservice.repository.AppUserRepository;
+import semsem.chatservice.repository.RedisOnlineUserRepository;
 import semsem.chatservice.service.UserService;
 
 
@@ -14,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final AppUserRepository appUserRepository;
+    private final RedisOnlineUserRepository redisOnlineUserRepository;
 
     @Override
     public void saveUser(AppUser user) {
@@ -24,6 +26,9 @@ public class UserServiceImpl implements UserService {
             storedUser.setStatus(UserStatus.ONLINE);
             appUserRepository.save(storedUser);
         }
+
+        // Store user as online in Redis
+        redisOnlineUserRepository.addOnlineUser(storedUser.getId());
     }
 
     @Override
@@ -32,6 +37,8 @@ public class UserServiceImpl implements UserService {
        AppUser storedUser = appUserRepository.findOneByNickName(user .getNickName()).map(
                 u -> {
                      u.setStatus(UserStatus.OFFLINE);
+                     // Remove user from online users in Redis
+                     redisOnlineUserRepository.removeOnlineUser(u.getId());
                      return appUserRepository.save(u);
                 }
          ).orElseThrow(() -> new RuntimeException("User not found"));

@@ -6,7 +6,7 @@ import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.MyApiResponse;
 import com.app.server.dto.response.comment.CommentResponseDto;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
 import com.app.server.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,7 +41,7 @@ public class CommentController {
             @RequestBody AddNewCommentRequestDto commentDto
     ) {
         return ResponseEntity.ok(
-                MyApiResponse.success(commentService.addNewComment((AppUser)currentUserDetails, commentDto),
+                MyApiResponse.success(commentService.addNewComment((UserProfile)currentUserDetails, commentDto),
                         "comment added successfully")
         );
     }
@@ -59,7 +59,7 @@ public class CommentController {
     ){
         return ResponseEntity.ok(
                 MyApiResponse.success(
-                        commentService.deleteComment((AppUser)currentUserDetails,
+                        commentService.deleteComment((UserProfile)currentUserDetails,
                         commentId),"comment deleted successfully")
         );
     }
@@ -74,7 +74,7 @@ public class CommentController {
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestBody UpdateCommentRequestDto updateCommentRequestDto
             ){
-        boolean updated = commentService.updateComment((AppUser)currentUserDetails, updateCommentRequestDto);
+        boolean updated = commentService.updateComment((UserProfile)currentUserDetails, updateCommentRequestDto);
         return ResponseEntity.ok(MyApiResponse.success(updated,"comment updated successfully"));
     }
 
@@ -88,7 +88,7 @@ public class CommentController {
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
             ){
-        Set<CommentResponseDto> retrievedComments = commentService.getCommentsOnPost((AppUser)currentUserDetails, getAllCommentsRequestDto);
+        Set<CommentResponseDto> retrievedComments = commentService.getCommentsOnPost((UserProfile)currentUserDetails, getAllCommentsRequestDto);
         return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
     }
 
@@ -103,7 +103,7 @@ public class CommentController {
              @RequestBody AddNewCommentRequestDto addNewCommentRequestDto,
              @Parameter(description = "Comment ID to reply to") @PathVariable("comment_id") Long commentId
              ){
-         Boolean replayed = commentService.replayOnComment((AppUser)currentUserDetails,addNewCommentRequestDto, commentId);
+         Boolean replayed = commentService.replayOnComment((UserProfile)currentUserDetails,addNewCommentRequestDto, commentId);
          return ResponseEntity.ok(MyApiResponse.success(replayed,"replay added successfully"));
      }
 
@@ -117,7 +117,7 @@ public class CommentController {
              @AuthenticationPrincipal UserDetails currentUserDetails,
              @ModelAttribute GetAllCommentRepliesRequestDto getAllReplies
              ){
-         Set<CommentResponseDto> retrievedReplies= commentService.getCommentReplies((AppUser)currentUserDetails, getAllReplies);
+         Set<CommentResponseDto> retrievedReplies= commentService.getCommentReplies((UserProfile)currentUserDetails, getAllReplies);
          return ResponseEntity.ok(MyApiResponse.success(retrievedReplies,"all comments fetched successfully"));
      }
     

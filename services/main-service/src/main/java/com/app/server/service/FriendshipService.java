@@ -1,31 +1,34 @@
 package com.app.server.service;
 
 import com.app.server.dto.response.AppUserResponseDto;
-import com.app.server.model.AppUser;
+import com.app.server.model.UserProfile;
+import org.springframework.data.domain.Page;
 
 import java.util.Set;
 
 public interface FriendshipService {
 
-    boolean addFriend(AppUser currentUser, Long friendId);
+    boolean addFriend(UserProfile currentUser, Long friendId);
 
-    boolean removeFriend(AppUser currentUser, Long friendId);
+    boolean removeFriend(UserProfile currentUser, Long friendId);
 
-    boolean acceptFriend(AppUser currentUser, Long friendId);
+    boolean acceptFriend(UserProfile currentUser, Long friendId);
 
-    boolean cancelFriendRequest(AppUser currentUser, Long friendId);
+    boolean cancelFriendRequest(UserProfile currentUser, Long friendId);
 
-    boolean blockFriend(AppUser currentUser, Long friendId);
+    boolean blockFriend(UserProfile currentUser, Long friendId);
 
-    boolean unblockFriend(AppUser currentUser, Long friendId);
+    boolean unblockFriend(UserProfile currentUser, Long friendId);
 
-    Set<AppUserResponseDto> getFriends(AppUser currentUser);
+    Set<AppUserResponseDto> getFriends(UserProfile currentUser);
 
-    Set<AppUserResponseDto> getFriendRequests(AppUser currentUser);
+    Page<AppUserResponseDto> getFriendsPaginated(Long currentUser, int page, int size);
 
-    int getMutualFriendsCount(AppUser currentUserDetails, Long friendId);
+    Set<AppUserResponseDto> getFriendRequests(UserProfile currentUser);
 
-    Set<AppUserResponseDto> getMutualFriends(AppUser currentUserDetails, Long friendId);
+    int getMutualFriendsCount(UserProfile currentUserDetails, Long friendId);
 
-    Set<AppUserResponseDto> suggestFriends(AppUser currentUserDetails);
+    Set<AppUserResponseDto> getMutualFriends(UserProfile currentUserDetails, Long friendId);
+
+    Set<AppUserResponseDto> suggestFriends(Long currentUserDetails);
 }

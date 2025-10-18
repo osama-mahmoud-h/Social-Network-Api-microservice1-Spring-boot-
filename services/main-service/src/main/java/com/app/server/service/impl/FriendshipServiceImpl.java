@@ -7,16 +7,21 @@ import com.app.server.enums.NotificationType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FriendshipMapper;
 import com.app.server.mapper.UserMapper;
-import com.app.server.model.AppUser;
 import com.app.server.model.Friendship;
-import com.app.server.repository.AppUserRepository;
+import com.app.server.model.UserProfile;
 import com.app.server.repository.FriendshipServiceRepository;
+import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.FriendshipService;
 import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,14 +31,14 @@ import java.util.stream.Collectors;
 public class FriendshipServiceImpl implements FriendshipService {
 
     private final FriendshipServiceRepository friendshipServiceRepository;
-    private final AppUserRepository appUserRepository;
+    private final UserProfileRepository userProfileRepository;
     private final FriendshipMapper friendshipMapper;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
 
     @Override
-    public boolean addFriend(AppUser currentUser, Long friendId) {
-        AppUser friend = getUserById(friendId);
+    public boolean addFriend(UserProfile currentUser, Long friendId) {
+        UserProfile friend = getUserById(friendId);
         Optional<Friendship> optionalFriendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId);
 
         if (isMyFriend(currentUser, optionalFriendship)) {
@@ -46,7 +51,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public boolean removeFriend(AppUser currentUser, Long friendId) {
+    public boolean removeFriend(UserProfile currentUser, Long friendId) {
         Friendship optionalFriendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("You are not friends", HttpStatus.NOT_FOUND));
 
@@ -59,7 +64,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public boolean acceptFriend(AppUser currentUser, Long friendId) {
+    public boolean acceptFriend(UserProfile currentUser, Long friendId) {
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
@@ -74,7 +79,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public boolean cancelFriendRequest(AppUser currentUser, Long friendId) {
+    public boolean cancelFriendRequest(UserProfile currentUser, Long friendId) {
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
@@ -86,7 +91,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public boolean blockFriend(AppUser currentUser, Long friendId) {
+    public boolean blockFriend(UserProfile currentUser, Long friendId) {
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
@@ -98,7 +103,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public boolean unblockFriend(AppUser currentUser, Long friendId) {
+    public boolean unblockFriend(UserProfile currentUser, Long friendId) {
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
@@ -120,22 +125,39 @@ public class FriendshipServiceImpl implements FriendshipService {
      * TODO: Implement add Pagination , pass Pagination as DTO
      */
     @Override
-    public Set<AppUserResponseDto> getFriends(AppUser currentUser) {
+    public Set<AppUserResponseDto> getFriends(UserProfile currentUser) {
         return getFriendsByStatus(currentUser, FriendshipStatus.ACCEPTED);
     }
 
     @Override
-    public Set<AppUserResponseDto> getFriendRequests(AppUser currentUser) {
+    public Page<AppUserResponseDto> getFriendsPaginated(Long currentUser, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<UserProfile> friends = friendshipServiceRepository.findFriendsPaginated(currentUser, pageable);
+
+        List<AppUserResponseDto> friendDtos = friends.stream()
+                .map(userMapper::mapToAppUserResponseDto)
+                .collect(Collectors.toList());
+
+        // Get total count for pagination
+        long totalCount = friendshipServiceRepository.findFriendsByUserIdAndStatus(
+                currentUser, FriendshipStatus.ACCEPTED.toString()
+        ).size();
+
+        return new PageImpl<>(friendDtos, pageable, totalCount);
+    }
+
+    @Override
+    public Set<AppUserResponseDto> getFriendRequests(UserProfile currentUser) {
         return getFriendsByStatus(currentUser, FriendshipStatus.PENDING);
     }
 
     @Override
-    public int getMutualFriendsCount(AppUser currentUserDetails, Long friendId) {
+    public int getMutualFriendsCount(UserProfile currentUserDetails, Long friendId) {
         return friendshipServiceRepository.getCountOfMutualFriends(currentUserDetails.getUserId(), friendId);
     }
 
     @Override
-    public Set<AppUserResponseDto> getMutualFriends(AppUser currentUserDetails, Long friendId) {
+    public Set<AppUserResponseDto> getMutualFriends(UserProfile currentUserDetails, Long friendId) {
         return friendshipServiceRepository.findMutualFriends(currentUserDetails.getUserId(), friendId)
                 .stream()
                 .map(userMapper::mapToAppUserResponseDto)
@@ -143,8 +165,8 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public Set<AppUserResponseDto> suggestFriends(AppUser currentUserDetails) {
-        return friendshipServiceRepository.findFriendSuggestions(currentUserDetails.getUserId()).stream()
+    public Set<AppUserResponseDto> suggestFriends(Long currentUserDetails) {
+        return friendshipServiceRepository.findFriendSuggestions(currentUserDetails).stream()
                         .map(this::mapRawUserToResponseDto).collect(Collectors.toSet());
 
     }
@@ -158,7 +180,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         );
     }
 
-    private Set<AppUserResponseDto> getFriendsByStatus(AppUser currentUser, FriendshipStatus status) {
+    private Set<AppUserResponseDto> getFriendsByStatus(UserProfile currentUser, FriendshipStatus status) {
         return friendshipServiceRepository.findFriendsByUserIdAndStatus(
                         currentUser.getUserId(), status.toString()
                 ).stream()
@@ -166,7 +188,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .collect(Collectors.toSet());
     }
 
-    private boolean isMyFriend(AppUser currentUser, Optional<Friendship> optionalFriendship) {
+    private boolean isMyFriend(UserProfile currentUser, Optional<Friendship> optionalFriendship) {
         return optionalFriendship
                 .filter(friendship -> friendship.getStatus() == FriendshipStatus.ACCEPTED)
                 .filter(friendship ->
@@ -175,12 +197,12 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .isPresent();
     }
 
-    private AppUser getUserById(Long userId) {
-        return appUserRepository.findById(userId)
+    private UserProfile getUserById(Long userId) {
+        return userProfileRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    private boolean isPendingFriendRequest(AppUser currentUser, Optional<Friendship> optionalFriendship) {
+    private boolean isPendingFriendRequest(UserProfile currentUser, Optional<Friendship> optionalFriendship) {
         return optionalFriendship
                 .filter(friendship -> friendship.getStatus() == FriendshipStatus.PENDING)
                 .filter(friendship ->
@@ -189,7 +211,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .isPresent();
     }
 
-    private void sendFriendRequestNotification(AppUser currentUser, AppUser friend) {
+    private void sendFriendRequestNotification(UserProfile currentUser, UserProfile friend) {
         NotificationEvent notificationEvent =  NotificationEvent.builder()
                 .senderId(currentUser.getUserId())
                 .receiverId(friend.getUserId())
@@ -200,7 +222,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         notificationService.sendNotification(notificationEvent);
     }
 
-    private void sendFriendRequestAcceptedNotification(AppUser currentUser, AppUser friend) {
+    private void sendFriendRequestAcceptedNotification(UserProfile currentUser, UserProfile friend) {
         NotificationEvent notificationEvent =  NotificationEvent.builder()
                 .senderId(currentUser.getUserId())
                 .receiverId(friend.getUserId())
