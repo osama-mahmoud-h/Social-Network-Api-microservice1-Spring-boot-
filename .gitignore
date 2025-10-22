@@ -43,3 +43,4 @@ services/mainService/.env
 /services/mainService/target/
 /services/mainService/.env
 .claude/
+.env
