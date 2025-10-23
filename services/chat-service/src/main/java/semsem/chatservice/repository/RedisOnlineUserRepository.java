@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +93,26 @@ public class RedisOnlineUserRepository {
             log.error("Error checking if user is online in Redis: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /**
+     * filter online users from a given set of user IDs
+     * @param userIds Set of user IDs to check
+     * @return Set of online user IDs
+     */
+    public Set<String> filterOnlineUsers(List<String> userIds) {
+        Set<String> onlineUsers = new HashSet<>();
+        try {
+           userIds.forEach(userId -> {
+               if (isUserOnline(userId)) {
+                   onlineUsers.add(userId);
+               }
+           });
+            log.info("Filtered {} online users from provided set", onlineUsers.size());
+        } catch (Exception e) {
+            log.error("Error filtering online users from Redis: {}", e.getMessage(), e);
+        }
+        return onlineUsers;
     }
 
     /**

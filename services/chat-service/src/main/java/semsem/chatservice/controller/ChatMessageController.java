@@ -12,11 +12,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import semsem.chatservice.dto.request.NewPrivateChatMessageRequestDto;
 import semsem.chatservice.dto.request.NewPublicChatMessageRequestDto;
+import semsem.chatservice.dto.response.AppUserForChatDto;
 import semsem.chatservice.dto.response.ChatMessageResponseDto;
+import semsem.chatservice.repository.RedisOnlineUserRepository;
 import semsem.chatservice.security.WebSocketAuthenticationHelper;
 import semsem.chatservice.service.ChatMessageService;
+import semsem.chatservice.service.FriendsService;
+import org.springframework.data.domain.Page;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,6 +32,8 @@ public class ChatMessageController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatMessageService chatMessageService;
     private final WebSocketAuthenticationHelper webSocketAuthenticationHelper;
+    private final FriendsService friendsService;
+    private final RedisOnlineUserRepository redisOnlineUserRepository;
 
     /**
      * Handle private messages between friends
@@ -120,6 +129,43 @@ public class ChatMessageController {
         } catch (RuntimeException e) {
             log.error("Failed to send private message: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * WebSocket endpoint to check which friends are online
+     * Endpoint: /app/friends.checkOnline
+     * Client sends list of friend IDs and receives back which ones are online
+     */
+    @MessageMapping("/friends.checkOnline")
+    public void checkOnlineFriends(
+            @Payload List<String> friendIds,
+            SimpMessageHeaderAccessor headerAccessor) {
+
+        Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
+
+        if (authenticatedUserId == null) {
+            log.warn("Cannot check online friends: user not authenticated");
+            return;
+        }
+
+        log.info("Checking online status for {} friends for userId: {}", friendIds.size(), authenticatedUserId);
+        try {
+            // Filter friends who are online
+            Set<String> onlineFriendIds = redisOnlineUserRepository.filterOnlineUsers(friendIds);
+
+            log.info("User {} has {} online friends out of {} total friends",
+                    authenticatedUserId, onlineFriendIds.size(), friendIds.size());
+
+            // Send online friends list back to the user
+            simpMessagingTemplate.convertAndSendToUser(
+                    authenticatedUserId.toString(),
+                    "/queue/online-friends",
+                    onlineFriendIds
+            );
+
+        } catch (Exception e) {
+            log.error("Error checking online friends for user {}: {}", authenticatedUserId, e.getMessage(), e);
         }
     }
 }
