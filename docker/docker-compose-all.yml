@@ -153,6 +153,8 @@ services:
       - "6379:6379"
       networks:
       - social_service_dev_network
+      # restart
+      restart: unless-stopped
       healthcheck:
         test: ["CMD", "redis-cli", "ping"]
         interval: 10s

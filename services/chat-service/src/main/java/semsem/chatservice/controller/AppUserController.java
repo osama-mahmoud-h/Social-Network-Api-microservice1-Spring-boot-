@@ -10,6 +10,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import semsem.chatservice.dto.response.EventMessageResponseDto;
 import semsem.chatservice.enums.EventMessageType;
 import semsem.chatservice.model.AppUser;
@@ -63,7 +64,7 @@ public class AppUserController {
      * GET /api/users/{userId}/online
      */
     @GetMapping("/api/users/{userId}/online")
-    public ResponseEntity<Boolean> isUserOnline(@org.springframework.web.bind.annotation.PathVariable String userId) {
+    public ResponseEntity<Boolean> isUserOnline(@PathVariable String userId) {
         boolean isOnline = redisOnlineUserRepository.isUserOnline(userId);
         return ResponseEntity.ok(isOnline);
     }
