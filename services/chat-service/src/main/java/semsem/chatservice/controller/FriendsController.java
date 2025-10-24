@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import semsem.chatservice.dto.response.AppUserForChatDto;
 import semsem.chatservice.service.FriendsService;
@@ -21,6 +22,7 @@ public class FriendsController {
      * This endpoint calls main-service to fetch friends and returns them for chat functionality
      */
     @GetMapping("/paginated")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<Page<AppUserForChatDto>> getFriendsPaginated(
             @RequestHeader("Authorization") String token,
             @RequestParam(defaultValue = "0") int page,

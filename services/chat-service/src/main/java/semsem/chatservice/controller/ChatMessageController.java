@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import semsem.chatservice.dto.request.NewPrivateChatMessageRequestDto;
 import semsem.chatservice.dto.request.NewPublicChatMessageRequestDto;
+import semsem.chatservice.dto.request.TypingEventRequestDto;
 import semsem.chatservice.dto.response.AppUserForChatDto;
 import semsem.chatservice.dto.response.ChatMessageResponseDto;
 import semsem.chatservice.repository.RedisOnlineUserRepository;
@@ -166,6 +167,46 @@ public class ChatMessageController {
 
         } catch (Exception e) {
             log.error("Error checking online friends for user {}: {}", authenticatedUserId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Handle typing indicator events
+     * Endpoint: /app/private.typing
+     * Sends typing status to the receiver
+     */
+    @MessageMapping("/private.typing")
+    public void handleTypingEvent(
+            @Payload TypingEventRequestDto typingEvent,
+            SimpMessageHeaderAccessor headerAccessor) {
+
+        // Extract authenticated user data from WebSocket session
+        Long authenticatedUserId = webSocketAuthenticationHelper.getUserId(headerAccessor);
+
+        log.info("Typing event from user ID: {} isTyping: {}",
+                authenticatedUserId, typingEvent);
+
+        // Security: Verify the sender ID matches the authenticated user
+        if (!webSocketAuthenticationHelper.verifySender(headerAccessor, typingEvent.getSenderId())) {
+            log.warn("User {} attempted to send typing event as user {}",
+                    authenticatedUserId, typingEvent.getSenderId());
+            return; // Reject the typing event
+        }
+
+        try {
+            // Send typing event to receiver only
+            log.debug("Sending typing event from {} to {}",
+                    typingEvent.getSenderId(), typingEvent.getReceiverId());
+            simpMessagingTemplate.convertAndSendToUser(
+                    typingEvent.getReceiverId(),
+                    "/queue/typing",
+                    typingEvent
+            );
+
+            log.debug("Typing event sent successfully from {} to {}",
+                    typingEvent.getSenderId(), typingEvent.getReceiverId());
+        } catch (Exception e) {
+            log.error("Failed to send typing event: {}", e.getMessage());
         }
     }
 }
