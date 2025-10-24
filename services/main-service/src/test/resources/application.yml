@@ -1,0 +1,28 @@
+#configuring h2 database for testing purposes
+spring:
+  datasource:
+    url: jdbc:h2:mem:testing;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+# File upload directory for testing
+file:
+  upload-dir: target/test-uploads/
+
+# JWT configuration for testing (using dummy values)
+app:
+  jwtSecret: testSecretKeyForTesting123456789012345678901234567890
+  jwtExpirationMs: 86400000
+
+token:
+  signing:
+    key: testSigningKeyForTesting123456789012345678901234567890
+
+# Encryption key for testing
+encryption:
+  key: testEncryptionKey123456789012345678901234567890

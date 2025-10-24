@@ -1,0 +1,44 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: search-service
+  # Elasticsearch Configuration
+  elasticsearch:
+    uris: http://localhost:9200
+    username: elastic
+    password: '123456'
+  #=========================== Kafka Configurations ===========================
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: notification-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          deserializer:
+            value:
+              delegate:
+                class: org.springframework.kafka.support.serializer.JsonDeserializer
+          json:
+            trusted:
+              packages: '*'
+
+# In application.properties
+logging:
+  level:
+    org:
+      springframework:
+        kafka: DEBUG
+      apache:
+        kafka: INFO
+
+#elk stack
+logstash:
+  host: localhost
+  port: 5000
+# Enable Spring property resolution in Logback
+logging:
+  config: classpath:logback-spring.xml

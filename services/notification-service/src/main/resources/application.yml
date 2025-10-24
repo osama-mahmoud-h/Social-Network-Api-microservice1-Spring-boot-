@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: notification-service
+  #=========================== Kafka Configurations ===========================
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: notification-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          deserializer:
+            value:
+              delegate:
+                class: org.springframework.kafka.support.serializer.JsonDeserializer
+          json:
+            trusted:
+              packages: '*'
+            value:
+              default:
+                type: com.app.server.dto.notification.NotificationEvent
+
+server:
+  port: 8085
+
+#elk stack
+logstash:
+  host: localhost
+  port: 5000
+# Enable Spring property resolution in Logback
+logging:
+  config: classpath:logback-spring.xml

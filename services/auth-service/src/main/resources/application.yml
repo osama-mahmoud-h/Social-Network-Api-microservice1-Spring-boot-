@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: auth-service
+  # Database Configuration (postgresql)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authdb
+    username: osama
+    password: '123456'
+    driver-class-name: org.postgresql.Driver
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  # Redis Configuration (for token blacklisting)
+  #redis:
+  #  host: localhost
+  #  port: 6379
+  #  timeout: 2000ms
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+server:
+  port: 8087
+
+# JWT Configuration
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 3600000
+  refresh-expiration: 86400000
+
+# Eureka Configuration
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
+#  instance:
+#    prefer-ip-address: true
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com:
+      app:
+        auth: DEBUG
+  #pattern:
+  #  console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# elk stack
+logstash:
+  host: localhost
+  port: 5000
+
+# Enable Spring property resolution in Logback
+#logging.config=classpath:logback-spring.xml

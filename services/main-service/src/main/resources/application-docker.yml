@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    #name
+    name: real-estate-docker-api
+  #===================== Kafka Configuration for Docker ==========================
+  kafka:
+    bootstrap-servers: kafka:9092
+
+# File upload directory for Docker
+file:
+  upload-dir: uploads
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+#elk stack
+logstash:
+  host: localhost
+  port: 5000
+# Enable Spring property resolution in Logback
+#logging.config=classpath:logback-spring.xml

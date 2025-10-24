@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: discovery
+
+server:
+  port: 8761
+
+# Eureka Client Configuration
+eureka:
+  client:
+    # Disable registration of this instance in Eureka
+    register-with-eureka: false
+    # Disable fetching of registry from other instances
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+# Eureka Server Configuration
+# src: https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html
+
+#elk stack
+logstash:
+  host: localhost
+  port: 5000
+
+# Enable Spring property resolution in Logback
+logging:
+  config: classpath:logback-spring.xml
