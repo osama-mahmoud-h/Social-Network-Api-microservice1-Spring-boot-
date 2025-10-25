@@ -112,7 +112,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
         WHERE (user_id1 = :userId OR user_id2 = :userId)
         AND status = 'ACCEPTED'
     ),
-    
+
     -- Get friends of friends (excluding self)
     friends_of_friends AS (
         SELECT DISTINCT
@@ -129,7 +129,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
             WHEN f.user_id2 IN (SELECT friend_id FROM direct_friends) THEN f.user_id1
         END != :userId
     )
-    
+
     -- Final selection with all conditions
     SELECT u.* FROM user_profiles u
     JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
@@ -141,4 +141,22 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     LIMIT 10
     """, nativeQuery = true)
     List<Object[]> findFriendSuggestions(@Param("userId") Long userId);
+
+    /**
+     * Get list of friend IDs for a user (only accepted friendships)
+     * Used by notification service to determine who to notify
+     *
+     * @param userId User ID
+     * @return List of friend IDs
+     */
+    @Query(value = """
+        SELECT CASE
+            WHEN user_id1 = :userId THEN user_id2
+            WHEN user_id2 = :userId THEN user_id1
+        END AS friend_id
+        FROM friendships
+        WHERE (user_id1 = :userId OR user_id2 = :userId)
+        AND status = 'ACCEPTED'
+        """, nativeQuery = true)
+    List<Long> findAcceptedFriendIds(@Param("userId") Long userId);
 }

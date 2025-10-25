@@ -1,11 +1,10 @@
 package com.app.server.service.impl;
 
-import com.app.server.dto.notification.post.PostEventDto;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
-import com.app.server.enums.KafkaTopics;
 import com.app.server.enums.PostActionType;
+import com.app.server.event.domain.PostDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
 import com.app.server.mapper.PostMapper;
@@ -18,9 +17,9 @@ import com.app.server.repository.PostRepository;
 import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.PostService;
 import com.app.server.service.UserService;
-import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class PostServiceImp implements PostService {
     private final PostMapper postMapper;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;  // Changed from NotificationService
     private final UserService userService;
     private final UserProfileRepository userProfileRepository;
 
@@ -120,28 +119,32 @@ public class PostServiceImp implements PostService {
                 .collect(Collectors.toSet());
     }
 
-    private void sendPostNotification(PostActionType actionType, Post post) {
-        PostEventDto postEventDto = PostEventDto.builder()
-                .actionType(actionType)
-                .post(post)
-                .postId(post.getPostId())
-                .build();
+    /**
+     * Publishes domain event for post actions
+     * Event will be asynchronously converted to Kafka message by DomainEventPublisher
+     */
+    private void publishPostEvent(PostActionType actionType, Post post) {
+        log.debug("Publishing post domain event: action={}, postId={}", actionType, post.getPostId());
 
-        System.out.println("Sending post notification: createdAt: " + post.getCreatedAt() + ", updatedAt: " + post.getUpdatedAt());
+        PostDomainEvent event = new PostDomainEvent(
+            post.getAuthor().getUserId(),
+            actionType,
+            post
+        );
 
-        this.notificationService.sendNotification(postEventDto, KafkaTopics.POST_EVENTS);
+        eventPublisher.publishEvent(event);
     }
 
     private void sendNewPostNotification(Post post) {
-        sendPostNotification(PostActionType.CREATE, post);
+        publishPostEvent(PostActionType.CREATE, post);
     }
 
     private void sendPostDeleteNotification(Post post) {
-        sendPostNotification(PostActionType.DELETE, post);
+        publishPostEvent(PostActionType.DELETE, post);
     }
 
     private void sendPostUpdateNotification(Post post) {
-        sendPostNotification(PostActionType.UPDATE, post);
+        publishPostEvent(PostActionType.UPDATE, post);
     }
 
 

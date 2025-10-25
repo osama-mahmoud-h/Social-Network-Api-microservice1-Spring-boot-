@@ -1,9 +1,9 @@
 package com.app.server.service.impl;
 
-import com.app.server.dto.notification.NotificationEvent;
 import com.app.server.dto.response.AppUserResponseDto;
 import com.app.server.enums.FriendshipStatus;
 import com.app.server.enums.NotificationType;
+import com.app.server.event.domain.FriendshipDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FriendshipMapper;
 import com.app.server.mapper.UserMapper;
@@ -12,8 +12,9 @@ import com.app.server.model.UserProfile;
 import com.app.server.repository.FriendshipServiceRepository;
 import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.FriendshipService;
-import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,13 +29,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FriendshipServiceImpl implements FriendshipService {
 
     private final FriendshipServiceRepository friendshipServiceRepository;
     private final UserProfileRepository userProfileRepository;
     private final FriendshipMapper friendshipMapper;
     private final UserMapper userMapper;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean addFriend(UserProfile currentUser, Long friendId) {
@@ -211,26 +213,42 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .isPresent();
     }
 
+    /**
+     * publishes domain event for friend request
+     * event will be asynchronously converted to Kafka message by DomainEventPublisher
+     */
     private void sendFriendRequestNotification(UserProfile currentUser, UserProfile friend) {
-        NotificationEvent notificationEvent =  NotificationEvent.builder()
-                .senderId(currentUser.getUserId())
-                .receiverId(friend.getUserId())
-                .type(NotificationType.REQUEST_FRIENDSHIP)
-                .message(currentUser.getUserId() + " sent you a friend request")
-                .build();
+        log.debug("Publishing friendship domain event: REQUEST, senderId={}, receiverId={}",
+                  currentUser.getUserId(), friend.getUserId());
 
-        notificationService.sendNotification(notificationEvent);
+        FriendshipDomainEvent event = new FriendshipDomainEvent(
+            currentUser.getUserId(),
+            NotificationType.REQUEST_FRIENDSHIP,
+            currentUser.getUserId(),
+            friend.getUserId(),
+            currentUser.getUserId() + " sent you a friend request"
+        );
+
+        eventPublisher.publishEvent(event);
     }
 
+    /**
+     * Publishes domain event for friend request acceptance
+     * Event will be asynchronously converted to Kafka message by DomainEventPublisher
+     */
     private void sendFriendRequestAcceptedNotification(UserProfile currentUser, UserProfile friend) {
-        NotificationEvent notificationEvent =  NotificationEvent.builder()
-                .senderId(currentUser.getUserId())
-                .receiverId(friend.getUserId())
-                .type(NotificationType.ACCEPT_FRIENDSHIP)
-                .message(currentUser.getUserId() + " accepted your friend request")
-                .build();
+        log.debug("Publishing friendship domain event: ACCEPT, senderId={}, receiverId={}",
+                  currentUser.getUserId(), friend.getUserId());
 
-        notificationService.sendNotification(notificationEvent);
+        FriendshipDomainEvent event = new FriendshipDomainEvent(
+            currentUser.getUserId(),
+            NotificationType.ACCEPT_FRIENDSHIP,
+            currentUser.getUserId(),
+            friend.getUserId(),
+            currentUser.getUserId() + " accepted your friend request"
+        );
+
+        eventPublisher.publishEvent(event);
     }
 
 

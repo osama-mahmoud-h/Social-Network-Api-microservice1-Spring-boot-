@@ -11,8 +11,11 @@ public class ReactedToPostHandler implements NotificationHandler {
     private static final Logger log = LoggerFactory.getLogger(ReactedToPostHandler.class);
     @Override
     public void handle(NotificationEvent event) {
-        log.info("Handling friendship request for user: {} ", event.getReceiverId());
-
+        log.info("Handling 'reacted to post' notification for user: {}, from: {}",
+                 event.getReceiverId(), event.getSenderId());
+        // TODO: Save notification to database
+        // TODO: Send real-time notification via WebSocket
+        // TODO: Send push notification if enabled
     }
 
     @Override
