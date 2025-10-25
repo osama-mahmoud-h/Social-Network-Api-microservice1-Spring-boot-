@@ -1,0 +1,156 @@
+@startuml websocket-chat-flow
+!theme plain
+
+skinparam {
+    backgroundColor #FEFEFE
+    shadowing false
+    sequenceArrowThickness 2
+}
+
+title WebSocket Chat Service Flow
+
+actor "User A" as UserA
+actor "User B" as UserB
+participant "Chat Service\n:8086" as Chat #LightBlue
+participant "WebSocket\nHandler" as WS #Orange
+database "MongoDB" as Mongo #Wheat
+database "Redis" as Redis #Yellow
+
+== WebSocket Connection ==
+
+UserA -> Chat : Connect to ws://localhost:8086/ws
+activate Chat
+Chat -> WS : Handle Connection
+activate WS
+WS -> WS : TODO: Validate JWT Token\n(Security pending)
+WS --> UserA : Connection Established
+note right: Current: No authentication\nTODO: JWT validation
+
+== User Join Event ==
+
+UserA -> Chat : JOIN Event\n{userId: 1, username: "Alice"}
+Chat -> WS : Process JOIN
+WS -> Redis : Add to online users\nSET online:1 "Alice"
+activate Redis
+Redis --> WS : User Added
+deactivate Redis
+
+WS -> WS : Broadcast to all users
+WS --> UserA : JOIN_ACK\n{message: "Joined successfully"}
+WS --> UserB : USER_JOINED\n{userId: 1, username: "Alice"}
+deactivate WS
+deactivate Chat
+
+== Sending Message ==
+
+UserA -> Chat : SEND Message\n{senderId: 1, receiverId: 2,\ntext: "Hello!"}
+activate Chat
+Chat -> WS : Process Message
+activate WS
+
+WS -> Mongo : Save Message\n{from: 1, to: 2, text: "Hello!",\ntimestamp: now()}
+activate Mongo
+Mongo --> WS : Message Saved
+deactivate Mongo
+
+WS -> Redis : Check if User B is online\nGET online:2
+activate Redis
+Redis --> WS : User B is online
+deactivate Redis
+
+alt User B is Online
+    WS --> UserB : MESSAGE\n{from: 1, text: "Hello!",\ntimestamp: "..."}
+    WS --> UserA : MESSAGE_SENT_ACK\n{status: "delivered"}
+else User B is Offline
+    WS --> UserA : MESSAGE_SENT_ACK\n{status: "stored"}
+    note right: TODO: Implement offline\nmessage delivery
+end
+
+deactivate WS
+deactivate Chat
+
+== Typing Indicator ==
+
+UserB -> Chat : TYPING Event\n{userId: 2, receiverId: 1}
+activate Chat
+Chat -> WS : Process Typing
+activate WS
+
+WS -> Redis : Check if User A is online
+activate Redis
+Redis --> WS : User A is online
+deactivate Redis
+
+WS --> UserA : TYPING_INDICATOR\n{userId: 2, username: "Bob"}
+WS --> UserB : TYPING_ACK
+deactivate WS
+deactivate Chat
+
+== Check Online Friends ==
+
+UserA -> Chat : GET /online-friends\nAuthorization: Bearer <token>
+activate Chat
+Chat -> Chat : TODO: Validate JWT
+note right: Authentication needed
+
+Chat -> Redis : Get friend IDs from Main Service\n(via Feign Client)
+activate Redis
+note right: Fetch friendIds: [2, 3, 5]
+
+Chat -> Redis : Check online status\nMGET online:2 online:3 online:5
+Redis --> Chat : [Bob, Charlie, null]
+deactivate Redis
+
+Chat --> UserA : 200 OK\n{onlineFriends: [\n  {id: 2, name: "Bob"},\n  {id: 3, name: "Charlie"}\n]}
+deactivate Chat
+
+== User Leave/Disconnect ==
+
+UserA -> Chat : LEAVE Event OR\nConnection Closed
+activate Chat
+Chat -> WS : Process Disconnect
+activate WS
+
+WS -> Redis : Remove from online users\nDEL online:1
+activate Redis
+Redis --> WS : User Removed
+deactivate Redis
+
+WS -> WS : Broadcast to all users
+WS --> UserB : USER_LEFT\n{userId: 1, username: "Alice"}
+deactivate WS
+deactivate Chat
+
+== Message Types ==
+
+note over Chat
+  **WebSocket Event Types:**
+
+  **Client → Server:**
+  - JOIN: User connects and joins
+  - SEND: Send message to another user
+  - TYPING: Typing indicator
+  - LEAVE: User disconnects
+
+  **Server → Client:**
+  - JOIN_ACK: Join confirmation
+  - USER_JOINED: Broadcast user joined
+  - MESSAGE: New message received
+  - MESSAGE_SENT_ACK: Message delivery status
+  - TYPING_INDICATOR: User is typing
+  - USER_LEFT: Broadcast user left
+  - ERROR: Error message
+
+  **TODO - Security:**
+  - JWT authentication in handshake
+  - Room-based authorization
+  - Encrypted sensitive messages
+
+  **TODO - Features:**
+  - Offline message delivery
+  - Read receipts
+  - Group chat support
+  - File sharing
+end note
+
+@enduml

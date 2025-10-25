@@ -1,0 +1,160 @@
+@startuml deployment-diagram
+!theme plain
+
+skinparam {
+    backgroundColor #FEFEFE
+    shadowing false
+    defaultFontSize 11
+}
+
+title Docker Deployment Architecture
+
+package "Docker Network: social-network-net" {
+
+    node "API Gateway\n:8080" as gateway #LightBlue {
+        artifact "gateway-service.jar" as gateway_jar
+    }
+
+    node "Eureka Server\n:8761" as eureka #Purple {
+        artifact "discovery-service.jar" as eureka_jar
+    }
+
+    node "Auth Service\n:8087" as auth #Green {
+        artifact "auth-service.jar" as auth_jar
+    }
+
+    node "Main Service\n:8083" as main #Green {
+        artifact "main-service.jar" as main_jar
+    }
+
+    node "Chat Service\n:8086" as chat #Green {
+        artifact "chat-service.jar" as chat_jar
+    }
+
+    node "Notification Service\n:8085" as notification #Green {
+        artifact "notification-service.jar" as notification_jar
+    }
+
+    node "Search Service\n:8084" as search #Green {
+        artifact "search-service.jar" as search_jar
+    }
+
+    database "PostgreSQL\n:5432" as postgres #Wheat {
+        storage "authdb" as authdb
+        storage "maindb" as maindb
+    }
+
+    database "MongoDB\n:27017" as mongo #Wheat {
+        storage "chat-service" as chatdb
+    }
+
+    database "Elasticsearch\n:9200" as elastic #Wheat {
+        storage "search-index" as searchindex
+    }
+
+    database "Redis\n:6379" as redis #Wheat {
+        storage "cache" as cache
+        storage "online-users" as onlineusers
+    }
+
+    node "Kafka Cluster" as kafka #Orange {
+        component "Zookeeper\n:2181" as zookeeper
+        component "Kafka Broker\n:29092" as broker
+    }
+
+    node "ELK Stack" as elk #Pink {
+        component "Elasticsearch\n:9201" as elk_es
+        component "Logstash\n:5000" as logstash
+        component "Kibana\n:5601" as kibana
+    }
+}
+
+cloud "External Access" as external #LightGray {
+    actor "Web Client" as web
+    actor "Mobile Client" as mobile
+}
+
+' External connections
+web --> gateway : HTTPS :443
+mobile --> gateway : HTTPS :443
+
+' Service registration
+gateway ..> eureka : Service Discovery
+auth ..> eureka : Register
+main ..> eureka : Register
+chat ..> eureka : Register
+notification ..> eureka : Register
+search ..> eureka : Register
+
+' Service routing
+gateway --> auth
+gateway --> main
+gateway --> chat
+gateway --> notification
+gateway --> search
+
+' Database connections
+auth --> postgres : authdb
+main --> postgres : maindb
+chat --> mongo : chat-service
+search --> elastic : search-index
+chat --> redis : online-users
+main --> redis : cache
+
+' Kafka connections
+broker --> zookeeper
+main --> broker : Publish Events
+notification --> broker : Consume Events
+search --> broker : Consume Events
+
+' Logging
+auth ..> logstash : Logs
+main ..> logstash : Logs
+chat ..> logstash : Logs
+notification ..> logstash : Logs
+search ..> logstash : Logs
+gateway ..> logstash : Logs
+
+logstash --> elk_es : Index Logs
+kibana --> elk_es : Query Logs
+
+note right of kafka
+  **Message Broker**
+  Topics:
+  - notification-events
+  - post-events
+  - comment-events
+end note
+
+note right of postgres
+  **Relational Data**
+  - User accounts
+  - Posts & Comments
+  - Friendships
+  - Auth tokens
+end note
+
+note right of mongo
+  **Chat Messages**
+  - Message history
+  - Conversations
+  - File attachments
+end note
+
+note right of redis
+  **Caching & Sessions**
+  - User sessions
+  - Online user tracking
+  - Query cache
+  - Rate limiting
+end note
+
+note bottom of elk
+  **Centralized Logging**
+  - Log aggregation
+  - Real-time monitoring
+  - Log analytics
+  - Troubleshooting
+end note
+
+@enduml

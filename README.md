@@ -266,26 +266,126 @@ public interface AuthServiceClient {
 | `/api/auth/logout` | POST | Logout current device |
 | `/api/auth/logout-all` | POST | Logout all devices |
 
-## UML Diagram
-### 1. Use-Case Diagram
-![Alt Text](images/use-case.drawio.png)
+## Architecture Diagrams (PlantUML)
 
-### 2. Use-Sequence Diagram
-![Alt Text](images/use-sequence.drawio.png)
+### 📊 Interactive PlantUML Diagrams
 
-## Database Schema
-The system uses the following database schema:
-![Alt Text](images/schema.png)
+All architecture diagrams are available as PlantUML files in the [`diagrams/`](diagrams/) directory. You can view them using:
+- [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/)
+- VS Code PlantUML extension
+- IntelliJ IDEA PlantUML plugin
 
-## Microservices Architecture
-![Alt Text](images/microservice-diagram.jpg)
+### 1. Microservices Architecture
+**File**: [`diagrams/microservices-architecture.puml`](diagrams/microservices-architecture.puml)
 
+Complete overview of the microservices ecosystem showing all services, databases, message brokers, and communication patterns.
 
-Overall, our backend system provides the necessary interfaces to create a full-featured social media platform. Our frontend developers can utilize these interfaces to create a seamless user experience, while our backend team ensures the reliability and scalability of the system.
+![Microservices Architecture](diagrams/microservices-architecture.png)
+
+**Highlights:**
+- 7 microservices with their ports
+- Database topology (PostgreSQL, MongoDB, Elasticsearch, Redis)
+- Kafka event-driven architecture
+- Service discovery with Eureka
+- ELK stack for centralized logging
+- Gateway routing and load balancing
+
+### 2. Kafka Event Flow
+**File**: [`diagrams/kafka-event-flow.puml`](diagrams/kafka-event-flow.puml)
+
+Event-driven communication patterns using Apache Kafka.
+
+![Kafka Event Flow](diagrams/kafka-event-flow.png)
+
+**Topics:**
+- `post-events` - Post creation, updates, deletions (→ Notification + Search)
+- `comment-events` - Comment CRUD operations (→ Notification)
+- `notification-events` - Friendship and reaction events (→ Notification)
+
+**Flow Examples:**
+- Post creation → Fan-out notifications to all friends
+- Comment creation → Notify post author
+- Automatic search indexing via Kafka consumers
+
+### 3. Authentication & Authorization Flow
+**File**: [`diagrams/authentication-flow.puml`](diagrams/authentication-flow.puml)
+
+Complete JWT-based authentication system.
+
+![Authentication Flow](diagrams/authentication-flow.png)
+
+**Features:**
+- Centralized authentication via Auth Service
+- Gateway-level token validation
+- Service-level security filters
+- Feign client inter-service auth
+- Token revocation tracking
+- Multi-device logout support
+
+### 4. Deployment Architecture
+**File**: [`diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml)
+
+Docker-based deployment showing containerized services.
+
+![Deployment Architecture](diagrams/deployment-diagram.png)
+
+**Infrastructure:**
+- Docker network topology
+- Service containers with port mappings
+- Database containers (PostgreSQL, MongoDB, Elasticsearch, Redis)
+- Kafka cluster with Zookeeper
+- ELK stack for logging
+
+### 5. WebSocket Chat Flow
+**File**: [`diagrams/websocket-chat-flow.puml`](diagrams/websocket-chat-flow.puml)
+
+Real-time chat communication via WebSocket.
+
+![WebSocket Chat Flow](diagrams/websocket-chat-flow.png)
+
+**Event Types:**
+- JOIN, SEND, TYPING, LEAVE (Client → Server)
+- MESSAGE, USER_JOINED, USER_LEFT, TYPING_INDICATOR (Server → Client)
+
+**Features:**
+- Online user tracking with Redis
+- Real-time message delivery
+- Typing indicators
+- Offline message storage (TODO)
+- JWT authentication (TODO - security pending)
+
+### 6. System Components
+**File**: [`diagrams/system-components.puml`](diagrams/system-components.puml)
+
+Component-level architecture breakdown.
+
+![System Components](diagrams/system-components.png)
+
+**Layers:**
+- Frontend (Web, Mobile, Admin)
+- Edge (Gateway, Load Balancer)
+- Business Services (Auth, Main, Chat, Notification, Search)
+- Data Access (PostgreSQL, MongoDB, Elasticsearch, Redis)
+- Message Broker (Kafka topics)
+- Monitoring (ELK, Prometheus, Grafana)
+
+### 🔄 Regenerating Diagrams
+
+To regenerate PNG/SVG images from PlantUML source files:
+
+```bash
+cd diagrams
+./generate-diagrams.sh
+```
+
+The script supports both PlantUML CLI and Docker. See [`diagrams/README.md`](diagrams/README.md) for more details.
+
+---
+
 ### api documentation 
 ![Alt Text](images/swagger-doc.png)
 
-chat srevice client image
+### chat srevice client image
 ![Alt Text](images/chat-service-client.png)
 
 ### Deployment Architecture

@@ -12,7 +12,6 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
-import semsem.notificationservice.dto.NotificationEvent;
 
 import java.util.HashMap;
 import java.util.Map;

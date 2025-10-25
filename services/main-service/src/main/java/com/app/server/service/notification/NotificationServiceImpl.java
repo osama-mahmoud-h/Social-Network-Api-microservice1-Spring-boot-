@@ -5,6 +5,12 @@ import com.app.server.enums.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+
+/**
+ * Implementation of NotificationService
+ * Delegates to KafkaNotificationProducer
+ */
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -16,7 +22,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendNotification(Object event, KafkaTopics topic) {
-        kafkaProducerService.sendNotification(event, topic);
+    public void sendEventDto(Serializable eventDto, KafkaTopics topic) {
+        kafkaProducerService.sendEventDto(eventDto, topic);
     }
 }

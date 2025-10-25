@@ -1,21 +1,21 @@
 package com.app.server.service.impl;
 
-import com.app.server.dto.notification.comment.CommentEventDto;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
 import com.app.server.enums.CommentActionType;
-import com.app.server.enums.KafkaTopics;
+import com.app.server.event.domain.CommentDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
 import com.app.server.model.Comment;
 import com.app.server.model.UserProfile;
 import com.app.server.service.CommentService;
 import com.app.server.repository.CommentRepository;
-import com.app.server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,10 +26,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentServiceImp implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean addNewComment(UserProfile currentUser, AddNewCommentRequestDto commentDto) {
@@ -101,29 +102,36 @@ public class CommentServiceImp implements CommentService {
                 .orElseThrow(() -> new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND));
     }
 
-    private void sendCommentNotification(Comment comment, CommentActionType actionType){
-        CommentEventDto commentEventDto = CommentEventDto.builder()
-                .comment(comment)
-                .commentId(comment.getCommentId())
-                .actionType(actionType)
-                .build();
-        this.notificationService.sendNotification(commentEventDto, KafkaTopics.COMMENT_EVENTS);
+    /**
+     * Publishes domain event for comment actions
+     * Event will be asynchronously converted to Kafka message by DomainEventPublisher
+     */
+    private void publishCommentEvent(Comment comment, CommentActionType actionType){
+        log.debug("Publishing comment domain event: action={}, commentId={}", actionType, comment.getCommentId());
+
+        CommentDomainEvent event = new CommentDomainEvent(
+            comment.getAuthor().getUserId(),
+            actionType,
+            comment
+        );
+
+        eventPublisher.publishEvent(event);
     }
 
     private void sendNewCommentNotification(Comment comment){
-        this.sendCommentNotification(comment, CommentActionType.CREATE);
+        this.publishCommentEvent(comment, CommentActionType.CREATE);
     }
 
     private void sendUpdateCommentNotification(Comment comment){
-        this.sendCommentNotification(comment, CommentActionType.UPDATE);
+        this.publishCommentEvent(comment, CommentActionType.UPDATE);
     }
 
     private void sendDeleteCommentNotification(Comment comment){
-        this.sendCommentNotification(comment, CommentActionType.DELETE);
+        this.publishCommentEvent(comment, CommentActionType.DELETE);
     }
 
     private void sendReplyCommentNotification(Comment comment){
-        this.sendCommentNotification(comment, CommentActionType.REPLY);
+        this.publishCommentEvent(comment, CommentActionType.REPLY);
     }
 
 }

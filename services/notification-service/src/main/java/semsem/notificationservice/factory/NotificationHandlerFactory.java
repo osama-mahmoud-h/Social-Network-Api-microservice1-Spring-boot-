@@ -2,7 +2,6 @@ package semsem.notificationservice.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.enums.NotificationType;
 import semsem.notificationservice.handler.NotificationHandler;

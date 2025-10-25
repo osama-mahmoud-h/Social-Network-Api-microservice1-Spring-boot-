@@ -1,0 +1,246 @@
+@startuml microservices-architecture
+!theme plain
+
+skinparam {
+    componentStyle rectangle
+    backgroundColor #FEFEFE
+    shadowing false
+    ArrowColor #2C3E50
+    BorderColor #34495E
+    linetype ortho
+    nodesep 80
+    ranksep 150
+    padding 20
+}
+
+' Force top-to-bottom layout
+top to bottom direction
+
+title Social Network Microservices Architecture
+
+' =====================================================
+' TIER 1: CLIENT APPLICATIONS
+' =====================================================
+package "Client Tier" as ClientTier #AliceBlue {
+    component [Web Browser] as Web
+    component [Mobile App] as Mobile
+}
+
+' Vertical spacer
+note as N1
+    ⬇ HTTPS Requests
+end note
+
+' =====================================================
+' TIER 2: EDGE LAYER (Gateway & Service Discovery)
+' =====================================================
+package "Edge Tier" as EdgeTier #Bisque {
+    component [API Gateway\nPort: 8080] as Gateway #Orange
+    component [Eureka Discovery\nPort: 8761] as Eureka #Purple
+}
+
+' Vertical spacer
+note as N2
+    ⬇ Route to Services
+end note
+
+' =====================================================
+' TIER 3: SECURITY & AUTHENTICATION
+' =====================================================
+package "Security Tier" as SecurityTier #LightGreen {
+    component [Auth Service\nPort: 8087] as Auth #Green
+    note right of Auth
+        • JWT Token Generation
+        • Token Validation
+        • User Authentication
+    end note
+}
+
+' Vertical spacer
+note as N3
+    ⬇ Business Logic
+end note
+
+' =====================================================
+' TIER 4: CORE BUSINESS SERVICES
+' =====================================================
+package "Business Service Tier" as BusinessTier #PaleGreen {
+    component [Main Service\nPort: 8083] as Main #LightGreen
+    component [Chat Service\nPort: 8086] as Chat #LightGreen
+    component [Search Service\nPort: 8084] as Search #LightGreen
+    component [Notification Service\nPort: 8085] as Notification #LightGreen
+
+    note bottom of Main
+        Posts, Comments,
+        Friendships, Users
+    end note
+
+    note bottom of Chat
+        WebSocket,
+        Real-time Messages
+    end note
+}
+
+' Vertical spacer
+note as N4
+    ⬇ Data Persistence
+end note
+
+' =====================================================
+' TIER 5: DATA STORAGE LAYER
+' =====================================================
+package "Data Storage Tier" as DataTier #LightYellow {
+
+    database "PostgreSQL\nPort: 5432" as Postgres #Wheat {
+        folder "Auth DB" as AuthDB
+        folder "Main DB" as MainDB
+    }
+
+    database "MongoDB\nPort: 27017" as Mongo #Wheat
+
+    database "Redis\nPort: 6379" as Redis #Wheat
+
+    database "Elasticsearch\nPort: 9200" as Elastic #Wheat
+}
+
+' Vertical spacer
+note as N5
+    ⬇ Event Streaming
+end note
+
+' =====================================================
+' TIER 6: MESSAGE BROKER
+' =====================================================
+package "Event Streaming Tier" as EventTier #MistyRose {
+    queue "Apache Kafka\nPort: 29092" as Kafka #Orange
+
+    rectangle "Kafka Topics" as Topics #LightCoral {
+        queue "notification-events" as Topic1
+        queue "post-events" as Topic2
+        queue "comment-events" as Topic3
+    }
+}
+
+' Vertical spacer
+note as N6
+    ⬇ Monitoring & Logs
+end note
+
+' =====================================================
+' TIER 7: OBSERVABILITY & MONITORING
+' =====================================================
+package "Observability Tier" as ObservabilityTier #Lavender {
+    component [Logstash\nPort: 5000] as Logstash #Plum
+    component [Elasticsearch\n(ELK)] as ELK_ES #Plum
+    component [Kibana\nPort: 5601] as Kibana #Plum
+
+    Logstash -right-> ELK_ES
+    ELK_ES -right-> Kibana
+}
+
+' =====================================================
+' VERTICAL CONNECTIONS - TIER 1 → TIER 2
+' =====================================================
+Web -down-> Gateway : HTTPS
+Mobile -down-> Gateway : HTTPS
+
+' =====================================================
+' TIER 2 → TIER 3 & 4 (API Gateway Routing)
+' =====================================================
+Gateway -down-> Auth : /api/auth/**
+Gateway -down-> Main : /api/v1/**
+Gateway -down-> Chat : /api/chat/**
+Gateway -down-> Search : /api/search/**
+Gateway -down-> Notification : /api/notifications/**
+
+' =====================================================
+' SERVICE DISCOVERY (Dotted Registration)
+' =====================================================
+Gateway .up.> Eureka : register
+Auth .up.> Eureka : register
+Main .up.> Eureka : register
+Chat .up.> Eureka : register
+Search .up.> Eureka : register
+Notification .up.> Eureka : register
+
+' =====================================================
+' AUTHENTICATION VALIDATION (Feign Clients)
+' =====================================================
+Main .up.> Auth : validate token
+Chat .up.> Auth : validate token
+Search .up.> Auth : validate token
+
+' =====================================================
+' TIER 4 → TIER 5 (Database Connections)
+' =====================================================
+Auth -down-> AuthDB : read/write
+Main -down-> MainDB : read/write
+Main -down-> Redis : cache
+Chat -down-> Mongo : messages
+Chat -down-> Redis : online users
+Search -down-> Elastic : index/search
+
+' =====================================================
+' TIER 4 → TIER 6 (Event Publishing & Consuming)
+' =====================================================
+Main -down-> Kafka : publish events
+Notification -down-> Kafka : consume
+Search -down-> Kafka : consume
+
+Kafka -down-> Topic1
+Kafka -down-> Topic2
+Kafka -down-> Topic3
+
+' =====================================================
+' INTER-SERVICE COMMUNICATION
+' =====================================================
+Notification .left.> Main : get friends\n(Feign)
+
+' =====================================================
+' TIER 3,4 → TIER 7 (Logging)
+' =====================================================
+Auth -down-> Logstash : logs
+Main -down-> Logstash : logs
+Chat -down-> Logstash : logs
+Search -down-> Logstash : logs
+Notification -down-> Logstash : logs
+Gateway -down-> Logstash : logs
+
+' =====================================================
+' VERTICAL FLOW ENFORCEMENT
+' =====================================================
+ClientTier -[hidden]down- N1
+N1 -[hidden]down- EdgeTier
+EdgeTier -[hidden]down- N2
+N2 -[hidden]down- SecurityTier
+SecurityTier -[hidden]down- N3
+N3 -[hidden]down- BusinessTier
+BusinessTier -[hidden]down- N4
+N4 -[hidden]down- DataTier
+DataTier -[hidden]down- N5
+N5 -[hidden]down- EventTier
+EventTier -[hidden]down- N6
+N6 -[hidden]down- ObservabilityTier
+
+' =====================================================
+' LEGEND
+' =====================================================
+legend bottom left
+    **Connection Types**
+    | Symbol | Meaning |
+    | ━━━> | Direct API/HTTP Call |
+    | ··· > | Service Discovery Registration |
+    | · · > | Token Validation (Feign Client) |
+
+    **Architecture Tiers** (Top to Bottom)
+    | Color | Tier |
+    | <#AliceBlue> | 1. Client Applications |
+    | <#Bisque> | 2. Edge (Gateway & Discovery) |
+    | <#LightGreen> | 3. Security & Authentication |
+    | <#PaleGreen> | 4. Business Services |
+    | <#LightYellow> | 5. Data Storage |
+    | <#MistyRose> | 6. Event Streaming |
+    | <#Lavender> | 7. Observability & Monitoring |
+end legend
+
+@enduml

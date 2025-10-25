@@ -1,0 +1,112 @@
+@startuml kafka-event-flow
+!theme plain
+
+skinparam {
+    backgroundColor #FEFEFE
+    shadowing false
+    ArrowColor #2C3E50
+}
+
+title Kafka Event-Driven Architecture Flow
+
+participant "Main Service" as Main #LightBlue
+participant "Kafka Broker\n:29092" as Kafka #Orange
+participant "Notification Service" as Notification #LightGreen
+participant "Search Service" as Search #LightGreen
+database "PostgreSQL" as DB #Wheat
+database "Elasticsearch" as ES #Wheat
+
+== Post Creation Event ==
+
+Main -> DB : Save Post
+activate Main
+activate DB
+DB --> Main : Post Saved
+deactivate DB
+
+Main -> Main : Create PostDomainEvent
+Main -> Kafka : Publish to\n**post-events** topic\n(PostEventDto)
+activate Kafka
+
+Kafka --> Notification : Consume post-events
+activate Notification
+Notification -> Notification : PostEventHandler\nFan-out to friends
+Notification -> Notification : Create notifications\nfor each friend
+note right: TODO: Save to DB\nTODO: Send via WebSocket
+
+Kafka --> Search : Consume post-events
+activate Search
+Search -> ES : Index Post\nfor full-text search
+ES --> Search : Indexed
+deactivate Search
+deactivate Notification
+deactivate Kafka
+deactivate Main
+
+== Comment Creation Event ==
+
+Main -> DB : Save Comment
+activate Main
+activate DB
+DB --> Main : Comment Saved
+deactivate DB
+
+Main -> Main : Create CommentDomainEvent
+Main -> Kafka : Publish to\n**comment-events** topic\n(CommentEventDto)
+activate Kafka
+
+Kafka --> Notification : Consume comment-events
+activate Notification
+Notification -> Notification : CommentEventHandler\nNotify post author
+Notification -> Notification : Check if self-comment\nCreate notification
+note right: TODO: Save to DB\nTODO: Send via WebSocket
+deactivate Notification
+deactivate Kafka
+deactivate Main
+
+== Friendship Event ==
+
+Main -> DB : Save Friendship Request
+activate Main
+activate DB
+DB --> Main : Saved
+deactivate DB
+
+Main -> Main : Create FriendshipDomainEvent
+Main -> Kafka : Publish to\n**notification-events** topic\n(NotificationEvent)
+activate Kafka
+
+Kafka --> Notification : Consume notification-events
+activate Notification
+Notification -> Notification : NotificationHandlerFactory\nRoute to handler
+Notification -> Notification : RequestFriendshipHandler\nHandle notification
+note right: TODO: Save to DB\nTODO: Send via WebSocket\nTODO: Push notification
+deactivate Notification
+deactivate Kafka
+deactivate Main
+
+== Kafka Topics Overview ==
+
+note over Kafka
+  **Kafka Topics:**
+
+  1. **post-events**
+     - PostEventDto (CREATE, UPDATE, DELETE)
+     - Consumed by: Notification, Search
+
+  2. **comment-events**
+     - CommentEventDto (CREATE, UPDATE, DELETE, REPLY)
+     - Consumed by: Notification
+
+  3. **notification-events**
+     - NotificationEvent (FRIENDSHIP, REACTIONS)
+     - Consumed by: Notification
+
+  **Benefits:**
+  - Decoupled services
+  - Async processing
+  - Scalable fan-out
+  - Event sourcing
+end note
+
+@enduml
