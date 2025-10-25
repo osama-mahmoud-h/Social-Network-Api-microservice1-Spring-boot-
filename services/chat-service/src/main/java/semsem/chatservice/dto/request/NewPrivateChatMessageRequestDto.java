@@ -2,7 +2,6 @@ package semsem.chatservice.dto.request;
 
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.messaging.Message;
 import semsem.chatservice.enums.MessageType;
 
 @Data

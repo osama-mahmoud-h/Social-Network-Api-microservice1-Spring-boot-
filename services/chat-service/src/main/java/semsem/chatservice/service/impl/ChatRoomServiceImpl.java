@@ -14,33 +14,33 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class ChatRoomServiceImpl implements ChatRoomService {
-    private final ChatRoomRepository chatRoomRepository;
+//    private final ChatRoomRepository chatRoomRepository;
 
-    @Override
-    public Optional<String> getChatRoomId(String senderId, String receiverId) {
-        String chatId = this.generateChatId(senderId, receiverId);
-
-        return chatRoomRepository.findChatRoomByChatId(chatId)
-                .map(ChatRoom::getChatId)
-                .or(() -> Optional.of(this.createNewChatRoom(senderId, receiverId)));
-    }
+//    @Override
+//    public Optional<String> getChatRoomId(String senderId, String receiverId) {
+//        String chatId = this.generateChatId(senderId, receiverId);
+//
+//        return chatRoomRepository.findChatRoomByChatId(chatId)
+//                .map(ChatRoom::getChatId)
+//                .or(() -> Optional.of(this.createNewChatRoom(senderId, receiverId)));
+//    }
 
     @Override
     public String createChatId(String senderId, String receiverId) {
         return this.generateChatId(senderId, receiverId);
     }
 
-    private String createNewChatRoom(String senderId, String receiverId) {
-        String chatId = this.generateChatId(senderId, receiverId);
-
-        ChatRoom chatRoom = ChatRoom.builder()
-                .chatId(chatId)
-                .senderId(senderId)
-                .receiverId(receiverId)
-                .build();
-        chatRoomRepository.save(chatRoom);
-        return chatId;
-    }
+//    private String createNewChatRoom(String senderId, String receiverId) {
+//        String chatId = this.generateChatId(senderId, receiverId);
+//
+//        ChatRoom chatRoom = ChatRoom.builder()
+//                .chatId(chatId)
+//                .senderId(senderId)
+//                .receiverId(receiverId)
+//                .build();
+//        chatRoomRepository.save(chatRoom);
+//        return chatId;
+//    }
 
     private String generateChatId(String senderId, String receiverId) {
         return Stream.of(senderId, receiverId)

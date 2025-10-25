@@ -2,16 +2,15 @@ package semsem.chatservice.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+
 import semsem.chatservice.enums.UserStatus;
 
 @Data
-@Document(collection =  "users")
+//@Document(collection =  "users")
 public class AppUser {
     @Id
     private String id;
-    @Indexed(unique = true)
+//    @Indexed(unique = true)
     private String nickName;
     private String password;
     private String email;

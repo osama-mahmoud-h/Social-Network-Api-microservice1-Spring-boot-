@@ -3,10 +3,10 @@ spring:
     name: chat-service_
   # Database mongo
   data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: chat-service
+#    mongodb:
+#      host: localhost
+#      port: 27017
+#      database: chat-service
     # Redis Configuration
     redis:
       host: localhost

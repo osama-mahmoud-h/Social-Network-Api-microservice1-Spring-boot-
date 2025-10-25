@@ -25,29 +25,10 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class AppUserController {
-    private final UserService userService;
+//    private final UserService userService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final RedisOnlineUserRepository redisOnlineUserRepository;
 
-    @MessageMapping("/user.addUser")
-    @SendTo("/topic/public")
-    public AppUser addUser(@Payload AppUser user) {
-        log.info("Adding new  user: {}", user);
-        userService.saveUser(user);
-        return user;
-    }
-
-    @MessageMapping("/user.disconnectUser")
-    @SendTo("/topic/public")
-    public AppUser disconnect(@Payload AppUser user) {
-        userService.disconnect(user);
-        return user;
-    }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<AppUser>> getConnectedUsers() {
-        return ResponseEntity.ok(userService.getConnectedUsers());
-    }
 
     /**
      * REST endpoint to get online user IDs from Redis
@@ -67,17 +48,6 @@ public class AppUserController {
     public ResponseEntity<Boolean> isUserOnline(@PathVariable String userId) {
         boolean isOnline = redisOnlineUserRepository.isUserOnline(userId);
         return ResponseEntity.ok(isOnline);
-    }
-
-    @MessageMapping("/getActiveUsers")
-    public void getActiveUsers() {
-        List<AppUser> activeUsers = userService.getConnectedUsers();
-        EventMessageResponseDto eventMessage = EventMessageResponseDto.builder()
-                .eventType(EventMessageType.GET_ACTIVE_USERS)
-                .data(activeUsers)
-                .build();
-        System.out.println("Active users: " + activeUsers);
-        simpMessagingTemplate.convertAndSend("/topic/public", eventMessage);
     }
 
 

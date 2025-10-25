@@ -24,7 +24,6 @@ public class FriendsServiceImpl implements FriendsService {
             // Call main-service to get friends
             MyApiResponse<Page<AppUserForChatDto>> response = mainServiceClient.getFriendsPaginated(token, page, size);
 
-
             System.out.println("Response from main-service: " + response);
             log.info("Response from main-service: {}", response.getData().getContent());
 

@@ -22,31 +22,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatMessageServiceImpl implements ChatMessageService {
-    private final ChatMessageRepository chatMessageRepository;
     private final RedisChatMessageRepository redisChatMessageRepository;
-    protected final ChatRoomService chatRoomService;
     private final ChatMessageMapper chatMessageMapper;
     private final FriendsService friendsService;
+    private final ChatRoomService chatRoomService;
 
     @Override
     public ChatMessageResponseDto saveMessage(NewPublicChatMessageRequestDto requestDto) {
         log.info("Saving new message: {}", requestDto);
 
-        String chatRoomId = chatRoomService.getChatRoomId(requestDto.getSenderId(), requestDto.getReceiverId())
-                .orElseThrow(() -> new RuntimeException("Chat room not found"));
-
         ChatMessage chatMessage = chatMessageMapper.mapNewChatMessageRequestToChatMessage(requestDto);
-        chatMessage.setChatId(chatRoomId);
-
-        // Save to MongoDB for persistence
-        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
 
         // Save to Redis for fast access
-        redisChatMessageRepository.saveMessage(savedChatMessage);
+        redisChatMessageRepository.saveMessage(chatMessage);
 
-        log.debug("Message saved to both MongoDB and Redis: messageId={}", savedChatMessage.getMessageId());
+        log.debug("Message saved to both MongoDB and Redis: messageId={}", chatMessage.getMessageId());
 
-        return chatMessageMapper.mapChatMessageToResponseDto(savedChatMessage);
+        return chatMessageMapper.mapChatMessageToResponseDto(chatMessage);
     }
 
 
@@ -76,51 +68,23 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             throw new RuntimeException("Unauthorized: You can only send messages to friends");
         }
 
-        // Get or create chat room
-        String chatRoomId = chatRoomService.getChatRoomId(requestDto.getSenderId(), requestDto.getReceiverId())
-                .orElseGet(() -> {
-                    log.debug("Chat room not found, creating new one");
-                    return chatRoomService.createChatId(requestDto.getSenderId(), requestDto.getReceiverId());
-                });
-
         // Map request to ChatMessage entity
         ChatMessage chatMessage = chatMessageMapper.mapPrivateChatMessageRequestToChatMessage(requestDto);
-        chatMessage.setChatId(chatRoomId);
-
-        // Save to MongoDB for persistence
-        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
 
         // Save to Redis for fast access
-        redisChatMessageRepository.saveMessage(savedChatMessage);
+        redisChatMessageRepository.saveMessage(chatMessage);
+        log.debug("Private message saved to Redis: messageId={}", chatMessage.getMessageId());
 
-        // Cache private chat users
-        redisChatMessageRepository.cachePrivateChatUsers(chatRoomId, requestDto.getSenderId(), requestDto.getReceiverId());
-
-        log.info("Private message saved successfully: messageId={}, chatId={}", savedChatMessage.getMessageId(), chatRoomId);
-
-        return chatMessageMapper.mapChatMessageToResponseDto(savedChatMessage);
+        return chatMessageMapper.mapChatMessageToResponseDto(chatMessage);
     }
 
     @Override
     public List<ChatMessageResponseDto> getConversations(String senderId, String receiverId) {
-        String chatRoomId = chatRoomService.getChatRoomId(senderId, receiverId)
-                .orElseThrow(() -> new RuntimeException("Chat room not found"));
 
-        log.debug("Fetching conversation for chatRoomId={}", chatRoomId);
 
+        String chatRoomId = chatRoomService.createChatId(senderId, receiverId);
         // Try to get from Redis first (faster)
         List<ChatMessage> chatMessages = redisChatMessageRepository.getMessagesByChatId(chatRoomId);
-
-        // If not in Redis, get from MongoDB and cache in Redis
-        if (chatMessages.isEmpty()) {
-            log.debug("Messages not found in Redis, fetching from MongoDB");
-            chatMessages = chatMessageRepository.findChatMessagesByChatId(chatRoomId);
-
-            // Cache in Redis for future requests
-            for (ChatMessage message : chatMessages) {
-                redisChatMessageRepository.saveMessage(message);
-            }
-        }
 
         return chatMessages.stream()
                 .map(chatMessageMapper::mapChatMessageToResponseDto)
