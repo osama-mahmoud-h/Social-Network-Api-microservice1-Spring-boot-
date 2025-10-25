@@ -1,0 +1,182 @@
+@startuml system-components
+!theme plain
+
+skinparam {
+    componentStyle rectangle
+    backgroundColor #FEFEFE
+    shadowing false
+    linetype ortho
+    nodesep 80
+    ranksep 80
+}
+
+title Social Network System - Component Architecture (Layered View)
+
+' Top to bottom layout for cleaner layers
+top to bottom direction
+
+' ===== LAYER 1: CLIENT LAYER =====
+package "Client Layer" #LightBlue {
+    [Web Application] as Web
+    [Mobile App] as Mobile
+    [Admin Dashboard] as Admin
+}
+
+' ===== LAYER 2: EDGE LAYER =====
+package "Edge Layer" #Orange {
+    [API Gateway :8080] as Gateway
+    [Eureka Server :8761] as Eureka
+}
+
+' ===== LAYER 3: SECURITY LAYER =====
+package "Security Layer" #PaleGreen {
+    [Auth Service :8087] as Auth
+    [JWT Validator] as JWTValidator
+}
+
+' ===== LAYER 4: BUSINESS SERVICES =====
+package "Business Services Layer" #LightYellow {
+
+    rectangle "Main Service :8083" {
+        component [User API] as UserAPI
+        component [Post API] as PostAPI
+        component [Comment API] as CommentAPI
+        component [Friendship API] as FriendAPI
+    }
+
+    rectangle "Chat Service :8086" {
+        component [WebSocket Handler] as WSHandler
+        component [Chat API] as ChatAPI
+    }
+
+    rectangle "Notification Service :8085" {
+        component [Kafka Consumer] as KafkaConsumer
+        component [Handler Factory] as HandlerFactory
+    }
+
+    rectangle "Search Service :8084" {
+        component [Search API] as SearchAPI
+        component [Indexer] as Indexer
+    }
+}
+
+' ===== LAYER 5: DATA LAYER =====
+package "Data Layer" #Wheat {
+    database "PostgreSQL\n:5432" as Postgres {
+        [Auth DB]
+        [Main DB]
+    }
+    database "MongoDB\n:27017" as Mongo
+    database "Elasticsearch\n:9200" as ElasticDB
+    database "Redis\n:6379" as Redis
+}
+
+' ===== LAYER 6: MESSAGE BROKER =====
+package "Message Broker" #LightCoral {
+    queue "Kafka :29092" as Kafka {
+        [notification-events]
+        [post-events]
+        [comment-events]
+    }
+}
+
+' ===== LAYER 7: MONITORING =====
+package "Monitoring Layer" #Pink {
+    [Logstash :5000] as Logstash
+    [Kibana :5601] as Kibana
+}
+
+' ========== CONNECTIONS ==========
+
+' Client → Gateway
+Web -down-> Gateway
+Mobile -down-> Gateway
+Admin -down-> Gateway
+
+' Gateway → Services
+Gateway -down-> Auth : /api/auth/**
+Gateway -down-> UserAPI : /api/v1/users/**
+Gateway -down-> PostAPI : /api/v1/posts/**
+Gateway -down-> WSHandler : /ws
+Gateway -down-> SearchAPI : /api/search/**
+
+' Service Discovery
+Gateway .right.> Eureka
+Auth .up.> Eureka
+UserAPI .up.> Eureka
+WSHandler .up.> Eureka
+SearchAPI .up.> Eureka
+
+' Auth validation
+Gateway -right-> JWTValidator
+UserAPI .up.> JWTValidator
+WSHandler .up.> JWTValidator
+SearchAPI .up.> JWTValidator
+
+Auth -down-> JWTValidator
+
+' Business logic connections
+PostAPI -right-> CommentAPI
+FriendAPI -left-> UserAPI
+WSHandler -left-> ChatAPI
+
+' Data Layer connections
+Auth -down-> Postgres : Auth DB
+UserAPI -down-> Postgres : Main DB
+PostAPI -down-> Postgres : Main DB
+CommentAPI -down-> Postgres : Main DB
+FriendAPI -down-> Postgres : Main DB
+
+ChatAPI -down-> Mongo
+WSHandler -down-> Redis : Online Users
+UserAPI -down-> Redis : Cache
+
+SearchAPI -down-> ElasticDB
+Indexer -down-> ElasticDB
+
+' Kafka connections
+PostAPI -down-> Kafka : Publish
+CommentAPI -down-> Kafka : Publish
+KafkaConsumer -up-> Kafka : Consume
+Indexer -up-> Kafka : Consume
+
+KafkaConsumer -down-> HandlerFactory
+
+' Inter-service (Feign)
+HandlerFactory .right.> FriendAPI : Feign
+
+' Logging (selected services only for clarity)
+Auth -down-> Logstash
+UserAPI -down-> Logstash
+WSHandler -down-> Logstash
+Logstash -down-> Kibana
+
+note right of Gateway
+  **Entry Point**
+  - Routes all requests
+  - JWT validation
+  - Load balancing
+end note
+
+note right of Kafka
+  **Event Bus**
+  - Async messaging
+  - Event sourcing
+  - Service decoupling
+end note
+
+note bottom of Postgres
+  **Primary Storage**
+  - User data
+  - Posts & Comments
+  - Friendships
+end note
+
+legend bottom left
+  |= Symbol |= Meaning |
+  | ——→ | Direct call |
+  | ···→ | Registration/Discovery |
+  | Dotted | Async/Optional |
+endlegend
+
+@enduml

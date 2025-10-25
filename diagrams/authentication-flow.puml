@@ -1,0 +1,149 @@
+@startuml authentication-flow
+!theme plain
+
+skinparam {
+    backgroundColor #FEFEFE
+    shadowing false
+    sequenceArrowThickness 2
+}
+
+title Authentication & Authorization Flow
+
+actor User
+participant "API Gateway\n:8080" as Gateway #Orange
+participant "Auth Service\n:8087" as Auth #Green
+participant "Main Service\n:8083" as Main #LightBlue
+database "PostgreSQL\n(Auth DB)" as AuthDB #Wheat
+database "PostgreSQL\n(Main DB)" as MainDB #Wheat
+
+== User Login ==
+
+User -> Gateway : POST /api/auth/login\n{email, password}
+activate Gateway
+Gateway -> Auth : Forward Login Request
+activate Auth
+Auth -> AuthDB : Validate Credentials
+activate AuthDB
+AuthDB --> Auth : User Found
+deactivate AuthDB
+
+Auth -> Auth : Generate JWT Token\n+ Refresh Token
+Auth -> AuthDB : Store Token\n(for revocation tracking)
+activate AuthDB
+AuthDB --> Auth : Token Stored
+deactivate AuthDB
+Auth -> AuthDB : Update Last Login
+activate AuthDB
+AuthDB --> Auth : Updated
+deactivate AuthDB
+
+Auth --> Gateway : AuthResponse\n{accessToken, refreshToken, user}
+deactivate Auth
+Gateway --> User : 200 OK\n{tokens, user}
+deactivate Gateway
+
+== Authenticated Request ==
+
+User -> Gateway : GET /api/v1/posts\nAuthorization: Bearer <token>
+activate Gateway
+
+Gateway -> Gateway : AuthenticationFilter\nExtract Token
+Gateway -> Auth : POST /api/auth/validate-header\nAuthorization: Bearer <token>
+activate Auth
+
+Auth -> Auth : Validate Token:\n- Check expiration\n- Verify signature
+Auth -> AuthDB : Check if token revoked
+activate AuthDB
+AuthDB --> Auth : Not Revoked
+deactivate AuthDB
+
+Auth -> Auth : Extract user details\nfrom JWT claims
+
+Auth --> Gateway : TokenValidationResponse\n{valid: true, userId, email, roles}
+deactivate Auth
+
+Gateway -> Gateway : Add Headers:\n- X-User-Id\n- X-User-Email\n- X-User-Roles
+
+Gateway -> Main : Forward Request\nwith User Context Headers
+activate Main
+Main -> Main : JwtAuthenticationFilter\nExtract user from headers
+Main -> Main : Set SecurityContext
+Main -> Main : Execute Controller Logic
+Main -> MainDB : Query Posts
+activate MainDB
+MainDB --> Main : Posts Data
+deactivate MainDB
+Main --> Gateway : 200 OK\n{posts}
+deactivate Main
+
+Gateway --> User : 200 OK\n{posts}
+deactivate Gateway
+
+== Token Validation (Alternative: Direct Service Call) ==
+
+User -> Main : GET /api/v1/profile\nAuthorization: Bearer <token>
+activate Main
+
+Main -> Main : JwtAuthenticationFilter
+Main -> Auth : Validate Token\n(via Feign Client)
+activate Auth
+
+Auth -> Auth : Validate Token
+Auth -> AuthDB : Check Revocation
+activate AuthDB
+AuthDB --> Auth : Valid
+deactivate AuthDB
+
+Auth --> Main : TokenValidationResponse\n{valid: true, user details}
+deactivate Auth
+
+Main -> Main : Set SecurityContext\nwith user details
+Main -> MainDB : Query Profile
+activate MainDB
+MainDB --> Main : Profile Data
+deactivate MainDB
+
+Main --> User : 200 OK\n{profile}
+deactivate Main
+
+== Logout (Single Device) ==
+
+User -> Gateway : POST /api/auth/logout\nAuthorization: Bearer <token>
+activate Gateway
+Gateway -> Auth : Forward Logout
+activate Auth
+Auth -> AuthDB : Mark Token as Revoked
+activate AuthDB
+AuthDB --> Auth : Token Revoked
+deactivate AuthDB
+Auth --> Gateway : 200 OK\n{message: "Logged out"}
+deactivate Auth
+Gateway --> User : 200 OK
+deactivate Gateway
+
+== Logout (All Devices) ==
+
+User -> Gateway : POST /api/auth/logout-all?userId=123\nAuthorization: Bearer <token>
+activate Gateway
+Gateway -> Auth : Forward Logout All
+activate Auth
+Auth -> AuthDB : Revoke All Tokens\nfor userId
+activate AuthDB
+AuthDB --> Auth : All Tokens Revoked
+deactivate AuthDB
+Auth --> Gateway : 200 OK\n{message: "Logged out from all devices"}
+deactivate Auth
+Gateway --> User : 200 OK
+deactivate Gateway
+
+note over Gateway, Auth
+  **Authentication Features:**
+  - JWT-based stateless auth
+  - Token revocation tracking
+  - Multi-device logout support
+  - Feign Client for service-to-service auth
+  - Gateway-level auth filtering
+  - Service-level security filters
+end note
+
+@enduml
