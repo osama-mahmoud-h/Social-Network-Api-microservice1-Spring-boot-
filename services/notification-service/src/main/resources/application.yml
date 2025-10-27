@@ -1,25 +1,25 @@
 spring:
   application:
     name: notification-service
-  #=========================== Kafka Configurations ===========================
+  #===================== Kafka Configuration ==========================
+  # Use port 29092 for local development (outside Docker)
+  # Inside Docker containers, use kafka:9092
   kafka:
     bootstrap-servers: localhost:29092
-    consumer:
-      group-id: notification-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring:
-          deserializer:
-            value:
-              delegate:
-                class: org.springframework.kafka.support.serializer.JsonDeserializer
           json:
-            trusted:
-              packages: '*'
-            value:
-              default:
-                type: com.app.server.dto.notification.NotificationEvent
+            add:
+              type:
+                headers: false
+    consumer:
+      group-id: main-service-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 server:
   port: 8085
@@ -34,5 +34,5 @@ logstash:
   host: localhost
   port: 5000
 # Enable Spring property resolution in Logback
-logging:
-  config: classpath:logback-spring.xml
+#logging:
+#  config: classpath:logback-spring.xml
