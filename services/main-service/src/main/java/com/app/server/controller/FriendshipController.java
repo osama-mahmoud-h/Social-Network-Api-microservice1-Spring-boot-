@@ -2,7 +2,7 @@ package com.app.server.controller;
 
 
 import com.app.server.dto.response.AppUserResponseDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.model.UserProfile;
 import com.app.server.service.FriendshipService;
 import com.app.shared.security.utils.SecurityUtils;

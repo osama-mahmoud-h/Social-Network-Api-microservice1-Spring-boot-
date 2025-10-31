@@ -3,7 +3,7 @@ package com.app.server.controller;
 
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.profile.UpdateProfileBioRequestDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.profile.ProfileResponseDto;
 import com.app.server.model.UserProfile;

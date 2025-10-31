@@ -1,6 +1,7 @@
 package com.app.shared.security.filter;
 
 import com.app.shared.security.client.AuthServiceClient;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.shared.security.dto.TokenValidationResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,8 +42,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         try {
-            TokenValidationResponse validationResponse = authServiceClient.validateToken(authHeader);
+            MyApiResponse<TokenValidationResponse> apiResponse = authServiceClient.validateToken(authHeader);
 
+            // Check if the API call was successful
+            if (!apiResponse.isSuccess() || apiResponse.getData() == null) {
+                log.warn("Token validation failed: {}", apiResponse.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"" + apiResponse.getMessage() + "\"}");
+                return;
+            }
+
+            TokenValidationResponse validationResponse = apiResponse.getData();
+            System.out.println("Validation Response: " + validationResponse);
             if (validationResponse.isValid()) {
                 // Create authorities from roles
                 List<SimpleGrantedAuthority> authorities = validationResponse.getRoles().stream()

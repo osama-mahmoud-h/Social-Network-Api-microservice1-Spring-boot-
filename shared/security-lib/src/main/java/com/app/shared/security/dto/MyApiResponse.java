@@ -1,4 +1,4 @@
-package com.app.auth.dto;
+package com.app.shared.security.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

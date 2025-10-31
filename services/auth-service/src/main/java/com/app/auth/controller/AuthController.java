@@ -1,6 +1,6 @@
 package com.app.auth.controller;
 
-import com.app.auth.dto.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import com.app.auth.dto.AuthResponse;

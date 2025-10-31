@@ -1,7 +1,7 @@
 package com.app.server.controller;
 
 import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.model.UserProfile;
 import com.app.server.service.ReactionService;
 import io.swagger.v3.oas.annotations.Operation;

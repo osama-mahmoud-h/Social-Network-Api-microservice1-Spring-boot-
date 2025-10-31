@@ -1,6 +1,6 @@
 package com.app.auth.exception;
 
-import com.app.auth.dto.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;

@@ -1,5 +1,6 @@
 package com.app.shared.security.client;
 
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.shared.security.dto.TokenValidationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
@@ -11,5 +12,5 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface AuthServiceClient {
 
     @PostMapping("/validate-header")
-    TokenValidationResponse validateToken(@RequestHeader("Authorization") String authHeader);
+    MyApiResponse<TokenValidationResponse> validateToken(@RequestHeader("Authorization") String authHeader);
 }

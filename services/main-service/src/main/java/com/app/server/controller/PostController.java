@@ -3,7 +3,7 @@ package com.app.server.controller;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.model.Post;
 import com.app.server.service.PostService;
