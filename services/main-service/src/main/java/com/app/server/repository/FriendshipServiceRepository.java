@@ -27,7 +27,10 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
 
 
     @Query(value = """
-           SELECT u.* FROM user_profiles u
+           SELECT u.user_id as userId, u.email as email,
+                  u.first_name as firstName, u.last_name as lastName,
+                  NULL as profilePictureUrl
+           FROM user_profiles u
            JOIN friendships f ON
              (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
@@ -40,7 +43,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
               (f.user_id2 = :userId AND f.user_id1 = u.user_id)
             WHERE f.status = :status
            """, nativeQuery = true)
-    List<Object[]> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+    List<com.app.server.projection.UserSuggestionProjection> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
     @Query(value = "SELECT u.* FROM user_profiles u " +
             "JOIN friendships f ON " +
@@ -131,7 +134,10 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     )
 
     -- Final selection with all conditions
-    SELECT u.* FROM user_profiles u
+    SELECT u.user_id as userId, u.email as email,
+           u.first_name as firstName, u.last_name as lastName,
+           NULL as profilePictureUrl
+    FROM user_profiles u
     JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
     WHERE NOT EXISTS (
         SELECT 1 FROM friendships f
@@ -140,7 +146,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     )
     LIMIT 10
     """, nativeQuery = true)
-    List<Object[]> findFriendSuggestions(@Param("userId") Long userId);
+    List<com.app.server.projection.UserSuggestionProjection> findFriendSuggestions(@Param("userId") Long userId);
 
     /**
      * Get list of friend IDs for a user (only accepted friendships)

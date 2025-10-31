@@ -57,4 +57,55 @@ public class PostIndexServiceImpl implements PostIndexService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void update(PostIndex postIndex) {
+        try {
+            // Find the existing document by postId
+            List<PostIndex> existingPosts = postIndexRepository.findByPostId(postIndex.getPostId());
+
+            if (existingPosts.isEmpty()) {
+                throw new RuntimeException("Post not found with postId: " + postIndex.getPostId());
+            }
+
+            // Update the document - set the Elasticsearch ID from the existing document
+            postIndex.setId(existingPosts.get(0).getId());
+
+            // Save (update) the document
+            elasticsearchClient.index(i -> i
+                    .index("post_index")
+                    .id(postIndex.getId())
+                    .document(postIndex)
+            );
+
+            System.out.println("Post updated successfully with ID: " + postIndex.getId());
+        } catch (Exception e) {
+            System.out.println("Error updating post: " + e.getMessage());
+            throw new RuntimeException("Error updating post: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteByPostId(Long postId) {
+        try {
+            // Find the document by postId
+            List<PostIndex> existingPosts = postIndexRepository.findByPostId(postId);
+
+            if (existingPosts.isEmpty()) {
+                System.out.println("Post not found with postId: " + postId);
+                return;
+            }
+
+            // Delete by Elasticsearch document ID
+            elasticsearchClient.delete(d -> d
+                    .index("post_index")
+                    .id(existingPosts.get(0).getId())
+            );
+
+            System.out.println("Post deleted successfully with postId: " + postId);
+        } catch (Exception e) {
+            System.out.println("Error deleting post: " + e.getMessage());
+            throw new RuntimeException("Error deleting post: " + e.getMessage(), e);
+        }
+    }
+
 }

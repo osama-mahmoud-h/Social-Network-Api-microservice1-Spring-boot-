@@ -2,7 +2,7 @@ package com.app.server.controller;
 
 
 import com.app.server.dto.response.AppUserResponseDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.model.UserProfile;
 import com.app.server.service.FriendshipService;
 import com.app.shared.security.utils.SecurityUtils;
@@ -43,7 +43,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to send friend request to") @PathVariable("friend_id") Long friendId
     ) {
         boolean isAdded = friendshipService.addFriend((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isAdded, "Friend request sent"));
+        return ResponseEntity.ok(MyApiResponse.success("Friend request sent", isAdded));
     }
 
     @Operation(summary = "Remove friend", description = "Remove a friend from your friend list")
@@ -57,7 +57,7 @@ public class FriendshipController {
             @Parameter(description = "Friend ID to remove") @PathVariable("friend_id") Long friendId
     ) {
         boolean isRemoved = friendshipService.removeFriend((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isRemoved, "Friend removed"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friend removed",isRemoved));
     }
 
     @Operation(summary = "Accept friend request", description = "Accept a pending friend request")
@@ -71,7 +71,7 @@ public class FriendshipController {
             @Parameter(description = "User ID whose friend request to accept") @PathVariable("friend_id") Long friendId
     ) {
         boolean isAccepted = friendshipService.acceptFriend((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isAccepted, "Friend request accepted"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friend request accepted", isAccepted));
     }
 
     @Operation(summary = "Cancel friend request", description = "Cancel a sent friend request")
@@ -85,7 +85,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to cancel friend request for") @PathVariable("friend_id") Long friendId
     ) {
         boolean isCancelled = friendshipService.cancelFriendRequest((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isCancelled, "Friend request cancelled"));
+        return ResponseEntity.ok(MyApiResponse.success("Friend request cancelled",isCancelled));
     }
 
     @Operation(summary = "Block friend", description = "Block a user")
@@ -99,7 +99,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to block") @PathVariable("friend_id") Long friendId
     ) {
         boolean isBlocked = friendshipService.blockFriend((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isBlocked, "Friend blocked"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friend blocked",isBlocked));
     }
 
     @Operation(summary = "Unblock friend", description = "Unblock a previously blocked user")
@@ -113,7 +113,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to unblock") @PathVariable("friend_id") Long friendId
     ) {
         boolean isUnblocked = friendshipService.unblockFriend((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(isUnblocked, "Friend unblocked"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friend unblocked",isUnblocked));
     }
 
     @Operation(summary = "Get friends", description = "Retrieve list of all friends")
@@ -126,7 +126,7 @@ public class FriendshipController {
             @AuthenticationPrincipal UserDetails currentUserDetails
     ) {
         Set<AppUserResponseDto> friends = friendshipService.getFriends((UserProfile) currentUserDetails);
-        return ResponseEntity.ok(MyApiResponse.success(friends, "Friends retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friends retrieved",friends));
     }
 
     @Operation(summary = "Get friend requests", description = "Retrieve list of pending friend requests")
@@ -139,7 +139,7 @@ public class FriendshipController {
             @AuthenticationPrincipal UserDetails currentUserDetails
     ) {
         Set<AppUserResponseDto> friendRequests = friendshipService.getFriendRequests((UserProfile) currentUserDetails);
-        return ResponseEntity.ok(MyApiResponse.success(friendRequests, "Friend requests retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friend requests retrieved",friendRequests));
     }
 
     @Operation(summary = "Get mutual friends count", description = "Get count of mutual friends with another user")
@@ -153,7 +153,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to check mutual friends with") @PathVariable("friend_id") Long friendId
     ) {
         int mutualFriendsCount = friendshipService.getMutualFriendsCount((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(mutualFriendsCount, "Mutual friends count retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success( "Mutual friends count retrieved",mutualFriendsCount));
     }
 
     @Operation(summary = "Get mutual friends", description = "Retrieve list of mutual friends with another user")
@@ -167,7 +167,7 @@ public class FriendshipController {
             @Parameter(description = "User ID to get mutual friends with") @PathVariable("friend_id") Long friendId
     ) {
         Set<AppUserResponseDto> mutualFriends = friendshipService.getMutualFriends((UserProfile) currentUserDetails, friendId);
-        return ResponseEntity.ok(MyApiResponse.success(mutualFriends, "Mutual friends retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success( "Mutual friends retrieved",mutualFriends));
     }
 
     @Operation(summary = "Suggest friends", description = "Get friend suggestions based on mutual connections")
@@ -180,7 +180,7 @@ public class FriendshipController {
     ) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         Set<AppUserResponseDto> suggestedFriends = friendshipService.suggestFriends(currentUserId);
-        return ResponseEntity.ok(MyApiResponse.success(suggestedFriends, "Suggested friends retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success("Suggested friends retrieved", suggestedFriends));
     }
 
     @Operation(summary = "Get friends paginated", description = "Retrieve paginated list of friends for chat")
@@ -198,7 +198,7 @@ public class FriendshipController {
         Page<AppUserResponseDto> friends = friendshipService.getFriendsPaginated(currentUserId, page, size);
 
         log.info("Returning {} friends for page {}", friends.getContent(), page);
-        return ResponseEntity.ok(MyApiResponse.success(friends, "Friends retrieved"));
+        return ResponseEntity.ok(MyApiResponse.success( "Friends retrieved",friends));
     }
 
 

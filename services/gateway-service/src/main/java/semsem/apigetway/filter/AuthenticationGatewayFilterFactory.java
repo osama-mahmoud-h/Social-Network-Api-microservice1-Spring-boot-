@@ -1,6 +1,7 @@
 package semsem.apigetway.filter;
 
 import com.app.shared.security.client.AuthServiceClient;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.shared.security.dto.TokenValidationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -41,7 +42,14 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
             }
 
             try {
-                TokenValidationResponse validationResponse = authServiceClient.validateToken(authHeader);
+                MyApiResponse<TokenValidationResponse> apiResponse = authServiceClient.validateToken(authHeader);
+
+                // Check if the API call was successful
+                if (!apiResponse.isSuccess() || apiResponse.getData() == null) {
+                    return onError(exchange, apiResponse.getMessage(), HttpStatus.UNAUTHORIZED);
+                }
+
+                TokenValidationResponse validationResponse = apiResponse.getData();
 
                 if (!validationResponse.isValid()) {
                     return onError(exchange, validationResponse.getMessage(), HttpStatus.UNAUTHORIZED);

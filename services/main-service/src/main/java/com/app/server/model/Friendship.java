@@ -19,14 +19,15 @@ public class Friendship {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "friendship_id")
     private Long friendshipId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id1", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_friendships_user_id1"))
+    @JoinColumn(name = "user_id1", referencedColumnName = "user_id", foreignKey = @ForeignKey(name = "FK_friendships_user_id1", foreignKeyDefinition = "FOREIGN KEY (user_id1) REFERENCES user_profiles(user_id) ON DELETE CASCADE"))
     private UserProfile user1;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id2", referencedColumnName = "userId", foreignKey = @ForeignKey(name = "FK_friendships_user_id2"))
+    @JoinColumn(name = "user_id2", referencedColumnName = "user_id", foreignKey = @ForeignKey(name = "FK_friendships_user_id2" , foreignKeyDefinition = "FOREIGN KEY (user_id2) REFERENCES user_profiles(user_id) ON DELETE CASCADE"))
     private UserProfile user2;
 
     @Enumerated(EnumType.STRING)

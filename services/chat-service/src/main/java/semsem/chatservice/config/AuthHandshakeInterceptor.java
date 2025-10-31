@@ -1,6 +1,7 @@
 package semsem.chatservice.config;
 
 import com.app.shared.security.client.AuthServiceClient;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.shared.security.dto.TokenValidationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,17 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
             if (token != null) {
                 try {
                     // Validate token via auth-service
-                    TokenValidationResponse validationResponse =
+                    MyApiResponse<TokenValidationResponse> apiResponse =
                         authServiceClient.validateToken("Bearer " + token);
+
+                    // Check if the API call was successful
+                    if (!apiResponse.isSuccess() || apiResponse.getData() == null) {
+                        log.warn("WebSocket connection rejected - API error: {}", apiResponse.getMessage());
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return false;
+                    }
+
+                    TokenValidationResponse validationResponse = apiResponse.getData();
 
                     if (validationResponse.isValid()) {
                         // Store user info in WebSocket session attributes

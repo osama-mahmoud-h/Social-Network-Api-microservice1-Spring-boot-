@@ -16,7 +16,7 @@ public class AuthMapper {
 
     public AuthResponse.UserInfo mapToUserInfo(User user) {
         return AuthResponse.UserInfo.builder()
-                .id(user.getId())
+                .id(user.getUserId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
@@ -51,7 +51,7 @@ public class AuthMapper {
 
     public UserCreatedEvent mapToUserCreatedEvent(User user) {
         return UserCreatedEvent.builder()
-                .userId(user.getId())
+                .userId(user.getUserId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())

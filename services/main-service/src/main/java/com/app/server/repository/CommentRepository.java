@@ -24,8 +24,8 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 
     @Transactional
     @Modifying
-    @Query("SELECT p FROM Post p WHERE p.author.userId = :userId AND p.postId = :postId")
-    int deleteByIdAndAuthorId(@Param("postId") Long postId, @Param("userId") Long userId);
+    @Query("DELETE FROM Comment c WHERE c.author.userId = :userId AND c.commentId = :commentId")
+    int deleteByIdAndAuthorId(@Param("commentId") Long commentId, @Param("userId") Long userId);
 
 
     @Query("SELECT c FROM Comment c WHERE c.commentId=:commentId AND c.author.userId=:userId")
@@ -33,4 +33,7 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 
     @Query("SELECT c FROM Comment c WHERE c.parentComment.commentId=:parentCommentId")
     List<Comment> findCommentByParentCommentId(@Param("parentCommentId") Long parentCommentId, Pageable pageable);
+
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.post.postId = :postId")
+    Long countByPostId(@Param("postId") Long postId);
 }

@@ -26,6 +26,7 @@ public class Post implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @SequenceGenerator(name = "post_sequence", sequenceName = "post_sequence", allocationSize = 50)  // Adjust allocationSize as needed
+    @Column(name = "post_id")
     private Long postId;
 
     @Column(nullable = false, length = 512)
@@ -39,15 +40,18 @@ public class Post implements Serializable {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_posts_author_id"))
+    @JoinColumn(name = "author_id",
+            referencedColumnName = "user_id",
+            nullable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "FK_posts_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private UserProfile author;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "post_files",
-            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "postId", foreignKey = @ForeignKey(name = "FK_post_files_post_id")),
-            inverseJoinColumns = @JoinColumn(name = "file_id", referencedColumnName = "fileId", foreignKey = @ForeignKey(name = "FK_post_files_file_id"))
+            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "post_id", foreignKey = @ForeignKey(name = "FK_post_files_post_id")),
+            inverseJoinColumns = @JoinColumn(name = "file_id", referencedColumnName = "file_id", foreignKey = @ForeignKey(name = "FK_post_files_file_id"))
     )
     private Set<File> files;
 

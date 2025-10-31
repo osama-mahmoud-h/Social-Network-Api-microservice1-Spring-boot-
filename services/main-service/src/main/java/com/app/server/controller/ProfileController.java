@@ -3,7 +3,7 @@ package com.app.server.controller;
 
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.profile.UpdateProfileBioRequestDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.profile.ProfileResponseDto;
 import com.app.server.model.UserProfile;
@@ -47,7 +47,7 @@ public class ProfileController {
             @RequestBody UpdateProfileBioRequestDto bioRequestDto
     ){
         boolean bioUpdated = profileService.updateBio((UserProfile) currentUserDetails, bioRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success(bioUpdated, "Bio updated successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Bio updated successfully", bioUpdated));
     }
 
     @Operation(summary = "Update profile image", description = "Update user's profile picture")
@@ -61,7 +61,7 @@ public class ProfileController {
             @RequestParam("image") MultipartFile image
     ){
         boolean imageUpdated = profileService.updateImage((UserProfile) currentUserDetails, image);
-        return ResponseEntity.ok(MyApiResponse.success(imageUpdated, "Image updated successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Image updated successfully", imageUpdated));
     }
 
     @Operation(summary = "Get profile", description = "Retrieve current user's profile information")
@@ -72,7 +72,7 @@ public class ProfileController {
     @GetMapping("/get")
     public ResponseEntity<MyApiResponse<ProfileResponseDto>> getProfile(@AuthenticationPrincipal UserDetails currentUserDetails){
         ProfileResponseDto profile = profileService.getProfile((UserProfile) currentUserDetails);
-        return ResponseEntity.ok(MyApiResponse.success(profile, "Profile get successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Profile retrieved successfully", profile));
     }
 
     @Operation(summary = "Get user's posts", description = "Retrieve all posts created by the current user")
@@ -86,7 +86,7 @@ public class ProfileController {
             @ModelAttribute @Valid GetRecentPostsRequestDto requestDto
     ){
         Set<PostResponseDto> posts = profileService.getMyPosts((UserProfile) currentUserDetails, requestDto);
-        return ResponseEntity.ok(MyApiResponse.success(posts, "Posts get successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Posts retrieved successfully", posts));
     }
 
 }

@@ -36,6 +36,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final UserProfileRepository userProfileRepository;
     private final FriendshipMapper friendshipMapper;
     private final UserMapper userMapper;
+    private final com.app.server.mapper.UserProjectionMapper userProjectionMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -168,25 +169,18 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public Set<AppUserResponseDto> suggestFriends(Long currentUserDetails) {
+        // ✅ Type-safe projection mapping - IDE autocomplete works!
         return friendshipServiceRepository.findFriendSuggestions(currentUserDetails).stream()
-                        .map(this::mapRawUserToResponseDto).collect(Collectors.toSet());
-
-    }
-
-    private AppUserResponseDto mapRawUserToResponseDto(Object[] row) {
-        return new AppUserResponseDto(
-                (Long) row[0], // userId
-                (String) row[3] + " " + (String) row[4], // username
-                (String) row[2], // email
-                null  // image_url
-        );
+                .map(userProjectionMapper::toAppUserResponseDto)
+                .collect(Collectors.toSet());
     }
 
     private Set<AppUserResponseDto> getFriendsByStatus(UserProfile currentUser, FriendshipStatus status) {
+        // ✅ Type-safe projection mapping - no more Object[] casting!
         return friendshipServiceRepository.findFriendsByUserIdAndStatus(
                         currentUser.getUserId(), status.toString()
                 ).stream()
-                .map(this::mapRawUserToResponseDto)
+                .map(userProjectionMapper::toAppUserResponseDto)
                 .collect(Collectors.toSet());
     }
 

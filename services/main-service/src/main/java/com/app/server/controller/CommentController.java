@@ -4,7 +4,7 @@ import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
-import com.app.server.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.dto.response.comment.CommentResponseDto;
 import com.app.server.model.UserProfile;
 import com.app.server.service.CommentService;
@@ -41,8 +41,8 @@ public class CommentController {
             @RequestBody AddNewCommentRequestDto commentDto
     ) {
         return ResponseEntity.ok(
-                MyApiResponse.success(commentService.addNewComment((UserProfile)currentUserDetails, commentDto),
-                        "comment added successfully")
+                MyApiResponse.success("Comment added successfully",
+                        commentService.addNewComment((UserProfile)currentUserDetails, commentDto))
         );
     }
 
@@ -58,9 +58,8 @@ public class CommentController {
             @Parameter(description = "Comment ID to delete") @PathVariable("comment_id") Long commentId
     ){
         return ResponseEntity.ok(
-                MyApiResponse.success(
-                        commentService.deleteComment((UserProfile)currentUserDetails,
-                        commentId),"comment deleted successfully")
+                MyApiResponse.success("Comment deleted successfully",
+                        commentService.deleteComment((UserProfile)currentUserDetails, commentId))
         );
     }
 
@@ -75,7 +74,7 @@ public class CommentController {
             @RequestBody UpdateCommentRequestDto updateCommentRequestDto
             ){
         boolean updated = commentService.updateComment((UserProfile)currentUserDetails, updateCommentRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success(updated,"comment updated successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Comment updated successfully", updated));
     }
 
     @Operation(summary = "Get all comments on a post", description = "Retrieve all comments for a specific post")
@@ -89,7 +88,7 @@ public class CommentController {
             @ModelAttribute GetAllCommentsRequestDto getAllCommentsRequestDto
             ){
         Set<CommentResponseDto> retrievedComments = commentService.getCommentsOnPost((UserProfile)currentUserDetails, getAllCommentsRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success(retrievedComments,"all comments fetched successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("All comments fetched successfully", retrievedComments));
     }
 
     @Operation(summary = "Reply to a comment", description = "Add a reply to an existing comment")
@@ -104,7 +103,7 @@ public class CommentController {
              @Parameter(description = "Comment ID to reply to") @PathVariable("comment_id") Long commentId
              ){
          Boolean replayed = commentService.replayOnComment((UserProfile)currentUserDetails,addNewCommentRequestDto, commentId);
-         return ResponseEntity.ok(MyApiResponse.success(replayed,"replay added successfully"));
+         return ResponseEntity.ok(MyApiResponse.success("Reply added successfully", replayed));
      }
 
     @Operation(summary = "Get all replies on a comment", description = "Retrieve all replies for a specific comment")
@@ -118,7 +117,7 @@ public class CommentController {
              @ModelAttribute GetAllCommentRepliesRequestDto getAllReplies
              ){
          Set<CommentResponseDto> retrievedReplies= commentService.getCommentReplies((UserProfile)currentUserDetails, getAllReplies);
-         return ResponseEntity.ok(MyApiResponse.success(retrievedReplies,"all comments fetched successfully"));
+         return ResponseEntity.ok(MyApiResponse.success("All replies fetched successfully", retrievedReplies));
      }
     
 

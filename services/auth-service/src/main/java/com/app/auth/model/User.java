@@ -23,7 +23,8 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(nullable = false)
     private String firstName;
@@ -43,7 +44,7 @@ public class User implements UserDetails {
     @CollectionTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            foreignKey = @ForeignKey(name = "FK_user_roles_user_id", foreignKeyDefinition = "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE")
+            foreignKey = @ForeignKey(name = "FK_user_roles_user_id", foreignKeyDefinition = "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE")
     )
     @Column(name = "role")
     private Set<UserRole> roles;

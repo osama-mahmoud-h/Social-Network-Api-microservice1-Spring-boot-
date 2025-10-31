@@ -14,4 +14,6 @@ public interface PostIndexService {
 
     String save(PostIndex postIndex);
     List<PostIndexResponseDto> findAllPosts(int size, int page);
+    void update(PostIndex postIndex);
+    void deleteByPostId(Long postId);
 }
