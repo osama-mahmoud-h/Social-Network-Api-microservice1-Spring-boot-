@@ -62,4 +62,14 @@ public interface CommentIndexRepository extends ElasticsearchRepository<CommentI
             """)
     void deleteCommentById(String commentId);
 
+    //5. ✅ Find comment by commentId (business entity ID)
+    @Query("""
+            {
+              "match": {
+                "commentId": "?0"
+              }
+            }
+            """)
+    List<CommentIndex> findByCommentId(Long commentId);
+
 }

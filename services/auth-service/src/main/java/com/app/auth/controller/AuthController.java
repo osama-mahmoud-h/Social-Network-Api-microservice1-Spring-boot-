@@ -1,5 +1,8 @@
 package com.app.auth.controller;
 
+import com.app.auth.dto.MyApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import com.app.auth.dto.AuthResponse;
 import com.app.auth.dto.LoginRequest;
 import com.app.auth.dto.RegisterRequest;
@@ -7,8 +10,6 @@ import com.app.auth.dto.TokenValidationResponse;
 import com.app.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,14 +40,11 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid request or user already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
+    public ResponseEntity<MyApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
-        try {
-            AuthResponse response = authService.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        AuthResponse authResponse = authService.register(request);
+        MyApiResponse<AuthResponse> response = MyApiResponse.success("User registered successfully", authResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(
@@ -58,12 +56,13 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
+    public ResponseEntity<MyApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        AuthResponse response = authService.authenticate(authentication);
+        AuthResponse authResponse = authService.authenticate(authentication);
+        MyApiResponse<AuthResponse> response = MyApiResponse.success("Login successful", authResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -75,9 +74,10 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Token validation result returned")
     })
     @PostMapping("/validate")
-    public ResponseEntity<TokenValidationResponse> validateToken(
+    public ResponseEntity<MyApiResponse<TokenValidationResponse>> validateToken(
             @Parameter(description = "JWT token to validate") @RequestParam String token) {
-        TokenValidationResponse response = authService.validateToken(token);
+        TokenValidationResponse validationResponse = authService.validateToken(token);
+        MyApiResponse<TokenValidationResponse> response = MyApiResponse.success("Token validated", validationResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -90,12 +90,15 @@ public class AuthController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/validate-header")
-    public ResponseEntity<TokenValidationResponse> validateTokenFromHeader(HttpServletRequest request) {
+    public ResponseEntity<MyApiResponse<TokenValidationResponse>> validateTokenFromHeader(HttpServletRequest request) {
         String token = extractTokenFromHeader(request);
         if (token == null) {
-            return ResponseEntity.ok(TokenValidationResponse.invalid("No token provided"));
+            TokenValidationResponse validationResponse = TokenValidationResponse.invalid("No token provided");
+            MyApiResponse<TokenValidationResponse> response = MyApiResponse.success("Token validated", validationResponse);
+            return ResponseEntity.ok(response);
         }
-        TokenValidationResponse response = authService.validateToken(token);
+        TokenValidationResponse validationResponse = authService.validateToken(token);
+        MyApiResponse<TokenValidationResponse> response = MyApiResponse.success("Token validated", validationResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -108,12 +111,13 @@ public class AuthController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
+    public ResponseEntity<MyApiResponse<Void>> logout(HttpServletRequest request) {
         String token = extractTokenFromHeader(request);
         if (token != null) {
             authService.logout(token);
         }
-        return ResponseEntity.ok().build();
+        MyApiResponse<Void> response = MyApiResponse.success("Logout successful");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -125,10 +129,11 @@ public class AuthController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout-all")
-    public ResponseEntity<Void> logoutAllDevices(
+    public ResponseEntity<MyApiResponse<Void>> logoutAllDevices(
             @Parameter(description = "User ID to logout from all devices") @RequestParam Long userId) {
         authService.logoutAllDevices(userId);
-        return ResponseEntity.ok().build();
+        MyApiResponse<Void> response = MyApiResponse.success("Logged out from all devices successfully");
+        return ResponseEntity.ok(response);
     }
 
     private String extractTokenFromHeader(HttpServletRequest request) {

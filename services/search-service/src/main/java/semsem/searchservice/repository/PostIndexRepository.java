@@ -58,5 +58,15 @@ public interface PostIndexRepository extends ElasticsearchRepository<PostIndex, 
             """)
     void deletePostById(String postId);
 
+    // ✅ Find post by postId (business entity ID)
+    @Query("""
+            {
+              "match": {
+                "postId": "?0"
+              }
+            }
+            """)
+    List<PostIndex> findByPostId(Long postId);
+
 
 }

@@ -30,16 +30,29 @@ public class KafkaConsumerImpl implements KafkaConsumer{
         Object postObject = eventDto.get("post");
         String actionType = eventDto.containsKey("actionType") ? (String) eventDto.get("actionType").toString().toLowerCase() : null;
 
-        if(actionType!=null && actionType.contains("create")){
-            PostEventHandler postEventHandler = postHandlerMap.get("createPostEventHandler");
+        if(actionType == null) {
+            log.error("Action type is null for post event");
+            return;
+        }
+
+        String handlerName = null;
+        if(actionType.contains("create")){
+            handlerName = "createPostEventHandler";
+        } else if(actionType.contains("update")){
+            handlerName = "updatePostEventHandler";
+        } else if(actionType.contains("delete")){
+            handlerName = "deletePostEventHandler";
+        }
+
+        if(handlerName != null) {
+            PostEventHandler postEventHandler = postHandlerMap.get(handlerName);
             if (postEventHandler == null) {
-                log.error("No handler found for create post event");
+                log.error("No handler found for post event with handler name: {}", handlerName);
                 return;
             }
             postEventHandler.handleEvent(postObject);
-        }else {
+        } else {
             log.warn("No handler found for post event with action type: {}", actionType);
-            return; // Exit if no handler is found
         }
     }
 
@@ -51,16 +64,29 @@ public class KafkaConsumerImpl implements KafkaConsumer{
         Object commentObject = eventDto.get("comment");
         String actionType = eventDto.containsKey("actionType") ? (String) eventDto.get("actionType").toString().toLowerCase() : null;
 
-        if(actionType!=null && actionType.contains("create")){
-            CommentEventHandler commentEventHandler = commentHandlerMap.get("createCommentEventHandler");
+        if(actionType == null) {
+            log.error("Action type is null for comment event");
+            return;
+        }
+
+        String handlerName = null;
+        if(actionType.contains("create") || actionType.contains("reply")){
+            handlerName = "createCommentEventHandler";
+        } else if(actionType.contains("update")){
+            handlerName = "updateCommentEventHandler";
+        } else if(actionType.contains("delete")){
+            handlerName = "deleteCommentEventHandler";
+        }
+
+        if(handlerName != null) {
+            CommentEventHandler commentEventHandler = commentHandlerMap.get(handlerName);
             if (commentEventHandler == null) {
-                log.error("No handler found for create comment event");
+                log.error("No handler found for comment event with handler name: {}", handlerName);
                 return;
             }
             commentEventHandler.handleEvent(commentObject);
         } else {
             log.warn("No handler found for comment event with action type: {}", actionType);
-            return; // Exit if no handler is found
         }
     }
 }

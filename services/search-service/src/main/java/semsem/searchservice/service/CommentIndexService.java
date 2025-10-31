@@ -9,4 +9,6 @@ public interface CommentIndexService {
     Set<CommentIndexResponseDto> fullTextSearch(String searchTerm, int size, int page);
 
     String save(CommentIndex commentIndex);
+    void update(CommentIndex commentIndex);
+    void deleteByCommentId(Long commentId);
 }
