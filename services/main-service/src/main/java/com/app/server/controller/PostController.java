@@ -48,7 +48,7 @@ public class PostController {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         System.out.println("currentUserId = " + currentUserId);
         Post savedPost = postService.savePost(currentUserId, createPostRequestDto);
-        return ResponseEntity.ok(MyApiResponse.success( savedPost!=null, "Post created successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("Post created successfully", savedPost != null));
     }
 
     @Operation(summary = "Get recent posts", description = "Retrieve recent posts for the feed")
@@ -66,7 +66,7 @@ public class PostController {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         System.out.println("currentUserId = " + currentUserId);
         Set<PostResponseDto> posts = postService.getRecentPosts(currentUserId, req);
-        return ResponseEntity.ok(MyApiResponse.success(posts,"all posts get successfully"));
+        return ResponseEntity.ok(MyApiResponse.success("All posts retrieved successfully", posts));
     }
 
     @Operation(summary = "Delete a post", description = "Delete a post by ID (owner or admin only)")
@@ -85,8 +85,8 @@ public class PostController {
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(
-                MyApiResponse.success(postService.deletePost(currentUserId, postId),
-                "post deleted successfully")
+                MyApiResponse.success("Post deleted successfully",
+                        postService.deletePost(currentUserId, postId))
         );
     }
 
@@ -104,8 +104,8 @@ public class PostController {
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
        return ResponseEntity.ok(
-               MyApiResponse.success(postService.updatePost(currentUserId, requestDto),
-               "post updated successfully")
+               MyApiResponse.success("Post updated successfully",
+                       postService.updatePost(currentUserId, requestDto))
        );
     }
 
@@ -125,7 +125,7 @@ public class PostController {
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
         PostResponseDto postResponseDto = postService.getPostDetails(currentUserId, postId);
-       return ResponseEntity.ok(MyApiResponse.success(postResponseDto ,"post details get successfully"));
+       return ResponseEntity.ok(MyApiResponse.success("Post details retrieved successfully", postResponseDto));
     }
 
 }

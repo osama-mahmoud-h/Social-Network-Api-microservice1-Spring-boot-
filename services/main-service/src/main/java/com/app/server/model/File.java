@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "file_sequence", sequenceName = "file_sequence", allocationSize = 50)  // Adjust allocationSize as needed
+    @Column(name = "file_id")
     private Long fileId;
 
     @Column(length = 255)

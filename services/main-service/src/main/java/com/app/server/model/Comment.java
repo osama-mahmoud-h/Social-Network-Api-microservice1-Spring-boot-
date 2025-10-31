@@ -19,6 +19,7 @@ import java.util.Set;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Column(name = "comment_id")
     private Long commentId;
 
     @Column(length = 255, nullable = false)
@@ -30,17 +31,17 @@ public class Comment {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "author_id", referencedColumnName = "userId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_author_id"))
+    @JoinColumn(name = "author_id", referencedColumnName = "user_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_author_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private UserProfile author;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "post_id", referencedColumnName = "postId", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_post_id"))
+    @JoinColumn(name = "post_id", referencedColumnName = "post_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_post_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id", referencedColumnName = "commentId", nullable = true, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_parent_comment_id"))
+    @JoinColumn(name = "parent_comment_id", referencedColumnName = "comment_id", nullable = true, updatable = false, foreignKey = @ForeignKey(name = "FK_comments_parent_comment_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Comment parentComment;
 

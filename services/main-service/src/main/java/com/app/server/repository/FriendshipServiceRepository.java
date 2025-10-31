@@ -29,7 +29,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     @Query(value = """
            SELECT u.user_id as userId, u.email as email,
                   u.first_name as firstName, u.last_name as lastName,
-                  u.profile_picture_url as profilePictureUrl
+                  NULL as profilePictureUrl
            FROM user_profiles u
            JOIN friendships f ON
              (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
@@ -136,7 +136,7 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     -- Final selection with all conditions
     SELECT u.user_id as userId, u.email as email,
            u.first_name as firstName, u.last_name as lastName,
-           u.profile_picture_url as profilePictureUrl
+           NULL as profilePictureUrl
     FROM user_profiles u
     JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
     WHERE NOT EXISTS (

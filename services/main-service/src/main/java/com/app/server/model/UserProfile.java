@@ -23,6 +23,7 @@ public class UserProfile {
      * User ID from auth-service (same ID)
      */
     @Id
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(nullable = false)

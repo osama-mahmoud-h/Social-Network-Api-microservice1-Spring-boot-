@@ -55,7 +55,7 @@ public interface PostRepository extends JpaRepository<Post,Long> {
                posts p
                LEFT JOIN comments cmnt ON p.post_id = cmnt.post_id
                LEFT JOIN reactions re ON re.target_id = p.post_id
-               LEFT JOIN users au ON p.author_id = au.user_id
+               LEFT JOIN user_profiles au ON p.author_id = au.user_id
                LEFT JOIN post_files pf ON p.post_id = pf.post_id
                LEFT JOIN files f ON pf.file_id = f.file_id
            GROUP BY 
@@ -120,7 +120,7 @@ public interface PostRepository extends JpaRepository<Post,Long> {
                posts p
                LEFT JOIN comments cmnt ON p.post_id = cmnt.post_id
                LEFT JOIN reactions re ON re.target_id = p.post_id
-               LEFT JOIN users au ON p.author_id = au.user_id
+               LEFT JOIN user_profiles au ON p.author_id = au.user_id
                LEFT JOIN post_files pf ON p.post_id = pf.post_id
                LEFT JOIN files f ON pf.file_id = f.file_id
            WHERE 

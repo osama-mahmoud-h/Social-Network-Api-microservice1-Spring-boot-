@@ -62,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Set authentication in security context
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
+                System.out.println("Token validation failed: " + validationResponse.getMessage());
                 log.warn("Token validation failed: {}", validationResponse.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");

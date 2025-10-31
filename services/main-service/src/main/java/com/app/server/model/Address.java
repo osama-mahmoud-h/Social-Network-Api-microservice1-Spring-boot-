@@ -17,6 +17,7 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @SequenceGenerator(name = "address_sequence", sequenceName = "address_sequence", allocationSize = 50)  // Adjust allocationSize as needed
+    @Column(name = "address_id")
     private Long addressId;
 
     private String street;
