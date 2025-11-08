@@ -1,101 +1,101 @@
-# Spring Boot Social Network Microservices (In Development)
+# Social Network Microservices Platform
 
-### Development Status: This system is under active development. Some services may not work as expected.
+A scalable microservice-based social network backend system built with Spring Boot, featuring event-driven architecture, real-time communication, and distributed data management. This platform demonstrates modern enterprise patterns including service discovery, API gateway routing, message-driven systems, and comprehensive observability.
 
-This project is a microservice-based social network backend system built using Spring Boot. It provides RESTful APIs for user authentication, profile management, post management, comment management, friendship features, full-text search using Elasticsearch, notification system using Kafka, and real-time chat using WebSocket.
+**Development Status**: This project is under active development. Core services are functional, while infrastructure components are being progressively enhanced.
 
-**Last Updated**: September 2025
+**Last Updated**: November 2025
 
-## Implemented Features
-- [x] **User authentication (login, registration)**
-- [x] **User profile management** (update profile picture, bio, skills)
-- [x] **User post management** (create, view, update posts)
-- [x] **User comment management** (create, view, update comments)
-- [x] **Friendship system** (send/accept requests, mutual friends, suggestions)
-- [x] **Full-text search using Elasticsearch**
-- [x] **Notification system using Kafka**
-- [x] **Chat system using WebSocket** (basic messaging, online user tracking)
-- [x] **API documentation using Swagger**
-- [x] **Security using Spring Security JWT**
-- [x] **Dockerized services** (individual containers per service)
-- [x] **ELK stack logging** (Elasticsearch, Logstash, Kibana)
-    - [x] ELK stack Docker setup
-    - [x] Service integration with ELK
-    - [x] Centralized logging for all microservices
+## Features
 
-## In Progress / Partial Implementation
-- [ ] **Rate limiting using Redis** (setup started)
-- [ ] **Caching using Redis** (infrastructure ready)
-- [ ] **Docker Compose orchestration**
-    - [x] Individual service containers
-    - [ ] Main docker-compose.yml file
-    - [ ] Complete system orchestration
+### Core Functionality
+- User authentication and authorization with JWT token management
+- User profile management with support for bio, skills, and profile pictures
+- Post creation and management with full CRUD operations
+- Comment system with nested comment support
+- Friendship system including friend requests, mutual friends, and friend suggestions
+- Full-text search powered by Elasticsearch
+- Event-driven notification system using Apache Kafka
+- Real-time chat functionality via WebSocket with online user tracking
+- Comprehensive API documentation via Swagger/OpenAPI
+- Containerized deployment using Docker
 
-## TODO - High Priority Features
-- [ ] **Chat Service Security**
-    - [ ] JWT authentication for WebSocket connections
-    - [ ] Authorization for chat rooms
-    - [ ] Offline message handling
-- [ ] **Microservices Infrastructure**
-    - [ ] Service discovery with Eureka
-    - [ ] API Gateway routing
-    - [ ] Load balancing with Nginx
-    - [ ] Circuit breaker implementation
-- [ ] **DevOps & Monitoring**
-    - [ ] CI/CD pipeline with GitHub Actions
-    - [ ] Health checks and monitoring
-    - [ ] Centralized configuration
-- [ ] **Authentication & Authorization**
-    - [ ] Keycloak integration for SSO
-    - [ ] Role-based access control enhancement
+### Security & Infrastructure
+- JWT-based stateless authentication with token revocation
+- Centralized authentication service with Feign client integration
+- Gateway-level and service-level security filters
+- Role-based access control across all services
+- Centralized logging with ELK stack (Elasticsearch, Logstash, Kibana)
+- Multi-database architecture (PostgreSQL, MongoDB, Elasticsearch)
 
-## Current Architecture Status
+### In Progress
+- Service discovery with Eureka (infrastructure in place)
+- API Gateway routing with Spring Cloud Gateway
+- Redis-based caching and rate limiting
+- Complete Docker Compose orchestration
+- WebSocket security enhancements
 
-### Implemented Services
-- **Main Service** (Port: 8083) - Core business logic, authentication, posts, comments, friendships
-- **Search Service** - Elasticsearch integration for full-text search
-- **Notification Service** - Kafka-based notification system
-- **Chat Service** - WebSocket-based real-time messaging
+## Architecture Overview
 
-### Services in Development
-- **Discovery Service** - Eureka service registry (skeleton created)
-- **Gateway Service** - API Gateway for routing (skeleton created)
+The system follows a microservices architecture pattern with each service having a specific responsibility. Services communicate through both synchronous REST APIs and asynchronous event-driven messaging via Apache Kafka. The platform is designed to be horizontally scalable, fault-tolerant, and maintainable.
 
-### Planned Services
-- [ ] **Config Service** - Centralized configuration management
-- [ ] **Monitoring Service** - Health checks and metrics
-- [ ] **Security Service** - Enhanced Keycloak integration
-- [ ] **Load Balancer** - Nginx-based load balancing
+### Service Topology
 
-The services are deployed as Docker containers and managed using Docker Compose. The system is designed to be scalable, fault-tolerant, and secure.
+**Production Services**
+- **Auth Service** (Port: 8087) - Centralized authentication and JWT token management
+- **Main Service** (Port: 8083) - Core business logic including posts, comments, and friendships
+- **Search Service** - Full-text search powered by Elasticsearch with Kafka-based indexing
+- **Notification Service** - Event-driven notification system consuming Kafka topics
+- **Chat Service** (Port: 8084) - Real-time messaging via WebSocket with MongoDB persistence
+
+**Infrastructure Services**
+- **Gateway Service** - API routing and load balancing (in development)
+- **Discovery Service** - Eureka-based service registry (in development)
+
+All services are containerized using Docker and can be orchestrated via Docker Compose for both development and production environments.
 
 ## Technology Stack
 
-### Currently Used
-- **Backend**: Spring Boot, Spring Data JPA, Spring Security
-- **Database**: PostgreSQL (Main), MongoDB (Chat), Elasticsearch (Search)
-- **Messaging**: Apache Kafka
-- **Real-time**: WebSocket
-- **Documentation**: Swagger/OpenAPI
-- **Containerization**: Docker
-- **Build Tool**: Maven
-- **Language**: Java 17+
+**Core Framework**
+- Java 17
+- Spring Boot 3.x
+- Spring Cloud
+- Spring Security with JWT
 
-### Partially Implemented
-- **Caching**: Redis (infrastructure ready)
-- **Logging**: ELK Stack (Docker setup complete)
-- **Service Discovery**: Eureka (service created, not integrated)
-- **API Gateway**: Spring Cloud Gateway (basic setup)
+**Data Management**
+- PostgreSQL - Primary relational database for user data, posts, and relationships
+- MongoDB - Document store for chat messages
+- Elasticsearch - Full-text search engine for content discovery
+- Redis - Caching and session management (infrastructure ready)
 
-### Planned Integrations
-- **Authentication**: Keycloak for SSO
-- **Load Balancing**: Nginx
-- **Circuit Breaker**: Resilience4j
-- **Monitoring**: Spring Boot Actuator + Micrometer
-- **CI/CD**: GitHub Actions
-- **Container Orchestration**: Complete Docker Compose setup
+**Communication & Messaging**
+- Apache Kafka - Event streaming and inter-service messaging
+- WebSocket - Real-time bidirectional communication for chat
+- OpenFeign - Declarative REST client for inter-service calls
+
+**DevOps & Observability**
+- Docker - Container platform
+- Docker Compose - Multi-container orchestration
+- ELK Stack (Elasticsearch, Logstash, Kibana) - Centralized logging and monitoring
+- Swagger/OpenAPI - API documentation
+- Maven - Build automation
 
 ## Service Details & Status
+
+### Auth Service (Port: 8087)
+**Status**: Fully functional with pending optimizations
+- Centralized authentication and authorization
+- JWT token generation and validation
+- Token revocation tracking in PostgreSQL database
+- Multi-device logout support
+- User registration and login with Spring Security
+- Feign client integration for inter-service communication
+- OTP functionality with email verification
+- Swagger documentation available at `/swagger-ui.html`
+- **TODO**: Migrate token storage to Redis for improved performance
+- **TODO**: Implement rate limiting for authentication endpoints
+- **TODO**: Add Redis-based session management
+- **TODO**: Implement distributed rate limiting across service instances
 
 ### Main Service (Port: 8083)
 **Status**: Fully functional
@@ -110,10 +110,10 @@ The services are deployed as Docker containers and managed using Docker Compose.
 ### Chat Service (WebSocket)
 **Status**: Basic functionality implemented, security pending
 - WebSocket server setup complete
+- Authorize WebSocket connections using Jwt tokens in http Only Cookies.
 - MongoDB integration for message persistence
 - Online user tracking with join and leave events
 - Real-time message sending and receiving
-- **TODO**: JWT authentication for WebSocket connections
 - **TODO**: Room-based authorization
 - **TODO**: Offline message storage
 
@@ -266,110 +266,59 @@ public interface AuthServiceClient {
 | `/api/auth/logout` | POST | Logout current device |
 | `/api/auth/logout-all` | POST | Logout all devices |
 
-## Architecture Diagrams (PlantUML)
+## Architecture Diagrams
 
-### 📊 Interactive PlantUML Diagrams
+The system architecture is documented using PlantUML diagrams, providing visual representations of service interactions, data flows, and deployment topology. All diagram source files are located in the `diagrams/` directory and can be viewed using the PlantUML Web Server, VS Code PlantUML extension, or IntelliJ IDEA PlantUML plugin.
 
-All architecture diagrams are available as PlantUML files in the [`diagrams/`](diagrams/) directory. You can view them using:
-- [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/)
-- VS Code PlantUML extension
-- IntelliJ IDEA PlantUML plugin
-
-### 1. Microservices Architecture
-**File**: [`diagrams/microservices-architecture.puml`](diagrams/microservices-architecture.puml)
-
-Complete overview of the microservices ecosystem showing all services, databases, message brokers, and communication patterns.
+### System Architecture Diagram
 
 ![Microservices Architecture](diagrams/microservices-architecture.png)
 
-**Highlights:**
-- 7 microservices with their ports
-- Database topology (PostgreSQL, MongoDB, Elasticsearch, Redis)
-- Kafka event-driven architecture
-- Service discovery with Eureka
-- ELK stack for centralized logging
-- Gateway routing and load balancing
+**Source**: [`diagrams/microservices-architecture.puml`](diagrams/microservices-architecture.puml)
 
-### 2. Kafka Event Flow
-**File**: [`diagrams/kafka-event-flow.puml`](diagrams/kafka-event-flow.puml)
+This diagram illustrates the complete microservices ecosystem including all services, databases, message brokers, and communication patterns. It shows the topology of seven microservices with their respective ports, the multi-database architecture (PostgreSQL, MongoDB, Elasticsearch, Redis), Kafka event-driven messaging, Eureka service discovery, ELK stack for centralized logging, and gateway-based routing.
 
-Event-driven communication patterns using Apache Kafka.
+### Event-Driven Architecture
 
 ![Kafka Event Flow](diagrams/kafka-event-flow.png)
 
-**Topics:**
-- `post-events` - Post creation, updates, deletions (→ Notification + Search)
-- `comment-events` - Comment CRUD operations (→ Notification)
-- `notification-events` - Friendship and reaction events (→ Notification)
+**Source**: [`diagrams/kafka-event-flow.puml`](diagrams/kafka-event-flow.puml)
 
-**Flow Examples:**
-- Post creation → Fan-out notifications to all friends
-- Comment creation → Notify post author
-- Automatic search indexing via Kafka consumers
+Demonstrates event-driven communication patterns using Apache Kafka. The system uses three primary topics: `post-events` for post lifecycle events, `comment-events` for comment operations, and `notification-events` for friendship and reaction events. This architecture enables automatic content indexing in Elasticsearch and fan-out notifications to connected users.
 
-### 3. Authentication & Authorization Flow
-**File**: [`diagrams/authentication-flow.puml`](diagrams/authentication-flow.puml)
-
-Complete JWT-based authentication system.
+### Authentication Architecture
 
 ![Authentication Flow](diagrams/authentication-flow.png)
 
-**Features:**
-- Centralized authentication via Auth Service
-- Gateway-level token validation
-- Service-level security filters
-- Feign client inter-service auth
-- Token revocation tracking
-- Multi-device logout support
+**Source**: [`diagrams/authentication-flow.puml`](diagrams/authentication-flow.puml)
 
-### 4. Deployment Architecture
-**File**: [`diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml)
+Details the JWT-based authentication system with centralized token management. The flow covers user login, token validation at both gateway and service levels, inter-service authentication via Feign clients, and multi-device logout capabilities.
 
-Docker-based deployment showing containerized services.
+### Deployment Topology
 
 ![Deployment Architecture](diagrams/deployment-diagram.png)
 
-**Infrastructure:**
-- Docker network topology
-- Service containers with port mappings
-- Database containers (PostgreSQL, MongoDB, Elasticsearch, Redis)
-- Kafka cluster with Zookeeper
-- ELK stack for logging
+**Source**: [`diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml)
 
-### 5. WebSocket Chat Flow
-**File**: [`diagrams/websocket-chat-flow.puml`](diagrams/websocket-chat-flow.puml)
+Shows the Docker-based deployment architecture including network topology, service containers with port mappings, database containers, Kafka cluster with Zookeeper, and the ELK stack for centralized logging.
 
-Real-time chat communication via WebSocket.
+### Real-Time Communication Flow
 
 ![WebSocket Chat Flow](diagrams/websocket-chat-flow.png)
 
-**Event Types:**
-- JOIN, SEND, TYPING, LEAVE (Client → Server)
-- MESSAGE, USER_JOINED, USER_LEFT, TYPING_INDICATOR (Server → Client)
+**Source**: [`diagrams/websocket-chat-flow.puml`](diagrams/websocket-chat-flow.puml)
 
-**Features:**
-- Online user tracking with Redis
-- Real-time message delivery
-- Typing indicators
-- Offline message storage (TODO)
-- JWT authentication (TODO - security pending)
+Illustrates real-time chat communication via WebSocket, including event types (JOIN, SEND, TYPING, LEAVE), server responses (MESSAGE, USER_JOINED, USER_LEFT, TYPING_INDICATOR), online user tracking with Redis, and message delivery patterns.
 
-### 6. System Components
-**File**: [`diagrams/system-components.puml`](diagrams/system-components.puml)
-
-Component-level architecture breakdown.
+### Component Architecture
 
 ![System Components](diagrams/system-components.png)
 
-**Layers:**
-- Frontend (Web, Mobile, Admin)
-- Edge (Gateway, Load Balancer)
-- Business Services (Auth, Main, Chat, Notification, Search)
-- Data Access (PostgreSQL, MongoDB, Elasticsearch, Redis)
-- Message Broker (Kafka topics)
-- Monitoring (ELK, Prometheus, Grafana)
+**Source**: [`diagrams/system-components.puml`](diagrams/system-components.puml)
 
-### 🔄 Regenerating Diagrams
+Provides a layered view of system components across frontend (Web, Mobile, Admin), edge services (Gateway, Load Balancer), business services (Auth, Main, Chat, Notification, Search), data access layer (PostgreSQL, MongoDB, Elasticsearch, Redis), message broker (Kafka), and monitoring infrastructure (ELK, Prometheus, Grafana).
+
+### Regenerating Diagrams
 
 To regenerate PNG/SVG images from PlantUML source files:
 
@@ -378,17 +327,20 @@ cd diagrams
 ./generate-diagrams.sh
 ```
 
-The script supports both PlantUML CLI and Docker. See [`diagrams/README.md`](diagrams/README.md) for more details.
+The script supports both PlantUML CLI and Docker-based generation. For detailed information, refer to [`diagrams/README.md`](diagrams/README.md).
 
----
+## API Documentation
 
-### api documentation 
-![Alt Text](images/swagger-doc.png)
+### Main Service API
+![Main Service Swagger](images/swagger-doc.png)
 
-### chat srevice client image
-![Alt Text](images/chat-service-client.png)
+### Auth Service API
+![Auth Service Swagger](./images/AUTH_SERVICE_SWAGGER.png)
 
-### Deployment Architecture
+### Chat Service Client
+![Chat Service Client](images/chat-service-client.png)
+
+## Project Structure
 ```plaintext
 .
 ├── docker
@@ -437,182 +389,102 @@ The script supports both PlantUML CLI and Docker. See [`diagrams/README.md`](dia
         │       └── Dockerfile
 
 ```
-## Quick Start Guide
+## Getting Started
 
 ### Prerequisites
-- **Docker** and **Docker Compose** installed
-- **Java 17+** (for local development)
-- **Maven 3.6+** (for building)
 
-### Option 1: Docker Setup (Recommended)
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd social-network-microservices
-   ```
+- Docker and Docker Compose
+- Java 17 or higher (for local development)
+- Maven 3.6 or higher
 
-2. **Navigate to docker directory**
-   ```bash
-   cd docker
-   ```
+### Docker Setup (Recommended)
 
-3. **Run the development setup script**
-   ```bash
-   chmod +x docker-dev-entrypoint.sh
-   ./docker-dev-entrypoint.sh
-   ```
+Clone the repository and run the development setup script:
 
-### Option 2: Individual Service Setup
-If the main docker-compose.yml is missing, start services individually:
-
-1. **Start infrastructure services:**
-   ```bash
-   cd docker
-   docker-compose -f docker-compose-kafka.yml up -d
-   docker-compose -f elk-stack-docker/docker-compose-elk.yml up -d
-   ```
-
-2. **Build and run each service:**
-   ```bash
-   # Main Service
-   cd services/main-service
-   mvn spring-boot:run
-
-   # Chat Service
-   cd services/chat-service
-   mvn spring-boot:run
-
-   # Other services...
-   ```
-
-## Service Endpoints
-
-Once running, access the services at:
-- **Main Service API**: http://localhost:8083
-- **Swagger Documentation**: http://localhost:8083/swagger-ui.html
-- **Chat WebSocket**: ws://localhost:8084/ws
-- **Elasticsearch**: http://localhost:9200
-- **Kibana**: http://localhost:5601
-
-## Development Hints & Next Steps
-
-### Immediate TODOs (High Priority)
-1. **Fix Docker Orchestration**
-   - Create main `docker-compose.yml` file
-   - Ensure all services start together
-   - Fix service discovery configuration
-
-2. **Secure Chat Service**
-   - Implement JWT authentication in `WebSocketConfig.java`
-   - Add authorization interceptor
-   - Create offline message storage
-
-3. **Complete Gateway Integration**
-   - Configure routes in `gateway-service`
-   - Set up load balancing
-   - Integrate with Eureka discovery
-
-### Development Setup Issues
-**Known Issues**:
-- Main docker-compose.yml file is missing (referenced but not created)
-- Services may not communicate properly without service discovery
-- Chat service WebSocket lacks authentication
-- ELK integration incomplete
-
-### Testing Endpoints
 ```bash
-# Register user
+git clone <repository-url>
+cd social-network-microservices
+cd docker
+chmod +x docker-dev-entrypoint.sh
+./docker-dev-entrypoint.sh
+```
+
+### Manual Setup
+
+For individual service deployment:
+
+```bash
+# Start infrastructure services
+cd docker
+docker-compose -f docker-compose-kafka.yml up -d
+docker-compose -f elk-stack-docker/docker-compose-elk.yml up -d
+
+# Build and run services
+cd services/main-service
+mvn spring-boot:run
+```
+
+### Service Endpoints
+
+Once running, the following endpoints are available:
+
+- Main Service API: `http://localhost:8083`
+- Swagger Documentation: `http://localhost:8083/swagger-ui.html`
+- Auth Service: `http://localhost:8087`
+- Chat WebSocket: `ws://localhost:8084/ws`
+- Elasticsearch: `http://localhost:9200`
+- Kibana: `http://localhost:5601`
+
+### API Testing Examples
+
+Register a new user:
+```bash
 curl -X POST http://localhost:8083/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@test.com","password":"password123"}'
+```
 
-# Login
+User login:
+```bash
 curl -X POST http://localhost:8083/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"password123"}'
 ```
 
----
+## Development Roadmap
 
-## Comprehensive Project TODO List
+### Current Status
 
-### Critical Priority
-- [ ] **Create main docker-compose.yml** - Referenced everywhere but missing
-- [ ] **Fix WebSocket security** - No authentication currently
-- [ ] **Complete service discovery** - Eureka client integration
-- [ ] **API Gateway routing** - Configure proper request routing
+**Production Ready**
+- User authentication and authorization
+- Core social features (posts, comments, friendships)
+- Full-text search integration
+- Event-driven notifications
+- Basic real-time chat
 
-### Infrastructure & DevOps
-- [ ] **Monitoring Setup**
-  - [ ] Integrate Spring Boot Actuator in all services
-  - [ ] Set up Prometheus + Grafana
-  - [ ] Health check endpoints
-- [ ] **CI/CD Pipeline**
-  - [ ] GitHub Actions workflow
-  - [ ] Automated testing
-  - [ ] Container registry integration
-- [ ] **Logging Enhancement**
-  - [ ] Logback configuration for ELK
-  - [ ] Structured logging with correlation IDs
-  - [ ] Log aggregation setup
+**In Development**
+- Service discovery and registration
+- API gateway routing
+- WebSocket security
+- Complete Docker orchestration
 
-### Security & Performance
-- [ ] **Chat Service Security**
-  - [ ] JWT token validation in WebSocket handshake
-  - [ ] Room-based authorization
-  - [ ] Message encryption for sensitive chats
-- [ ] **Rate Limiting**
-  - [ ] Redis-based rate limiting
-  - [ ] API endpoint protection
-  - [ ] DDoS protection
-- [ ] **Caching Strategy**
-  - [ ] Redis caching for frequent queries
-  - [ ] Cache invalidation strategies
-  - [ ] Session management
+**Planned**
+- Redis caching and rate limiting
+- Enhanced monitoring and observability
+- CI/CD pipeline
+- Comprehensive test coverage
 
-### Feature Enhancements
-- [ ] **Chat Improvements**
-  - [ ] File sharing in chat
-  - [ ] Message reactions and replies
-  - [ ] Group chat functionality
-  - [ ] Message search and history
-- [ ] **Social Features**
-  - [ ] User blocking functionality
-  - [ ] Privacy settings
-  - [ ] Content moderation
-  - [ ] Recommendation engine
-- [ ] **Notification Enhancements**
-  - [ ] Email notifications
-  - [ ] Push notifications
-  - [ ] Notification preferences
+### Known Limitations
 
-### Testing & Quality
-- [ ] **Test Coverage**
-  - [ ] Unit tests for all services
-  - [ ] Integration tests
-  - [ ] End-to-end testing
-  - [ ] Load testing with JMeter
-- [ ] **Code Quality**
-  - [ ] SonarQube integration
-  - [ ] Code coverage reports
-  - [ ] Security vulnerability scanning
+- Chat service WebSocket connections currently lack JWT authentication
+- Main docker-compose.yml orchestration file is pending
+- Service discovery integration with Eureka requires completion
+- ELK stack integration needs configuration refinement
 
-### Documentation
-- [ ] **API Documentation**
-  - [ ] Complete OpenAPI specifications
-  - [ ] Postman collections
-  - [ ] SDK generation
-- [ ] **Technical Documentation**
-  - [ ] Architecture decision records
-  - [ ] Deployment guides
-  - [ ] Troubleshooting documentation
+## Contributing
 
----
+This project is under active development. Contributions, issues, and feature requests are welcome.
 
-### Current Development Status Summary
-- **Working**: Main service, basic chat, search, notifications
-- **Needs Work**: Security, service discovery, Docker orchestration
-- **Missing**: Main docker-compose, proper logging, monitoring
-- **Next Focus**: Fix Docker setup → Secure chat → Complete gateway
+## License
 
----
+This project is licensed under the MIT License.

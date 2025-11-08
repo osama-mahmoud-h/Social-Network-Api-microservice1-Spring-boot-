@@ -1,4 +1,4 @@
-package com.app.auth.dto;
+package com.app.auth.dto.response;
 
 import com.app.auth.enums.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,7 +1,7 @@
 package com.app.auth.mapper;
 
-import com.app.auth.dto.AuthResponse;
-import com.app.auth.dto.RegisterRequest;
+import com.app.auth.dto.request.RegisterRequest;
+import com.app.auth.dto.response.AuthResponse;
 import com.app.auth.enums.UserEventType;
 import com.app.auth.event.UserCreatedEvent;
 import com.app.auth.model.User;

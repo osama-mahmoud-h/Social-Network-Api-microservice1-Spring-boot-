@@ -28,6 +28,7 @@ spring:
 
 # In application.properties
 logging:
+#  config: classpath:logback-spring-prod.xml
   level:
     org:
       springframework:
@@ -40,5 +41,5 @@ logstash:
   host: localhost
   port: 5000
 # Enable Spring property resolution in Logback
-logging:
-  config: classpath:logback-spring.xml
+
+

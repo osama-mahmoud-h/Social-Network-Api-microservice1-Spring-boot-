@@ -1,4 +1,4 @@
-package com.app.auth.dto;
+package com.app.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,20 +12,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterRequest {
-
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    private String lastName;
+public class VerifyRegistrationRequest {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
-    private String password;
-
-    private String phoneNumber;
+    @NotBlank(message = "OTP code is required")
+    @Size(min = 6, max = 6, message = "OTP code must be 6 digits")
+    private String code;
 }

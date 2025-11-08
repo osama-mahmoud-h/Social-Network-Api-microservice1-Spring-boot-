@@ -1,5 +1,6 @@
 package com.app.auth.model;
 
+import com.app.auth.enums.OAuthProvider;
 import com.app.auth.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,7 +35,7 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String password;
 
     private String phoneNumber;
@@ -66,6 +67,17 @@ public class User implements UserDetails {
 
     @Column
     private Instant lastLoginAt;
+
+    // OAuth2 fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oauth_provider")
+    private OAuthProvider oauthProvider;
+
+    @Column(name = "oauth_provider_id")
+    private String oauthProviderId;
+
+    @Column(name = "email_verified")
+    private boolean emailVerified = false;
 
     @PrePersist
     protected void onCreate() {
