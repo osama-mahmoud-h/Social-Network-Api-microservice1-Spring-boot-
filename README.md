@@ -102,10 +102,25 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - User authentication and registration with JWT tokens
 - Profile management including bio, skills, and profile picture
 - Post management with full CRUD operations
+- Reaction system for posts (like, love, etc.)
 - Comment management with support for nested comments
+- Comment reply functionality
+- Comment reactions
 - Friendship system featuring requests, mutual friends, and friend suggestions
-- File upload handling for user content
+- File upload handling for user content(File System storage currently).
 - Swagger documentation available at `/swagger-ui.html`
+- **TODO**: create Profile automatically when user registers.
+- **TODO**: create indexes in postgreSQL for performance optimization (create index on foreign keys to speed up joins)
+- **TODO**: Implement Redis caching for frequently accessed data (user data).
+- **TODO**: Add rate limiting for critical endpoints
+- **TODO**: Implement soft deletes for posts and comments
+- **TODO**: Add content moderation features (e.g., reporting, filtering)
+- **TODO**: Implement analytics for user engagement
+- **TODO**: Integrate with Prometheus and Grafana for metrics monitoring
+- **TODO**: Implement CI/CD pipeline for automated testing and deployment
+- **TODO**: Add integration tests for critical workflows
+- **TODO**: Implement database migration strategy (e.g., Flyway or Liquibase)
+- **TODO**: SetUp S3 Compatible storage for file uploads(MinIO) instead of local storage.
 
 ### Chat Service (WebSocket)
 **Status**: Basic functionality implemented, security pending
@@ -114,8 +129,13 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - MongoDB integration for message persistence
 - Online user tracking with join and leave events
 - Real-time message sending and receiving
-- **TODO**: Room-based authorization
+- Typing indicators and user presence notifications
+- get friends paginated.
+- chat privately between two users.
+- Fetch chat history between users
 - **TODO**: Offline message storage
+- **TODO**: Api Documentation with Swagger
+- **TODO**: ensure that frontend works as expected.
 
 ### Search Service
 **Status**: Integrated with Elasticsearch
@@ -128,6 +148,13 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Kafka producer and consumer setup complete
 - Event-driven notification system
 - Multi-service communication established
+- **TODO**: Implement notification delivery mechanisms (email, push notifications)
+- **TODO**: User preferences for notification settings
+- TODO**: Notification history storage(postgreSQL/MongoDB)
+- TODO**: Real-time notification delivery via WebSocket
+- TODO**: Implement retry mechanisms for failed notifications
+- TODO**: Analytics for notification engagement
+- TODO**: Rate limiting for notification sending
 
 ### Discovery Service (Eureka)
 **Status**: Service created but not integrated
@@ -142,6 +169,15 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - **TODO**: Security integration
 - **TODO**: Load balancing setup
 
+### Centralized Logging (ELK Stack)
+**Status**: ELK stack deployed via Docker
+- Logstash configured to collect logs from all services
+- Kibana dashboard setup for log visualization
+- **TODO**: Fine-tune log parsing and indexing
+- **TODO**: Implement alerting based on log patterns
+- **TODO**: Integrate with Prometheus and Grafana for metrics monitoring
+- **TODO**: Set up log retention policies
+- 
 ## Authentication Flow
 
 The system uses a **centralized authentication** approach with JWT tokens managed by a dedicated Auth Service.
