@@ -7,7 +7,9 @@ import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.profile.ProfileResponseDto;
 import com.app.server.model.UserProfile;
+import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.ProfileService;
+import com.app.shared.security.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,8 +21,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +35,13 @@ import java.util.Set;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final UserProfileRepository userProfileRepository;
+
+    private UserProfile getCurrentUserProfile() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return userProfileRepository.findUserByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found for userId: " + userId));
+    }
 
     @Operation(summary = "Update profile bio", description = "Update user's profile biography")
     @ApiResponses(value = {
@@ -43,10 +50,10 @@ public class ProfileController {
     })
     @PutMapping("/update/bio")
     public ResponseEntity<MyApiResponse<Boolean>> updateBio(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestBody UpdateProfileBioRequestDto bioRequestDto
     ){
-        boolean bioUpdated = profileService.updateBio((UserProfile) currentUserDetails, bioRequestDto);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean bioUpdated = profileService.updateBio(currentUser, bioRequestDto);
         return ResponseEntity.ok(MyApiResponse.success("Bio updated successfully", bioUpdated));
     }
 
@@ -57,10 +64,10 @@ public class ProfileController {
     })
     @PutMapping(value = "/update/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MyApiResponse<Boolean>> updateImage(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @RequestParam("image") MultipartFile image
     ){
-        boolean imageUpdated = profileService.updateImage((UserProfile) currentUserDetails, image);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean imageUpdated = profileService.updateImage(currentUser, image);
         return ResponseEntity.ok(MyApiResponse.success("Image updated successfully", imageUpdated));
     }
 
@@ -70,8 +77,9 @@ public class ProfileController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/get")
-    public ResponseEntity<MyApiResponse<ProfileResponseDto>> getProfile(@AuthenticationPrincipal UserDetails currentUserDetails){
-        ProfileResponseDto profile = profileService.getProfile((UserProfile) currentUserDetails);
+    public ResponseEntity<MyApiResponse<ProfileResponseDto>> getProfile(){
+        UserProfile currentUser = getCurrentUserProfile();
+        ProfileResponseDto profile = profileService.getProfile(currentUser);
         return ResponseEntity.ok(MyApiResponse.success("Profile retrieved successfully", profile));
     }
 
@@ -82,10 +90,10 @@ public class ProfileController {
     })
     @GetMapping("/posts")
     public ResponseEntity<MyApiResponse<?>> getMyPosts(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @ModelAttribute @Valid GetRecentPostsRequestDto requestDto
     ){
-        Set<PostResponseDto> posts = profileService.getMyPosts((UserProfile) currentUserDetails, requestDto);
+        UserProfile currentUser = getCurrentUserProfile();
+        Set<PostResponseDto> posts = profileService.getMyPosts(currentUser, requestDto);
         return ResponseEntity.ok(MyApiResponse.success("Posts retrieved successfully", posts));
     }
 

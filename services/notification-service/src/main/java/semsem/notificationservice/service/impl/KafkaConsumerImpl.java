@@ -33,7 +33,7 @@ public class KafkaConsumerImpl implements KafkaConsumer {
     /**
      * Listen to notification events and delegate to appropriate handlers
      */
-    @KafkaListener(topics = "notification-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "notification-events", groupId = "notification-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void consumeNotificationEvent(ConsumerRecord<String, NotificationEvent> record) {
         try {
             log.info("Notification event received: type={}, senderId={}, receiverId={}",
@@ -52,7 +52,7 @@ public class KafkaConsumerImpl implements KafkaConsumer {
     /**
      * Listen to post events and delegate to PostEventHandler
      */
-    @KafkaListener(topics = "post-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "post-events", groupId = "notification-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void consumePostEvent(ConsumerRecord<String, Object> record) {
         try {
             log.info("Post event received from Kafka");
@@ -75,7 +75,7 @@ public class KafkaConsumerImpl implements KafkaConsumer {
     /**
      * Listen to comment events and delegate to CommentEventHandler
      */
-    @KafkaListener(topics = "comment-events", groupId = "notification-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "comment-events", groupId = "notification-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void consumeCommentEvent(ConsumerRecord<String, Object> record) {
         try {
             log.info("Comment event received from Kafka");

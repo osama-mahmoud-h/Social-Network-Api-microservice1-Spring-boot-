@@ -4,6 +4,7 @@ package com.app.server.mapper;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
+import com.app.server.model.Post;
 import com.app.server.model.UserProfile;
 import com.app.server.model.Comment;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,9 @@ import java.time.Instant;
 
 @Service
 public class CommentMapper {
-    public Comment mapAddNewCommentRequestDtoToComment(UserProfile author, AddNewCommentRequestDto addNewCommentRequestDto) {
+    public Comment mapAddNewCommentRequestDtoToComment(UserProfile author, Post post, AddNewCommentRequestDto addNewCommentRequestDto) {
         return Comment.builder()
+                .post(post)
                 .author(author)
                 .parentComment(null)
                 .createdAt(Instant.now())

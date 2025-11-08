@@ -58,7 +58,7 @@ public class PostEventHandler {
                 // TODO: Create and save notification entity
                 // TODO: Send real-time notification via WebSocket
                 // TODO: Send push notification if enabled
-                log.debug("Sending notification to user {} about post {} from user {}",
+                log.info("Sending notification to user {} about post {} from user {}",
                          friendId, event.getPostId(), authorId);
             });
 

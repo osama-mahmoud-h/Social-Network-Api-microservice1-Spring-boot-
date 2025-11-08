@@ -10,7 +10,9 @@ import com.app.server.event.domain.CommentDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
 import com.app.server.model.Comment;
+import com.app.server.model.Post;
 import com.app.server.model.UserProfile;
+import com.app.server.repository.PostRepository;
 import com.app.server.service.CommentService;
 import com.app.server.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +32,15 @@ import java.util.stream.Collectors;
 public class CommentServiceImp implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean addNewComment(UserProfile currentUser, AddNewCommentRequestDto commentDto) {
-        Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, commentDto);
+        Post post = postRepository.findById(commentDto.getPostId())
+                .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
+
+        Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, post, commentDto);
         commentRepository.save(newComment);
         this.sendNewCommentNotification(newComment);
         return true;
@@ -76,11 +82,13 @@ public class CommentServiceImp implements CommentService {
     @Override
     public boolean replayOnComment(UserProfile userProfile, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId) {
         Comment parentComment = this.getCommentById(commentId);
+        Post post = parentComment.getPost();
+
         if(parentComment.getParentComment() != null){
             throw new CustomRuntimeException("Cannot replay on a replay", HttpStatus.BAD_REQUEST);
         }
 
-        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(userProfile, addNewCommentRequestDto);
+        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(userProfile,post, addNewCommentRequestDto);
         replyToComment.setParentComment(parentComment);
         commentRepository.save(replyToComment);
 
