@@ -131,4 +131,11 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     Optional<Object> findPostDetailsById(@Param("userId") Long userId, @Param("postId") Long postId);
 
 
+    @Query("""
+        SELECT p FROM Post p
+        JOIN FETCH p.author a
+        JOIN FETCH p.files f
+        WHERE p.postId IN :postIds
+        """)
+    List<Post> getPostsByIds(List<Long> postIds, Pageable pageable);
 }

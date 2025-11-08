@@ -110,6 +110,10 @@ encryption:
 file:
   upload-dir: src/main/resources/static/uploads/
 
+#===================== Search Service Configuration ==========================
+search-service:
+  url: http://localhost:8084
+
 #===================== Eureka Server Configuration ==========================
 #eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
 #eureka.instance.prefer-ip-address=true

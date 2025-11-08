@@ -17,7 +17,7 @@ import java.util.List;
 //import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = {"com.app.shared.security.client"})
+@EnableFeignClients(basePackages = {"com.app.shared.security.client", "com.app.server.client"})
 //@EnableDiscoveryClient
 public class ServerApplication {
 	private static final Logger log = LoggerFactory.getLogger(ServerApplication.class);

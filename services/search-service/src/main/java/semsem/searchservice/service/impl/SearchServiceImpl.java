@@ -5,10 +5,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import semsem.searchservice.dto.request.SearchMultiIndexesRequestDto;
+import semsem.searchservice.dto.response.SearchIdsResponseDto;
 import semsem.searchservice.enums.IndexType;
 import semsem.searchservice.mapper.AppUserIndexMapper;
 import semsem.searchservice.mapper.CommentIndexMapper;
 import semsem.searchservice.mapper.PostIndexMapper;
+import semsem.searchservice.model.AppUserIndex;
+import semsem.searchservice.model.CommentIndex;
+import semsem.searchservice.model.PostIndex;
 import semsem.searchservice.repository.AppUserIndexRepository;
 import semsem.searchservice.repository.CommentIndexRepository;
 import semsem.searchservice.repository.PostIndexRepository;
@@ -63,7 +67,45 @@ public class SearchServiceImpl implements SearchService {
         );
     }
 
+    @Override
+    public SearchIdsResponseDto searchAndReturnIdsOnly(SearchMultiIndexesRequestDto requestDto) {
+        Pageable pageable = PageRequest.of(requestDto.getPage(), requestDto.getSize());
+        List<Long> ids = new ArrayList<>();
 
+        switch (requestDto.getSearchCategory()) {
+            case POST_INDEX:
+                List<PostIndex> posts = postIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
+                ids = posts.stream()
+                        .map(PostIndex::getPostId)
+                        .collect(Collectors.toList());
+                break;
+
+            case COMMENT_INDEX:
+                List<CommentIndex> comments = commentIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
+                ids = comments.stream()
+                        .map(CommentIndex::getCommentId)
+                        .collect(Collectors.toList());
+                break;
+
+            case APP_USER_INDEX:
+                List<AppUserIndex> users = appUserIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
+                ids = users.stream()
+                        .map(AppUserIndex::getUserId)
+                        .collect(Collectors.toList());
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported IndexType: " + requestDto.getSearchCategory());
+        }
+        System.out.println("retrieved ids: "+ids);
+        return SearchIdsResponseDto.builder()
+                .indexType(requestDto.getSearchCategory())
+                .ids(ids)
+                .totalResults(ids.size())
+                .page(requestDto.getPage())
+                .size(requestDto.getSize())
+                .build();
+    }
 
 }
 
