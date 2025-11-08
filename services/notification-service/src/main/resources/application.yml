@@ -16,7 +16,7 @@ spring:
               type:
                 headers: false
     consumer:
-      group-id: main-service-group
+      group-id: notification-service-group
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -27,7 +27,7 @@ server:
 #=========================== External Service URLs ===========================
 services:
   main-service:
-    url: http://localhost:8080
+    url: http://localhost:8083
 
 #elk stack
 logstash:

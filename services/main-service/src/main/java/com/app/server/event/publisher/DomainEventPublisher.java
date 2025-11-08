@@ -41,7 +41,7 @@ public class DomainEventPublisher {
 
         kafkaProducer.sendEventDto(postEventDto, KafkaTopics.POST_EVENTS);
 
-        log.debug("Post event published: postId={}, action={}", event.getPostId(), event.getActionType());
+        log.info("Post event published: postId={}, action={}", event.getPostId(), event.getActionType());
     }
 
     /**

@@ -4,6 +4,7 @@ package com.app.server.controller;
 import com.app.server.dto.response.AppUserResponseDto;
 import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.model.UserProfile;
+import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.FriendshipService;
 import com.app.shared.security.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -31,6 +30,13 @@ import java.util.Set;
 public class FriendshipController {
 
     private final FriendshipService friendshipService;
+    private final UserProfileRepository userProfileRepository;
+
+    private UserProfile getCurrentUserProfile() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return userProfileRepository.findUserByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found for userId: " + userId));
+    }
 
     @Operation(summary = "Send friend request", description = "Send a friend request to another user")
     @ApiResponses(value = {
@@ -39,10 +45,10 @@ public class FriendshipController {
     })
     @PostMapping("/add-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> addFriend(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to send friend request to") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isAdded = friendshipService.addFriend((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isAdded = friendshipService.addFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success("Friend request sent", isAdded));
     }
 
@@ -53,10 +59,10 @@ public class FriendshipController {
     })
     @DeleteMapping("/remove-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> removeFriend(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "Friend ID to remove") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isRemoved = friendshipService.removeFriend((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isRemoved = friendshipService.removeFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend removed",isRemoved));
     }
 
@@ -67,10 +73,10 @@ public class FriendshipController {
     })
     @PutMapping("/accept-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> acceptFriend(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID whose friend request to accept") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isAccepted = friendshipService.acceptFriend((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isAccepted = friendshipService.acceptFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend request accepted", isAccepted));
     }
 
@@ -81,10 +87,10 @@ public class FriendshipController {
     })
     @DeleteMapping("/cancel-friend-request/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> cancelFriendRequest(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to cancel friend request for") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isCancelled = friendshipService.cancelFriendRequest((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isCancelled = friendshipService.cancelFriendRequest(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success("Friend request cancelled",isCancelled));
     }
 
@@ -95,10 +101,10 @@ public class FriendshipController {
     })
     @PutMapping("/block-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> blockFriend(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to block") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isBlocked = friendshipService.blockFriend((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isBlocked = friendshipService.blockFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend blocked",isBlocked));
     }
 
@@ -109,10 +115,10 @@ public class FriendshipController {
     })
     @PutMapping("/unblock-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> unblockFriend(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to unblock") @PathVariable("friend_id") Long friendId
     ) {
-        boolean isUnblocked = friendshipService.unblockFriend((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        boolean isUnblocked = friendshipService.unblockFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend unblocked",isUnblocked));
     }
 
@@ -122,10 +128,10 @@ public class FriendshipController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/get-friends")
-    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriends(
-            @AuthenticationPrincipal UserDetails currentUserDetails
-    ) {
-        Set<AppUserResponseDto> friends = friendshipService.getFriends((UserProfile) currentUserDetails);
+    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriends() {
+        UserProfile currentUser = getCurrentUserProfile();
+        log.info("Getting friends for user: {}", currentUser.getEmail());
+        Set<AppUserResponseDto> friends = friendshipService.getFriends(currentUser);
         return ResponseEntity.ok(MyApiResponse.success( "Friends retrieved",friends));
     }
 
@@ -135,10 +141,9 @@ public class FriendshipController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/get-friend-requests")
-    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriendRequests(
-            @AuthenticationPrincipal UserDetails currentUserDetails
-    ) {
-        Set<AppUserResponseDto> friendRequests = friendshipService.getFriendRequests((UserProfile) currentUserDetails);
+    public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriendRequests() {
+        UserProfile currentUser = getCurrentUserProfile();
+        Set<AppUserResponseDto> friendRequests = friendshipService.getFriendRequests(currentUser);
         return ResponseEntity.ok(MyApiResponse.success( "Friend requests retrieved",friendRequests));
     }
 
@@ -149,10 +154,10 @@ public class FriendshipController {
     })
     @GetMapping("/get-mutual-friends-count/{friend_id}")
     public ResponseEntity<MyApiResponse<Integer>> getMutualFriendsCount(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to check mutual friends with") @PathVariable("friend_id") Long friendId
     ) {
-        int mutualFriendsCount = friendshipService.getMutualFriendsCount((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        int mutualFriendsCount = friendshipService.getMutualFriendsCount(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Mutual friends count retrieved",mutualFriendsCount));
     }
 
@@ -163,10 +168,10 @@ public class FriendshipController {
     })
     @GetMapping("/get-mutual-friends/{friend_id}")
     public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getMutualFriends(
-            @AuthenticationPrincipal UserDetails currentUserDetails,
             @Parameter(description = "User ID to get mutual friends with") @PathVariable("friend_id") Long friendId
     ) {
-        Set<AppUserResponseDto> mutualFriends = friendshipService.getMutualFriends((UserProfile) currentUserDetails, friendId);
+        UserProfile currentUser = getCurrentUserProfile();
+        Set<AppUserResponseDto> mutualFriends = friendshipService.getMutualFriends(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Mutual friends retrieved",mutualFriends));
     }
 
