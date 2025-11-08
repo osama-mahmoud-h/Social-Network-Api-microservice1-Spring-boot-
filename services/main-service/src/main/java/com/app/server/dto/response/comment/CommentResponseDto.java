@@ -15,6 +15,7 @@ import java.util.Set;
 public class CommentResponseDto {
     private Long commentId;
     private Long parentId;
+    private String content;
     private Long postId;
     private Long authorId;
     private Set<CommentResponseDto> replies;

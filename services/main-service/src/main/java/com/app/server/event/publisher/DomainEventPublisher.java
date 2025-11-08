@@ -52,15 +52,45 @@ public class DomainEventPublisher {
     public void handleCommentEvent(CommentDomainEvent event) {
         log.info("Publishing comment event to Kafka: {}", event.getEventType());
 
+        // Map Comment entity to simplified CommentData DTO to avoid serialization issues
+        CommentEventDto.CommentData commentData = mapToCommentData(event.getComment());
+
         CommentEventDto commentEventDto = CommentEventDto.builder()
                 .actionType(event.getActionType())
-                .comment(event.getComment())
+                .comment(commentData)
                 .commentId(event.getCommentId())
                 .build();
 
         kafkaProducer.sendEventDto(commentEventDto, KafkaTopics.COMMENT_EVENTS);
 
         log.debug("Comment event published: commentId={}, action={}", event.getCommentId(), event.getActionType());
+    }
+
+    /**
+     * Maps Comment entity to CommentData DTO for Kafka serialization
+     * This avoids serialization issues with Hibernate proxies and lazy-loaded relationships
+     */
+    private CommentEventDto.CommentData mapToCommentData(com.app.server.model.Comment comment) {
+        // Map author data
+        CommentEventDto.AuthorData authorData = null;
+        if (comment.getAuthor() != null) {
+            authorData = CommentEventDto.AuthorData.builder()
+                    .userId(comment.getAuthor().getUserId())
+                    .firstName(comment.getAuthor().getFirstName())
+                    .lastName(comment.getAuthor().getLastName())
+                    .build();
+        }
+
+        // Map comment data
+        return CommentEventDto.CommentData.builder()
+                .commentId(comment.getCommentId())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt() != null ? comment.getCreatedAt().getEpochSecond() : null)
+                .updatedAt(comment.getUpdatedAt() != null ? comment.getUpdatedAt().getEpochSecond() : null)
+                .postId(comment.getPost() != null ? comment.getPost().getPostId() : null)
+                .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
+                .author(authorData)
+                .build();
     }
 
     /**

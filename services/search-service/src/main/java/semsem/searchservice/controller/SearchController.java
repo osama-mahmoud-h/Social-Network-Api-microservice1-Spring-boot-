@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import semsem.searchservice.dto.request.SearchMultiIndexesRequestDto;
+import semsem.searchservice.dto.response.SearchIdsResponseDto;
 import semsem.searchservice.enums.IndexType;
 import semsem.searchservice.service.SearchService;
 
@@ -25,5 +26,22 @@ public class SearchController {
             @ModelAttribute SearchMultiIndexesRequestDto searchMultiIndexesRequestDto
             ) {
         return ResponseEntity.ok(searchService.searchAcrossMultiIndices(searchMultiIndexesRequestDto));
+    }
+
+    // Return only IDs for main-service integration
+    @GetMapping("/ids")
+    public ResponseEntity<SearchIdsResponseDto> searchIds(
+            @RequestParam String searchTerm,
+            @RequestParam IndexType searchCategory,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        SearchMultiIndexesRequestDto requestDto = new SearchMultiIndexesRequestDto();
+        requestDto.setSearchTerm(searchTerm);
+        requestDto.setSearchCategory(searchCategory);
+        requestDto.setSize(size);
+        requestDto.setPage(page);
+
+        return ResponseEntity.ok(searchService.searchAndReturnIdsOnly(requestDto));
     }
 }
