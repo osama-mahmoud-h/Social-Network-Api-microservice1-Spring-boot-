@@ -1,5 +1,6 @@
 package com.app.auth.model;
 
+import com.app.auth.enums.DeviceType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -40,6 +41,23 @@ public class Token {
 
     @Column(nullable = false)
     private Instant expiresAt;
+
+    // Device tracking fields
+    @Column(name = "device_name", length = 255)
+    private String deviceName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "device_type")
+    private DeviceType deviceType;
+
+    @Column(name = "ip_address", length = 45)
+    private String ipAddress;
+
+    @Column(name = "user_agent", length = 500)
+    private String userAgent;
+
+    @Column(name = "last_used_at")
+    private Instant lastUsedAt;
 
     @PrePersist
     protected void onCreate() {

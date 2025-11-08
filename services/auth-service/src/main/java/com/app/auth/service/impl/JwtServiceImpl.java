@@ -1,7 +1,9 @@
 package com.app.auth.service.impl;
 
 import com.app.auth.enums.UserRole;
+import com.app.auth.model.Token;
 import com.app.auth.model.User;
+import com.app.auth.repository.TokenRepository;
 import com.app.auth.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -9,21 +11,24 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtServiceImpl implements JwtService {
+
+    private final TokenRepository tokenRepository;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -93,6 +98,70 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Instant getExpirationInstant(String token) {
         return extractExpiration(token).toInstant();
+    }
+
+    @Override
+    public Optional<UserDetails> validateTokenForFilter(String token) {
+        try {
+            // 1. Validate JWT signature and expiry
+            if (isTokenExpired(token)) {
+                log.debug("Token is expired");
+                return Optional.empty();
+            }
+
+            // 2. Check if token is revoked in database (supports logout)
+            if (isTokenRevoked(token)) {
+                log.debug("Token is revoked");
+                return Optional.empty();
+            }
+
+            // 3. Extract user info from JWT claims
+            String email = extractUsername(token);
+            Set<UserRole> roles = extractRoles(token);
+
+            // 4. Convert roles to Spring Security authorities
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                    .collect(Collectors.toList());
+
+            // 5. Create Spring Security UserDetails
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(email)
+                    .password("") // Password not needed for token-based auth
+                    .authorities(authorities)
+                    .accountExpired(false)
+                    .accountLocked(false)
+                    .credentialsExpired(false)
+                    .disabled(false)
+                    .build();
+
+            return Optional.of(userDetails);
+
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public boolean isTokenRevoked(String token) {
+        try {
+            Optional<Token> storedToken = tokenRepository.findByToken(token);
+
+            // Token doesn't exist in DB = revoked (deleted during logout)
+            if (storedToken.isEmpty()) {
+                return true;
+            }
+
+            // Check if token is marked as revoked or expired
+            Token tokenEntity = storedToken.get();
+            return tokenEntity.isRevoked() || tokenEntity.isExpired();
+
+        } catch (Exception e) {
+            log.error("Error checking token revocation: {}", e.getMessage());
+            // On error, consider token revoked for security
+            return true;
+        }
     }
 
     private Claims extractAllClaims(String token) {
