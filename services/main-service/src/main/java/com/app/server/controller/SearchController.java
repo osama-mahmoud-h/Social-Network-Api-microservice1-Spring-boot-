@@ -1,6 +1,7 @@
 package com.app.server.controller;
 
 import com.app.server.dto.response.SearchResultsResponseDto;
+import com.app.server.enums.SearchEntityType;
 import com.app.server.service.SearchOrchestrationService;
 import com.app.shared.security.dto.MyApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class SearchController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<MyApiResponse<SearchResultsResponseDto<?>>> search(
             @RequestParam String query,
-            @RequestParam String type,
+            @RequestParam SearchEntityType type,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "0") int page
     ) {
