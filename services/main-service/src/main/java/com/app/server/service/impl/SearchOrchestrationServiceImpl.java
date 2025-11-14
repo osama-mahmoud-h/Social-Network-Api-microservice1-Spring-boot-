@@ -5,6 +5,8 @@ import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.SearchIdsResponseDto;
 import com.app.server.dto.response.SearchResultsResponseDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
+import com.app.server.enums.SearchEntityType;
+import com.app.server.mapper.CommentMapper;
 import com.app.server.mapper.PostMapper;
 import com.app.server.model.Comment;
 import com.app.server.model.Post;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,15 +33,16 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
     private final CommentRepository commentRepository;
     private final UserProfileRepository userProfileRepository;
     private final PostMapper postMapper;
+    private final CommentMapper commentMapper;
 
     @Override
-    public SearchResultsResponseDto<?> search(String searchTerm, String entityType, int size, int page) {
+    public SearchResultsResponseDto<?> search(String searchTerm, SearchEntityType entityType, int size, int page) {
         log.info("Searching for '{}' in entity type: {}", searchTerm, entityType);
 
         // Step 1: Call search-service to get IDs only
         SearchIdsResponseDto searchIdsResponse;
         try {
-            searchIdsResponse = searchServiceClient.searchIds(searchTerm, entityType, size, page);
+            searchIdsResponse = searchServiceClient.searchIds(searchTerm, entityType.toString(), size, page);
         } catch (Exception e) {
             log.error("Failed to call search-service: {}", e.getMessage(), e);
             throw new RuntimeException("Search service unavailable", e);
@@ -48,17 +50,17 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
 
         if (searchIdsResponse.getIds() == null || searchIdsResponse.getIds().isEmpty()) {
             log.info("No results found for search term: {}", searchTerm);
-            return buildEmptyResponse(entityType, page, size);
+            return buildEmptyResponse(entityType.toString(), page, size);
         }
 
         // Step 2: Fetch full entities from PostgreSQL based on IDs
         List<Long> ids = searchIdsResponse.getIds();
         log.info("Found {} IDs from search-service", ids.size());
 
-        return switch (entityType.toUpperCase()) {
-            case "POST_INDEX" -> fetchPosts(ids, entityType, page, size);
-            case "COMMENT_INDEX" -> fetchComments(ids, entityType, page, size);
-            case "APP_USER_INDEX" -> fetchUsers(ids, entityType, page, size);
+        return switch (entityType) {
+            case POST_INDEX -> fetchPosts(ids, entityType.toString(), page, size);
+            case COMMENT_INDEX -> fetchComments(ids, entityType.toString(), page, size);
+            case USER_INDEX -> fetchUsers(ids, entityType.toString(), page, size);
             default -> throw new IllegalArgumentException("Unsupported entity type: " + entityType);
         };
     }
@@ -88,17 +90,9 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
         return SearchResultsResponseDto.<CommentResponseDto>builder()
                 .entityType(entityType)
                 .results(comments
-                        .stream().map(cement->{
-                            return CommentResponseDto.builder()
-                                            .commentId(cement.getCommentId())
-                                            .content(cement.getContent())
-                                            .authorId(cement.getAuthor().getUserId())
-                                            .postId(cement.getPost().getPostId())
-                                            .parentId(cement.getParentComment() != null ? cement.getParentComment().getCommentId() : null)
-                                            .build();
-
-                        }).toList()
-
+                        .stream()
+                        .map(commentMapper::mapCommentToCommentResponseDto)
+                        .toList()
                 )
                 .totalResults(comments.size())
                 .page(page)
@@ -129,3 +123,4 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
                 .build();
     }
 }
+
