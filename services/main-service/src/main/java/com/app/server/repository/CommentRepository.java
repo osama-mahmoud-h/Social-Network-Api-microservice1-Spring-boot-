@@ -16,7 +16,13 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment,Long> {
 
-    @Query("SELECT c FROM Comment c WHERE c.post.postId=:postId")
+    @Query("""
+            SELECT c FROM Comment c
+            LEFT JOIN FETCH c.author
+            LEFT JOIN FETCH c.post
+            LEFT JOIN FETCH c.parentComment
+            WHERE c.post.postId = :postId AND c.parentComment IS NULL
+            """)
     List<Comment> findCommentByPostId(@Param("postId")Long postId, Pageable pageable);
 
     @Query("SELECT c FROM Comment c WHERE c.parentComment.commentId=:commentId")
@@ -31,7 +37,12 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     @Query("SELECT c FROM Comment c WHERE c.commentId=:commentId AND c.author.userId=:userId")
     Optional<Comment> findByIdAndAuthorId(@Param("userId") Long userId, @Param("commentId") Long commentId);
 
-    @Query("SELECT c FROM Comment c WHERE c.parentComment.commentId=:parentCommentId")
+    @Query("""
+            SELECT c FROM Comment c
+            LEFT JOIN FETCH c.author
+            LEFT JOIN FETCH c.post
+            WHERE c.parentComment.commentId = :parentCommentId
+            """)
     List<Comment> findCommentByParentCommentId(@Param("parentCommentId") Long parentCommentId, Pageable pageable);
 
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.post.postId = :postId")

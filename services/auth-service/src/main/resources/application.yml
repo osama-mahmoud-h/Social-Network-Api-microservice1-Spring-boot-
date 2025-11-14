@@ -49,7 +49,7 @@ server:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET_KEY:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-  expiration: ${JWT_EXPIRE_IN_MS:3600000}
+  expiration: ${JWT_EXPIRE_IN_MS}
   refresh-expiration: 86400000
 
 # Eureka Configuration

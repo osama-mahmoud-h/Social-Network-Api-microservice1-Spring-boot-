@@ -6,6 +6,7 @@ import com.app.server.dto.response.SearchIdsResponseDto;
 import com.app.server.dto.response.SearchResultsResponseDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
 import com.app.server.enums.SearchEntityType;
+import com.app.server.mapper.CommentMapper;
 import com.app.server.mapper.PostMapper;
 import com.app.server.model.Comment;
 import com.app.server.model.Post;
@@ -32,6 +33,7 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
     private final CommentRepository commentRepository;
     private final UserProfileRepository userProfileRepository;
     private final PostMapper postMapper;
+    private final CommentMapper commentMapper;
 
     @Override
     public SearchResultsResponseDto<?> search(String searchTerm, SearchEntityType entityType, int size, int page) {
@@ -88,17 +90,9 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
         return SearchResultsResponseDto.<CommentResponseDto>builder()
                 .entityType(entityType)
                 .results(comments
-                        .stream().map(cement->{
-                            return CommentResponseDto.builder()
-                                            .commentId(cement.getCommentId())
-                                            .content(cement.getContent())
-                                            .authorId(cement.getAuthor().getUserId())
-                                            .postId(cement.getPost().getPostId())
-                                            .parentId(cement.getParentComment() != null ? cement.getParentComment().getCommentId() : null)
-                                            .build();
-
-                        }).toList()
-
+                        .stream()
+                        .map(commentMapper::mapCommentToCommentResponseDto)
+                        .toList()
                 )
                 .totalResults(comments.size())
                 .page(page)
