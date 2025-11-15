@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Feign client for communicating with main-service
- * Fetches friend relationships for notification fan-out
+ * Fetches friend relationships for notifications
  */
 @FeignClient(
     name = "main-service",

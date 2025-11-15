@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.dto.CommentEventDto;
+import semsem.notificationservice.dto.NotificationEvent;
+import semsem.notificationservice.enums.NotificationType;
+import semsem.notificationservice.service.NotificationService;
 
 /**
  * Handler for comment-related events
@@ -14,6 +17,7 @@ import semsem.notificationservice.dto.CommentEventDto;
 @RequiredArgsConstructor
 public class CommentEventHandler {
     private static final Logger log = LoggerFactory.getLogger(CommentEventHandler.class);
+    private final NotificationService notificationService;
 
     /**
      * Handle comment events based on action type
@@ -47,19 +51,49 @@ public class CommentEventHandler {
      */
     private void handleCommentCreation(CommentEventDto event) {
         try {
-            Long postAuthorId = event.getComment().getPost().getAuthor().getUserId();
-            Long commentAuthorId = event.getComment().getAuthor().getUserId();
+            // Validate event data
+            if (event.getComment() == null) {
+                log.warn("Comment data is null for commentId={}", event.getCommentId());
+                return;
+            }
+
+            Long commentAuthorId = event.getComment().getAuthor() != null
+                    ? event.getComment().getAuthor().getUserId()
+                    : null;
+            Long postAuthorId = event.getComment().getPostAuthorId();
+            Long postId = event.getComment().getPostId();
+
+            if (commentAuthorId == null || postAuthorId == null || postId == null) {
+                log.warn("Missing required data - commentAuthorId={}, postAuthorId={}, postId={}",
+                         commentAuthorId, postAuthorId, postId);
+                return;
+            }
 
             // Don't notify if user comments on their own post
             if (postAuthorId.equals(commentAuthorId)) {
-                log.debug("User {} commented on their own post, skipping notification", commentAuthorId);
+                log.info("User {} commented on their own post, skipping notification", commentAuthorId);
                 return;
             }
 
             log.info("Notifying user {} about comment on their post from user {}",
                      postAuthorId, commentAuthorId);
 
-            // TODO: Create and save notification entity
+            // Create notification event
+            String commentAuthorName = event.getComment().getAuthor().getFirstName() + " "
+                    + event.getComment().getAuthor().getLastName();
+            String message = commentAuthorName + " commented on your post";
+
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                    .type(NotificationType.COMMENTED_YOUR_POST)
+                    .message(message)
+                    .senderId(commentAuthorId)
+                    .receiverId(postAuthorId)
+                    .build();
+
+            // Save notification to database
+            notificationService.createNotification(notificationEvent, event.getCommentId(), "COMMENT");
+            log.debug("Notification persisted to database");
+
             // TODO: Send real-time notification via WebSocket
             // TODO: Send push notification if enabled
 

@@ -28,8 +28,9 @@ public class CommentEventDto implements Serializable {
         private Long createdAt;  // Epoch seconds
         private Long updatedAt;  // Epoch seconds
         private Long postId;
+        private Long postAuthorId;  // Post author's user ID for notifications
         private Long parentCommentId;
-        private AuthorData author;
+        private AuthorData author;  // Comment author
     }
 
     /**
