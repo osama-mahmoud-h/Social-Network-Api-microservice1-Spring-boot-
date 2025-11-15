@@ -5,7 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.client.MainServiceClient;
+import semsem.notificationservice.dto.NotificationEvent;
 import semsem.notificationservice.dto.PostEventDto;
+import semsem.notificationservice.enums.NotificationType;
+import semsem.notificationservice.repository.NotificationRepository;
+import semsem.notificationservice.service.NotificationService;
 
 import java.util.List;
 
@@ -18,7 +22,7 @@ import java.util.List;
 public class PostEventHandler {
     private static final Logger log = LoggerFactory.getLogger(PostEventHandler.class);
     private final MainServiceClient mainServiceClient;
-
+    private final NotificationService notificationService;
     /**
      * Handle post events based on action type
      *
@@ -47,19 +51,53 @@ public class PostEventHandler {
      */
     private void handlePostCreation(PostEventDto event) {
         try {
+            // Validate event data
+            if (event.getPost() == null || event.getPost().getAuthor() == null) {
+                log.warn("Post or author data is null for postId={}", event.getPostId());
+                return;
+            }
+
             Long authorId = event.getPost().getAuthor().getUserId();
+            String authorName = event.getPost().getAuthor().getFirstName() + " "
+                    + event.getPost().getAuthor().getLastName();
+
+            // Fetch friends to notify
             List<Long> friendIds = mainServiceClient.getFriendIds(authorId);
+
+            if (friendIds.isEmpty()) {
+                log.debug("User {} has no friends to notify about post {}", authorId, event.getPostId());
+                return;
+            }
 
             log.info("Notifying {} friends about new post {} from user {}",
                      friendIds.size(), event.getPostId(), authorId);
 
+            //TODO: handle batching if friendIds is large.
+            //TODO: consider async processing for scalability.
+            //TODO: either fanout early or late depending on use case.
             // Fan-out: Create notification for each friend
             friendIds.forEach(friendId -> {
-                // TODO: Create and save notification entity
-                // TODO: Send real-time notification via WebSocket
-                // TODO: Send push notification if enabled
-                log.info("Sending notification to user {} about post {} from user {}",
-                         friendId, event.getPostId(), authorId);
+                try {
+                    String message = authorName + " posted new content";
+
+                    NotificationEvent notificationEvent = NotificationEvent.builder()
+                            .type(NotificationType.POSTED_NEW_CONTENT)
+                            .message(message)
+                            .senderId(authorId)
+                            .receiverId(friendId)
+                            .build();
+
+                    // Save notification to database
+                    notificationService.createNotification(notificationEvent, event.getPostId(), "POST");
+                    log.debug("Notification persisted for user {} about post {}", friendId, event.getPostId());
+
+                    // TODO: Send real-time notification via WebSocket
+                    // TODO: Send push notification if enabled
+
+                } catch (Exception e) {
+                    log.error("Error creating notification for user {} about post {}: {}",
+                            friendId, event.getPostId(), e.getMessage());
+                }
             });
 
             log.info("Successfully notified {} friends about new post {}", friendIds.size(), event.getPostId());

@@ -63,7 +63,10 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Spring Security with JWT
 
 **Data Management**
-- PostgreSQL - Primary relational database for user data, posts, and relationships
+- PostgreSQL - Primary relational database for:
+  - Auth Service: User credentials, JWT tokens, revocation tracking
+  - Main Service: User data, posts, comments, friendships, reactions
+  - Notification Service: Notification history, read/unread status, delivery tracking
 - MongoDB - Document store for chat messages
 - Elasticsearch - Full-text search engine for content discovery
 - Redis - Caching and session management (infrastructure ready)
@@ -143,18 +146,24 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Kafka integration for automatic content indexing
 - Search functionality across posts and user profiles
 
-### Notification Service
-**Status**: Kafka-based messaging working
+### Notification Service (Port: 8085)
+**Status**: Fully functional with PostgreSQL persistence
+- PostgreSQL database for notification storage and history
 - Kafka producer and consumer setup complete
-- Event-driven notification system
+- Event-driven notification system consuming Kafka topics
 - Multi-service communication established
+- REST API for retrieving, marking read, and managing notifications
+- Notification persistence with read/unread status tracking
+- Paginated notification retrieval by user, type, and read status
+- Database indexing on receiver_id, read status, and timestamps for performance
+- Automated cleanup of old read notifications
+- Swagger documentation available at `/swagger-ui.html`
 - **TODO**: Implement notification delivery mechanisms (email, push notifications)
 - **TODO**: User preferences for notification settings
-- TODO**: Notification history storage(postgreSQL/MongoDB)
-- TODO**: Real-time notification delivery via WebSocket
-- TODO**: Implement retry mechanisms for failed notifications
-- TODO**: Analytics for notification engagement
-- TODO**: Rate limiting for notification sending
+- **TODO**: Real-time notification delivery via WebSocket
+- **TODO**: Implement retry mechanisms for failed notifications
+- **TODO**: Analytics for notification engagement
+- **TODO**: Rate limiting for notification sending
 
 ### Discovery Service (Eureka)
 **Status**: Service created but not integrated
@@ -293,15 +302,6 @@ public interface AuthServiceClient {
 - Multi-device logout support
 - Token expiration validation
 
-### Authentication Endpoints (Auth Service)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/login` | POST | User login with credentials |
-| `/api/auth/validate` | POST | Validate token (query param) |
-| `/api/auth/validate-header` | POST | Validate token (header) |
-| `/api/auth/logout` | POST | Logout current device |
-| `/api/auth/logout-all` | POST | Logout all devices |
-
 ## Architecture Diagrams
 
 The system architecture is documented using PlantUML diagrams, providing visual representations of service interactions, data flows, and deployment topology. All diagram source files are located in the `diagrams/` directory and can be viewed using the PlantUML Web Server, VS Code PlantUML extension, or IntelliJ IDEA PlantUML plugin.
@@ -368,10 +368,13 @@ The script supports both PlantUML CLI and Docker-based generation. For detailed 
 ## API Documentation
 
 ### Main Service API
-![Main Service Swagger](images/swagger-doc.png)
+![Main Service Swagger](images/main-service.png)
 
 ### Auth Service API
-![Auth Service Swagger](./images/AUTH_SERVICE_SWAGGER.png)
+![Auth Service Swagger](./images/auth-service.png)
+
+### notification Service API
+![Notification Service Swagger](images/notification-swagger.png)
 
 ### Chat Service Client
 ![Chat Service Client](images/chat-service-client.png)

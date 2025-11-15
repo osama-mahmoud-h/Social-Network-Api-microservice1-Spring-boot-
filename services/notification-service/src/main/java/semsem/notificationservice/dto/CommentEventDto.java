@@ -9,7 +9,7 @@ import semsem.notificationservice.enums.EventType;
 
 /**
  * DTO for comment events from main-service
- * Note: Using simplified structure, only extracting needed fields
+ * Matches the structure sent by main-service CommentEventDto
  */
 @Data
 @Builder
@@ -27,26 +27,29 @@ public class CommentEventDto implements DomainEvent {
     }
 
     @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CommentData {
         private Long commentId;
         private String content;
-        private AuthorData author;
-        private PostData post;
+        private Long createdAt;  // Epoch seconds
+        private Long updatedAt;  // Epoch seconds
+        private Long postId;  // Reference to the post (not full object)
+        private Long postAuthorId;  // Post author's user ID for notifications
+        private Long parentCommentId;  // For replies
+        private AuthorData author;  // Comment author
     }
 
     @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class AuthorData {
         private Long userId;
         private String firstName;
         private String lastName;
-    }
-
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class PostData {
-        private Long postId;
-        private AuthorData author;  // Post author
     }
 }

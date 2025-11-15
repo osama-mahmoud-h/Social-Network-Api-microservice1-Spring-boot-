@@ -33,9 +33,12 @@ public class DomainEventPublisher {
     public void handlePostEvent(PostDomainEvent event) {
         log.info("Publishing post event to Kafka: {}", event.getEventType());
 
+        // Map Post entity to simplified PostData DTO to avoid serialization issues
+        PostEventDto.PostData postData = mapToPostData(event.getPost());
+
         PostEventDto postEventDto = PostEventDto.builder()
                 .actionType(event.getActionType())
-                .post(event.getPost())
+                .post(postData)
                 .postId(event.getPostId())
                 .build();
 
@@ -67,6 +70,31 @@ public class DomainEventPublisher {
     }
 
     /**
+     * Maps Post entity to PostData DTO for Kafka serialization
+     * This avoids serialization issues with Hibernate proxies and lazy-loaded relationships
+     */
+    private PostEventDto.PostData mapToPostData(com.app.server.model.Post post) {
+        // Map author data
+        PostEventDto.AuthorData authorData = null;
+        if (post.getAuthor() != null) {
+            authorData = PostEventDto.AuthorData.builder()
+                    .userId(post.getAuthor().getUserId())
+                    .firstName(post.getAuthor().getFirstName())
+                    .lastName(post.getAuthor().getLastName())
+                    .build();
+        }
+
+        // Map post data
+        return PostEventDto.PostData.builder()
+                .postId(post.getPostId())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt() != null ? post.getCreatedAt().getEpochSecond() : null)
+                .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt().getEpochSecond() : null)
+                .author(authorData)
+                .build();
+    }
+
+    /**
      * Maps Comment entity to CommentData DTO for Kafka serialization
      * This avoids serialization issues with Hibernate proxies and lazy-loaded relationships
      */
@@ -81,6 +109,12 @@ public class DomainEventPublisher {
                     .build();
         }
 
+        // Extract post author ID for notifications
+        Long postAuthorId = null;
+        if (comment.getPost() != null && comment.getPost().getAuthor() != null) {
+            postAuthorId = comment.getPost().getAuthor().getUserId();
+        }
+
         // Map comment data
         return CommentEventDto.CommentData.builder()
                 .commentId(comment.getCommentId())
@@ -88,6 +122,7 @@ public class DomainEventPublisher {
                 .createdAt(comment.getCreatedAt() != null ? comment.getCreatedAt().getEpochSecond() : null)
                 .updatedAt(comment.getUpdatedAt() != null ? comment.getUpdatedAt().getEpochSecond() : null)
                 .postId(comment.getPost() != null ? comment.getPost().getPostId() : null)
+                .postAuthorId(postAuthorId)
                 .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
                 .author(authorData)
                 .build();
