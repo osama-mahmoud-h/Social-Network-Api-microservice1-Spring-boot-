@@ -6,6 +6,8 @@ import com.app.server.model.Friendship;
 import com.app.server.model.UserProfile;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class FriendshipMapper {
 
@@ -13,6 +15,7 @@ public class FriendshipMapper {
         return Friendship.builder()
                 .user1(currentUser)
                 .user2(friend)
+                .createdAt(Instant.now())
                 .status(FriendshipStatus.PENDING)
                 .build();
     }

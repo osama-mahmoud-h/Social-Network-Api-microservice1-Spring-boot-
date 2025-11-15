@@ -1,5 +1,6 @@
 package com.app.server.repository;
 
+import com.app.server.enums.FriendshipStatus;
 import com.app.server.model.Friendship;
 import com.app.server.model.UserProfile;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +17,20 @@ import java.util.Optional;
 @Repository
 public interface FriendshipServiceRepository extends JpaRepository<Friendship, Long> {
 
-    @Query("SELECT f FROM Friendship f WHERE (f.user1.userId = :userId AND f.user2.userId = :friendId) OR (f.user1.userId = :friendId AND f.user2.userId = :userId)")
+    @Query("""
+        SELECT f
+        FROM Friendship f
+        WHERE (f.user1.userId = :userId AND f.user2.userId = :friendId)
+        OR
+        (f.user1.userId = :friendId AND f.user2.userId = :userId)
+        """)
     Optional<Friendship> findFriendshipByTwoUsers(@Param("userId") Long userId,@Param("friendId") Long friendId);
 
 
     @Transactional
     @Modifying
     @Query("UPDATE Friendship f SET f.status = :status WHERE f.friendshipId = :id")
-    void updateFriendshipStatusById(@Param("id") Long id, @Param("status") String status);
+    void updateFriendshipStatusById(@Param("id") Long id,  @Param("status") FriendshipStatus status);
 
 
     @Query(value = """

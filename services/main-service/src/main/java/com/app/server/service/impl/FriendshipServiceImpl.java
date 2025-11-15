@@ -68,13 +68,14 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public boolean acceptFriend(UserProfile currentUser, Long friendId) {
+        System.out.println("Accepting friend request for userId: " + currentUser.getUserId() + " and friendId: " + friendId);
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
         if(this.isMyFriend(currentUser, Optional.of(friendship))) {
             throw new CustomRuntimeException("You are already friends", HttpStatus.CONFLICT);
         }else if (this.isPendingFriendRequest(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED);
             this.sendFriendRequestAcceptedNotification(currentUser, getUserById(friendId));
             return true;
         }
@@ -99,7 +100,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
         if(isMyFriend(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.BLOCKED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.BLOCKED);
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);
@@ -111,7 +112,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 
         if(isMyFriend(currentUser, Optional.of(friendship))) {
-            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED.toString());
+            friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED);
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);

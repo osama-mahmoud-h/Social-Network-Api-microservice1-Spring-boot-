@@ -34,13 +34,18 @@ public class KafkaConsumerImpl implements KafkaConsumer {
      * Listen to notification events and delegate to appropriate handlers
      */
     @KafkaListener(topics = "notification-events", groupId = "notification-service-group", containerFactory = "kafkaListenerContainerFactory")
-    public void consumeNotificationEvent(ConsumerRecord<String, NotificationEvent> record) {
+    public void consumeNotificationEvent(ConsumerRecord<String, Object> record) {
         try {
-            log.info("Notification event received: type={}, senderId={}, receiverId={}",
-                     record.value().getType(), record.value().getSenderId(), record.value().getReceiverId());
+            log.info("Notification event received from Kafka");
 
-            NotificationType type = record.value().getType();
-            notificationHandlerFactory.getHandler(type).handle(record.value());
+            // Convert Object to NotificationEvent using ObjectMapper
+            NotificationEvent event = objectMapper.convertValue(record.value(), NotificationEvent.class);
+
+            log.info("Notification event received: type={}, senderId={}, receiverId={}",
+                     event.getType(), event.getSenderId(), event.getReceiverId());
+
+            NotificationType type = event.getType();
+            notificationHandlerFactory.getHandler(type).handle(event);
 
             log.info("Notification event processed successfully: {}", type);
         } catch (Exception e) {
