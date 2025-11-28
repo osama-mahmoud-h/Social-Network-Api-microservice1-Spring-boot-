@@ -8,10 +8,19 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xms64m -Xmx128m"
     ports:
       - "2181:2181"
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
@@ -36,10 +45,19 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx384m"
     networks:
       - social_service_dev_network
     volumes:
       - kafka-data:/bitnami/kafka/data
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -59,6 +77,14 @@ services:
       - kafka
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
 
   # ======================= ELK Stack =======================
 
@@ -70,7 +96,7 @@ services:
       - discovery.type=single-node
       - ELASTICSEARCH_USERNAME=elastic
       - ELASTICSEARCH_PASSWORD=123456
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ES_JAVA_OPTS=-Xms384m -Xmx512m
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
       - bootstrap.memory_lock=false
@@ -84,11 +110,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: "2GB"
-        reservations:
           cpus: "0.5"
-          memory: "1GB"
+          memory: "640M"
+        reservations:
+          cpus: "0.25"
+          memory: "384M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -99,6 +125,8 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:8.13.4
     container_name: logstash
+    environment:
+      - LS_JAVA_OPTS=-Xms128m -Xmx256m
     volumes:
       - ./elk-stack-docker/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
@@ -113,11 +141,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.7"
-          memory: "1GB"
+          cpus: "0.25"
+          memory: "384M"
         reservations:
-          cpus: "0.3"
-          memory: "512MB"
+          cpus: "0.1"
+          memory: "128M"
 
   # Kibana for log visualization
   kibana:
@@ -126,6 +154,7 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - xpack.security.enabled=false
+      - NODE_OPTIONS="--max-old-space-size=256"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -138,23 +167,32 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "750MB"
+          cpus: "0.25"
+          memory: "384M"
         reservations:
-          cpus: "0.3"
-          memory: "500MB"
+          cpus: "0.1"
+          memory: "256M"
 
   # ======================= Databases =======================
-  #redis
+
+  # Redis
   redis:
       image: redis:latest
       container_name: redis
+      command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
       ports:
       - "6379:6379"
       networks:
       - social_service_dev_network
-      # restart
       restart: unless-stopped
+      deploy:
+        resources:
+          limits:
+            cpus: "0.25"
+            memory: "192M"
+          reservations:
+            cpus: "0.1"
+            memory: "64M"
       healthcheck:
         test: ["CMD", "redis-cli", "ping"]
         interval: 10s
@@ -169,14 +207,23 @@ services:
       POSTGRES_DB: auth_db
       POSTGRES_USER: osama
       POSTGRES_PASSWORD: 123456
+    command: postgres -c shared_buffers=64MB -c effective_cache_size=128MB -c max_connections=30
     ports:
       - "5433:5432"
     networks:
       - social_service_dev_network
     volumes:
       - auth-db-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U osama -d authdb"]
+      test: ["CMD-SHELL", "pg_isready -U osama -d auth_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -189,6 +236,7 @@ services:
       POSTGRES_DB: social_db
       POSTGRES_USER: osama
       POSTGRES_PASSWORD: 123456
+    command: postgres -c shared_buffers=128MB -c effective_cache_size=256MB -c max_connections=50
     ports:
       - "5434:5432"
     networks:
@@ -196,6 +244,14 @@ services:
     volumes:
       - main-db-data:/var/lib/postgresql/data
       - ../services/main-service/docker/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "384M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U osama -d social_db"]
       interval: 10s
@@ -206,12 +262,21 @@ services:
   chat-db:
     image: mongo:latest
     container_name: chat-service-db
+    command: mongod --wiredTigerCacheSizeGB 0.15
     ports:
       - "27018:27017"
     networks:
       - social_service_dev_network
     volumes:
       - chat-service-db-data:/data/db
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -220,25 +285,9 @@ services:
 
   # ======================= Microservices =======================
 
-  # Discovery Service (Eureka) - COMMENTED OUT
-#  discovery-service:
-#    build:
-#      context: ../services/discovery-service
-#      dockerfile: docker/dev/Dockerfile
-#    container_name: eureka-server
-#    ports:
-#      - "8761:8761"
-#    networks:
-#      - social_service_dev_network
-#    healthcheck:
-#      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#      start_period: 40s
-
   # Auth Service
   auth-service:
+    image: social-network/auth-service:latest
     build:
       context: ../services/auth-service
       dockerfile: Dockerfile
@@ -249,14 +298,20 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       auth-db:
         condition: service_healthy
-#      discovery-service:
-#        condition: service_healthy
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "320M"
+        reservations:
+          cpus: "0.25"
+          memory: "192M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
       interval: 30s
@@ -266,27 +321,35 @@ services:
 
   # Gateway Service
   gateway-service:
+    image: social-network/gateway-service:latest
     build:
-      context: ../services/gateway-service
-      dockerfile: docker/dev/Dockerfile
+      context: ..
+      dockerfile: services/gateway-service/docker/dev/Dockerfile
     container_name: gateway_service
     ports:
       - "8081:8081"
-#    environment:
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
-#      discovery-service:
-#        condition: service_healthy
       auth-service:
         condition: service_healthy
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "320M"
+        reservations:
+          cpus: "0.25"
+          memory: "192M"
 
   # Main Service
   main-service:
+    image: social-network/main-service:latest
     build:
-      context: ../services/main-service
-      dockerfile: docker/dev/Dockerfile
+      context: ..
+      dockerfile: services/main-service/docker/dev/Dockerfile
     container_name: main_service
     ports:
       - "8082:8082"
@@ -295,24 +358,33 @@ services:
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       main-db:
         condition: service_healthy
       kafka:
         condition: service_healthy
-#      discovery-service:
-#        condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - social_service_dev_network
     volumes:
       - main-service-uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "448M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
 
   # Search Service
   search-service:
+    image: social-network/search-service:latest
     build:
-      context: ../services/search-service
-      dockerfile: docker/dev/Dockerfile
+      context: ..
+      dockerfile: services/search-service/docker/dev/Dockerfile
     container_name: search-service
     ports:
       - "8084:8084"
@@ -321,41 +393,59 @@ services:
       - SPRING_ELASTICSEARCH_USERNAME=elastic
       - SPRING_ELASTICSEARCH_PASSWORD=123456
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       elasticsearch:
         condition: service_healthy
       kafka:
         condition: service_healthy
-#      discovery-service:
-#        condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "320M"
+        reservations:
+          cpus: "0.25"
+          memory: "192M"
 
   # Notification Service
   notification-service:
+    image: social-network/notification-service:latest
     build:
-      context: ../services/notification-service
-      dockerfile: docker/dev/Dockerfile
+      context: ..
+      dockerfile: services/notification-service/docker/dev/Dockerfile
     container_name: notification-service
     ports:
       - "8085:8085"
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       kafka:
         condition: service_healthy
-#      discovery-service:
-#        condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
 
   # Chat Service
   chat-service:
+    image: social-network/chat-service:latest
     build:
-      context: ../services/chat-service
-      dockerfile: docker/dev/Dockerfile
+      context: ..
+      dockerfile: services/chat-service/docker/dev/Dockerfile
     container_name: chat-service
     ports:
       - "8086:8086"
@@ -363,14 +453,26 @@ services:
       - SPRING_DATA_MONGODB_HOST=chat-db
       - SPRING_DATA_MONGODB_PORT=27017
       - SPRING_DATA_MONGODB_DATABASE=chat-service
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       chat-db:
         condition: service_healthy
-#      discovery-service:
-#        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "320M"
+        reservations:
+          cpus: "0.25"
+          memory: "192M"
 
 networks:
   social_service_dev_network:

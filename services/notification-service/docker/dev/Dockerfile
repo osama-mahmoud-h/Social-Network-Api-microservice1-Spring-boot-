@@ -2,19 +2,23 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Copy the full project to resolve parent POMs
-COPY ../../pom.xml .
-COPY ../../src ./src
+# Copy parent POM and shared modules
+COPY pom.xml .
+COPY shared ./shared
 
-# Download dependencies (and resolve parent POM)
-#RUN mvn dependency:go-offline
+# Copy all services (needed for Maven reactor)
+COPY services ./services
 
-# Build the application
+# Build shared security library first
+RUN mvn clean install -pl shared/security-lib -am -DskipTests
+
+# Build the notification-service
+WORKDIR /app/services/notification-service
 RUN mvn clean package -DskipTests
 
 # Run stage
-FROM openjdk:17-slim
+FROM amazoncorretto:17-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar eureka-server.jar
+COPY --from=build /app/services/notification-service/target/*.jar notification-service.jar
 EXPOSE 8085
-ENTRYPOINT ["java", "-jar", "eureka-server.jar"]
+ENTRYPOINT ["java", "-jar", "notification-service.jar"]

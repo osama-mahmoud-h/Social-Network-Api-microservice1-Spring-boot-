@@ -2,18 +2,23 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Copy the full project to resolve parent POMs
-COPY ../../pom.xml .
-# Download dependencies (and resolve parent POM)
-#RUN mvn dependency:go-offline
+# Copy parent POM and shared modules
+COPY pom.xml .
+COPY shared ./shared
 
-# Build the application
-COPY ../../src ./src
+# Copy all services (needed for Maven reactor)
+COPY services ./services
+
+# Build shared security library first
+RUN mvn clean install -pl shared/security-lib -am -DskipTests
+
+# Build the gateway-service
+WORKDIR /app/services/gateway-service
 RUN mvn clean package -DskipTests
 
 # Run stage
-FROM openjdk:17-slim
+FROM amazoncorretto:17-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar gateway-service.jar
+COPY --from=build /app/services/gateway-service/target/*.jar gateway-service.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "gateway-service.jar"]
