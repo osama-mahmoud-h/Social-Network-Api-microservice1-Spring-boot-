@@ -68,9 +68,7 @@ logging:
         eureka: DEBUG
 
 #elk stack
-logstash:
-  host: localhost
-  port: 5000
+#logstash:
+#  host: localhost
+#  port: 5000
 # Enable Spring property resolution in Logback
-logging:
-  config: classpath:logback-spring.xml

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import semsem.chatservice.dto.response.AppUserForChatDto;
-import semsem.chatservice.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 
 @Component
 @FeignClient(name = "main-service", url = "${main-service.url}")

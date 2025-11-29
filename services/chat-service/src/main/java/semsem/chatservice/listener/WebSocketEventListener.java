@@ -14,7 +14,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import semsem.chatservice.client.MainServiceClient;
 import semsem.chatservice.dto.response.AppUserForChatDto;
 import semsem.chatservice.dto.response.EventMessageResponseDto;
-import semsem.chatservice.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import semsem.chatservice.dto.response.OnlineUserStatusResponseDto;
 import semsem.chatservice.enums.EventMessageType;
 import semsem.chatservice.repository.RedisOnlineUserRepository;
