@@ -379,54 +379,131 @@ The script supports both PlantUML CLI and Docker-based generation. For detailed 
 ### Chat Service Client
 ![Chat Service Client](images/chat-service-client.png)
 
+## Deployment Architecture
+
+The platform uses Docker Compose for orchestration with a unified deployment file (`docker/docker-compose-all.yml`) that manages all infrastructure and microservices.
+
+### Container Orchestration
+
+**Network Architecture**:
+- Single bridge network: `social_service_dev_network`
+- All services communicate via service names (DNS resolution)
+- Internal ports for inter-service communication
+- Exposed ports for external access
+
+**Service Dependencies**:
+```
+Infrastructure Layer (Foundation):
+├── Databases: PostgreSQL (3 instances), MongoDB, Redis
+├── Message Broker: Zookeeper → Kafka → Kafka UI
+└── Search & Logging: Elasticsearch → Logstash/Kibana
+
+Application Layer (Dependent on Infrastructure):
+├── Auth Service (depends on: auth-db)
+├── Main Service (depends on: main-db, kafka, auth-service)
+├── Search Service (depends on: elasticsearch, kafka, auth-service)
+├── Notification Service (depends on: notification-db, kafka, auth-service)
+├── Chat Service (depends on: redis, auth-service)
+└── Gateway Service (depends on: auth-service)
+```
+
+**Health Checks**:
+- Databases: `pg_isready`, `redis-cli ping`, `mongosh ping`
+- Kafka: Broker API version check
+- Elasticsearch: Cluster health endpoint
+- Services: Port listening check or custom health endpoints
+
+**Resource Allocation** (per service):
+
+| Service | CPU Limit | Memory Limit | Reserved Memory |
+|---------|-----------|--------------|-----------------|
+| **Infrastructure** |
+| Zookeeper | 0.25 cores | 256MB | 128MB |
+| Kafka | 0.5 cores | 512MB | 256MB |
+| Elasticsearch | 0.5 cores | 640MB | 384MB |
+| Logstash | 0.25 cores | 384MB | 128MB |
+| Kibana | 0.25 cores | 512MB | 384MB |
+| Redis | 0.25 cores | 192MB | 64MB |
+| PostgreSQL (each) | 0.25-0.5 cores | 256-384MB | 128-256MB |
+| **Microservices** |
+| Auth Service | 0.5 cores | 320MB | 192MB |
+| Gateway Service | 0.5 cores | 320MB | 192MB |
+| Main Service | 0.5 cores | 448MB | 256MB |
+| Search Service | 0.5 cores | 320MB | 192MB |
+| Notification Service | 0.25 cores | 256MB | 128MB |
+| Chat Service | 0.5 cores | 320MB | 192MB |
+
+**Total System Requirements**: ~5.5 GB RAM, ~6 CPU cores (recommended 8GB RAM, 4+ cores)
+
+**Persistent Volumes**:
+- `kafka-data`: Kafka message persistence
+- `elasticsearch_data`: Search index storage
+- `kibana_data`: Kibana configuration
+- `auth-db-data`, `main-db-data`, `notification-db-data`: PostgreSQL data
+- `chat-service-db-data`: MongoDB data
+- `main-service-uploads`: User-uploaded files
+
+### Build Strategy
+
+**Multi-Layer Dockerfile Pattern**:
+1. **Layer 1 (POM files)**: Parent + shared/security-lib + service pom.xml
+2. **Layer 2 (Dependencies)**: `mvn dependency:go-offline` - cached until pom.xml changes
+3. **Layer 3 (Source code)**: Application code - changes frequently
+4. **Layer 4 (Build)**: Maven build - reuses cached dependencies
+
+**Independent Microservice Builds**:
+- Each service builds standalone (no Maven reactor)
+- Security-lib built first, then service
+- No cross-service dependencies in Dockerfiles
+
+**Performance**:
+- Code changes: 30-60 seconds (dependencies cached)
+- Dependency changes: 5-10 minutes (full rebuild)
+
+### Deployment Files
+
+**Main Orchestration**:
+- `docker/docker-compose-all.yml`: All services + infrastructure
+- Single command deployment: `docker-compose -f docker-compose-all.yml up -d`
+
+**Individual Components** (for development):
+- `docker/docker-compose-kafka.yml`: Kafka stack only
+- `docker/elk-stack-docker/docker-compose-elk.yml`: ELK stack only
+- `services/*/docker/dev/docker-compose.yml`: Individual service files
+
 ## Project Structure
 ```plaintext
 .
 ├── docker
-│   ├── docker-compose-kafka.yml
-│   ├── docker-dev-entrypoint.sh
-│   └── elk-stack-docker
-│       ├── docker-compose-elk.yml
-│       └── logstash.conf
-├── docker-compose-dev.yaml
-├── docker-compose-prod.yaml
+│   ├── docker-compose-all.yml          # Main deployment file (all services)
+│   └── elk-stack-docker
+│       └── logstash.conf
+├── shared
+│   └── security-lib                    # Shared authentication library
+│       ├── pom.xml
+│       └── src
 └── services
+    ├── auth-service
+    │   ├── Dockerfile
+    │   └── src
     ├── chat-service
-    │   ├── docker
-    │   │   └── dev
-    │   │       ├── docker-compose.yml
-    │   │       └── Dockerfile
+    │   ├── docker/dev/Dockerfile
+    │   └── src
     ├── discovery-service
-    │   ├── docker
-    │   │   └── dev
-    │   │       ├── docker-compose.yml
-    │   │       └── Dockerfile
+    │   ├── docker/dev/Dockerfile
+    │   └── src
     ├── gateway-service
-    │   ├── docker
-    │   │   └── dev
-    │   │       ├── docker-compose.yml
-    │   │       └── Dockerfile
+    │   ├── docker/dev/Dockerfile
+    │   └── src
     ├── main-service
-    │   ├── docker
-    │   │   ├── dev
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   ├── Dockerfile.dev
-    │   │   │   └── Dockerfile.dev.psql
-    │   │   └── production
-    │   │       ├── docker-compose-app-production.yaml
-    │   │       ├── Dockerfile.production
-    │   │       └── Dockerfile.production.psql
+    │   ├── docker/dev/Dockerfile
+    │   └── src
     ├── notification-service
-    │   ├── docker
-    │   │   └── dev
-    │   │       ├── docker-compose.yml
-    │   │       └── Dockerfile
+    │   ├── docker/dev/Dockerfile
+    │   └── src
     └── search-service
-        ├── docker
-        │   └── dev
-        │       ├── docker-compose.yml
-        │       └── Dockerfile
-
+        ├── docker/dev/Dockerfile
+        └── src
 ```
 ## Getting Started
 
