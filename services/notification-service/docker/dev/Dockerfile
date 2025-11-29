@@ -1,22 +1,35 @@
-# Build stage
+# =================== Build stage ===================
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Copy parent POM and shared modules
+# Layer 1: Copy only the POM files we actually need (parent + security-lib + this service)
 COPY pom.xml .
-COPY shared ./shared
+COPY shared/security-lib/pom.xml ./shared/security-lib/pom.xml
+COPY services/notification-service/pom.xml ./services/notification-service/pom.xml
 
-# Copy all services (needed for Maven reactor)
-COPY services ./services
+# Layer 2: Download dependencies (cached until pom.xml changes)
+# Build security-lib dependencies first
+WORKDIR /app/shared/security-lib
+RUN mvn dependency:go-offline -B || true
 
-# Build shared security library first
-RUN mvn clean install -pl shared/security-lib -am -DskipTests
+# Build notification-service dependencies
+WORKDIR /app/services/notification-service
+RUN mvn dependency:go-offline -B || true
 
-# Build the notification-service
+# Layer 3: Now copy source code
+WORKDIR /app
+COPY shared/security-lib ./shared/security-lib
+COPY services/notification-service ./services/notification-service
+
+# Layer 4: Build security-lib first (standalone, not reactor build)
+WORKDIR /app/shared/security-lib
+RUN mvn clean install -DskipTests
+
+# Build the notification-service (standalone)
 WORKDIR /app/services/notification-service
 RUN mvn clean package -DskipTests
 
-# Run stage
+# =================== Run stage ===================
 FROM amazoncorretto:17-alpine
 WORKDIR /app
 COPY --from=build /app/services/notification-service/target/*.jar notification-service.jar

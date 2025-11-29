@@ -1,19 +1,23 @@
-# Build stage
+# =================== Build stage ===================
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Copy the full project to resolve parent POMs
-COPY ./../../pom.xml .
+# Layer 1: Copy POM file ONLY (changes infrequently)
+# Discovery-service is standalone and doesn't depend on parent multi-module project
+COPY pom.xml .
 
-# download dependencies locally
-RUN mvn dependency:go-offline
+# Layer 2: Download dependencies (cached until pom.xml changes)
+# This creates a separate Docker layer that won't be invalidated by code changes
+RUN mvn dependency:go-offline -B || true
 
-# Build the application
-COPY ./../../src ./src
+# Layer 3: Now copy ALL source code
+COPY src ./src
+
+# Layer 4: Build (reuses cached dependencies from Layer 2)
 RUN mvn clean package -DskipTests
 
-# Run stage
-FROM openjdk:17-slim
+# =================== Run stage ===================
+FROM amazoncorretto:17-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar eureka-server.jar
 EXPOSE 8761

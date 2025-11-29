@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import semsem.chatservice.client.MainServiceClient;
 import semsem.chatservice.dto.response.AppUserForChatDto;
-import semsem.chatservice.dto.response.MyApiResponse;
+import com.app.shared.security.dto.MyApiResponse;
 import semsem.chatservice.service.FriendsService;
 
 @Service

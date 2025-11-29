@@ -1,28 +1,37 @@
-# Build stage
+# =================== Build stage ===================
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Copy parent POM and shared modules
+# Layer 1: Copy only the POM files we actually need (parent + security-lib + this service)
 COPY pom.xml .
-COPY shared ./shared
+COPY shared/security-lib/pom.xml ./shared/security-lib/pom.xml
+COPY services/auth-service/pom.xml ./services/auth-service/pom.xml
 
-# Copy all services (needed for Maven reactor)
-COPY services ./services
+# Layer 2: Download dependencies (cached until pom.xml changes)
+# Build security-lib dependencies first
+WORKDIR /app/shared/security-lib
+RUN mvn dependency:go-offline -B || true
 
-# Build shared security library first
-RUN mvn clean install -pl shared/security-lib -am -DskipTests
+# Build auth-service dependencies
+WORKDIR /app/services/auth-service
+RUN mvn dependency:go-offline -B || true
 
-# Build the auth-service
+# Layer 3: Now copy source code
+WORKDIR /app
+COPY shared/security-lib ./shared/security-lib
+COPY services/auth-service ./services/auth-service
+
+# Layer 4: Build security-lib first (standalone, not reactor build)
+WORKDIR /app/shared/security-lib
+RUN mvn clean install -DskipTests
+
+# Build the auth-service (standalone)
 WORKDIR /app/services/auth-service
 RUN mvn clean package -DskipTests
 
-# Run stage
+# =================== Run stage ===================
 FROM amazoncorretto:17-alpine
-
 WORKDIR /app
-
-COPY target/auth-service-0.0.1-SNAPSHOT.jar auth-service.jar
-
+COPY --from=build /app/services/auth-service/target/*.jar auth-service.jar
 EXPOSE 8087
-
 ENTRYPOINT ["java", "-jar", "auth-service.jar"]

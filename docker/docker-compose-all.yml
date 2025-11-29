@@ -168,10 +168,10 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "384M"
+          memory: "512M"
         reservations:
           cpus: "0.1"
-          memory: "256M"
+          memory: "384M"
 
   # ======================= Databases =======================
 
@@ -258,17 +258,21 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB for chat-service
-  chat-db:
-    image: mongo:latest
-    container_name: chat-service-db
-    command: mongod --wiredTigerCacheSizeGB 0.15
+  #PostgresQL for notification-service
+  notification-db:
+    image: postgres:16
+    container_name: notification_db
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: osama
+      POSTGRES_PASSWORD: 123456
+    command: postgres -c shared_buffers=64MB -c effective_cache_size=128MB -c max_connections=30
     ports:
-      - "27018:27017"
+      - "5435:5432"
     networks:
       - social_service_dev_network
     volumes:
-      - chat-service-db-data:/data/db
+      - notification-db-data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
@@ -278,10 +282,35 @@ services:
           cpus: "0.1"
           memory: "128M"
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", "pg_isready -U osama -d notification_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # MongoDB for chat-service
+#  chat-db:
+#    image: mongo:latest
+#    container_name: chat-service-db
+#    command: mongod --wiredTigerCacheSizeGB 0.15
+#    ports:
+#      - "27018:27017"
+#    networks:
+#      - social_service_dev_network
+#    volumes:
+#      - chat-service-db-data:/data/db
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.25"
+#          memory: "256M"
+#        reservations:
+#          cpus: "0.1"
+#          memory: "128M"
+#    healthcheck:
+#      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
 
   # ======================= Microservices =======================
 
@@ -289,11 +318,13 @@ services:
   auth-service:
     image: social-network/auth-service:latest
     build:
-      context: ../services/auth-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/auth-service/Dockerfile
     container_name: auth_service
     ports:
       - "8087:8087"
+    env_file:
+      - ../.env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=osama
@@ -313,10 +344,10 @@ services:
           cpus: "0.25"
           memory: "192M"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "netstat -tulpn | grep :8087 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 60s
 
   # Gateway Service
@@ -353,6 +384,8 @@ services:
     container_name: main_service
     ports:
       - "8082:8082"
+    env_file:
+      - ../.env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/social_db
       - SPRING_DATASOURCE_USERNAME=osama
@@ -388,6 +421,8 @@ services:
     container_name: search-service
     ports:
       - "8084:8084"
+    env_file:
+      - ../.env
     environment:
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
       - SPRING_ELASTICSEARCH_USERNAME=elastic
@@ -421,13 +456,20 @@ services:
     container_name: notification-service
     ports:
       - "8085:8085"
+    env_file:
+      - ../.env
     environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db
+      - SPRING_DATASOURCE_USERNAME=osama
+      - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       kafka:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+      notification-db:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -457,8 +499,8 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
-      chat-db:
-        condition: service_healthy
+#      chat-db:
+#        condition: service_healthy
       redis:
         condition: service_healthy
       auth-service:
@@ -486,3 +528,4 @@ volumes:
   main-db-data:
   chat-service-db-data:
   main-service-uploads:
+  notification-db-data:
