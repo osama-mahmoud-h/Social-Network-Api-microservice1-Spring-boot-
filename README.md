@@ -432,47 +432,144 @@ The script supports both PlantUML CLI and Docker-based generation. For detailed 
 
 ### Prerequisites
 
-- Docker and Docker Compose
+- Docker and Docker Compose (v20.10+)
 - Java 17 or higher (for local development)
-- Maven 3.6 or higher
+- Maven 3.6 or higher (for local development)
+- Minimum 8GB RAM for running all services
+- `.env` file in project root (see `.env.examples` for template)
 
-### Docker Setup (Recommended)
+### Docker Deployment (Recommended)
 
-Clone the repository and run the development setup script:
+The entire platform can be deployed using a single Docker Compose file that orchestrates all infrastructure and microservices.
+
+#### Quick Start - All Services
 
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd social-network-microservices
+
+# Create .env file from template
+cp .env.examples .env
+# Edit .env file with your configuration
+
+# Build and start all services
 cd docker
-chmod +x docker-dev-entrypoint.sh
-./docker-dev-entrypoint.sh
+docker-compose -f docker-compose-all.yml up -d
+
+# View logs
+docker-compose -f docker-compose-all.yml logs -f
+
+# Check service status
+docker-compose -f docker-compose-all.yml ps
 ```
 
-### Manual Setup
+The `docker-compose-all.yml` includes:
+- **Infrastructure**: Zookeeper, Kafka, Kafka UI, Elasticsearch, Logstash, Kibana, Redis, PostgreSQL (3 instances), MongoDB
+- **Microservices**: auth-service, gateway-service, main-service, search-service, notification-service, chat-service
 
-For individual service deployment:
+#### Service Startup Order
+
+Services start in dependency order with health checks:
+1. Databases (PostgreSQL, MongoDB, Redis)
+2. Message broker (Zookeeper → Kafka)
+3. Search & logging (Elasticsearch → Logstash/Kibana)
+4. Auth service (authentication foundation)
+5. Business services (main, search, notification, chat)
+6. Gateway service (API routing)
+
+**First-time startup**: Allow 5-10 minutes for all services to initialize and become healthy.
+
+#### Rebuild After Code Changes
+
+Docker layer caching ensures fast rebuilds when you modify code:
 
 ```bash
-# Start infrastructure services
+# Rebuild specific service (recommended for code changes)
+docker-compose -f docker-compose-all.yml build <service-name>
+docker-compose -f docker-compose-all.yml up -d <service-name>
+
+# Example: Rebuild main-service after code changes
+docker-compose -f docker-compose-all.yml build main-service
+docker-compose -f docker-compose-all.yml up -d main-service
+
+# Rebuild all services (if dependencies changed in pom.xml)
+docker-compose -f docker-compose-all.yml build
+
+# Rebuild without cache (force fresh build)
+docker-compose -f docker-compose-all.yml build --no-cache
+```
+
+**Build Performance**:
+- Code-only changes: ~30-60 seconds per service (Maven dependencies cached)
+- POM changes: ~5-10 minutes per service (dependencies re-downloaded)
+
+#### Stop and Cleanup
+
+```bash
+# Stop all services
+docker-compose -f docker-compose-all.yml down
+
+# Stop and remove volumes (WARNING: deletes all data)
+docker-compose -f docker-compose-all.yml down -v
+
+# View resource usage
+docker-compose -f docker-compose-all.yml stats
+```
+
+### Alternative: Individual Service Deployment
+
+For development or testing individual services:
+
+```bash
+# Start infrastructure only
 cd docker
 docker-compose -f docker-compose-kafka.yml up -d
 docker-compose -f elk-stack-docker/docker-compose-elk.yml up -d
 
-# Build and run services
+# Run specific service locally (requires Java 17 + Maven)
 cd services/main-service
 mvn spring-boot:run
+```
+
+### Local Development (No Docker)
+
+```bash
+# Install and start required infrastructure:
+# - PostgreSQL (ports 5432, 5433, 5434, 5435)
+# - MongoDB (port 27017)
+# - Kafka (port 29092)
+# - Elasticsearch (port 9200)
+# - Redis (port 6379)
+
+# Build shared security library (required by all services)
+cd shared/security-lib
+mvn clean install
+
+# Run any service
+cd services/main-service
+mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=dev
 ```
 
 ### Service Endpoints
 
 Once running, the following endpoints are available:
 
-- Main Service API: `http://localhost:8083`
-- Swagger Documentation: `http://localhost:8083/swagger-ui.html`
-- Auth Service: `http://localhost:8087`
-- Chat WebSocket: `ws://localhost:8084/ws`
+**Microservices**:
+- Auth Service: `http://localhost:8087` - [Swagger](http://localhost:8087/swagger-ui.html)
+- Gateway Service: `http://localhost:8081` - API routing (in development)
+- Main Service: `http://localhost:8082` (internal) / `http://localhost:8083` (direct) - [Swagger](http://localhost:8083/swagger-ui.html)
+- Search Service: `http://localhost:8084` - [Swagger](http://localhost:8084/swagger-ui.html)
+- Notification Service: `http://localhost:8085` - [Swagger](http://localhost:8085/swagger-ui.html)
+- Chat Service: `http://localhost:8086` - WebSocket: `ws://localhost:8086/ws`
+
+**Infrastructure**:
+- Kafka: `localhost:29092` (host) / `kafka:9092` (container)
+- Kafka UI: `http://localhost:9093`
 - Elasticsearch: `http://localhost:9200`
 - Kibana: `http://localhost:5601`
+- Redis: `localhost:6379`
+- PostgreSQL DBs: `localhost:5433` (auth), `5434` (main), `5435` (notification)
 
 ### API Testing Examples
 
@@ -488,6 +585,110 @@ User login:
 curl -X POST http://localhost:8083/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"password123"}'
+```
+
+### Troubleshooting
+
+#### Service Won't Start
+
+**Problem**: Service fails with "Connection refused" or "Unknown host"
+```bash
+# Check if infrastructure services are healthy
+docker-compose -f docker-compose-all.yml ps
+
+# View service logs
+docker-compose -f docker-compose-all.yml logs <service-name>
+
+# Restart specific service
+docker-compose -f docker-compose-all.yml restart <service-name>
+```
+
+**Problem**: Gateway service circular dependency error
+```
+The dependencies of some of the beans in the application context form a cycle
+```
+**Solution**: Already fixed with `@Lazy` annotation in AuthenticationGatewayFilterFactory. Rebuild gateway-service:
+```bash
+docker-compose -f docker-compose-all.yml build gateway-service
+docker-compose -f docker-compose-all.yml up -d gateway-service
+```
+
+**Problem**: Elasticsearch fails with "max virtual memory areas too low"
+```bash
+# Linux/macOS
+sudo sysctl -w vm.max_map_count=262144
+
+# Docker Desktop (Windows/macOS): Increase Docker memory to at least 4GB in settings
+```
+
+#### Build Issues
+
+**Problem**: Maven build fails with "Child module does not exist"
+```bash
+# Ensure you're using the latest Dockerfiles with independent builds
+cd docker
+docker-compose -f docker-compose-all.yml build --no-cache
+```
+
+**Problem**: Slow Docker builds
+```bash
+# Verify dependency caching is working
+docker-compose -f docker-compose-all.yml build <service-name>
+# Should show "CACHED" for dependency layers if only code changed
+
+# Clear Docker build cache if needed
+docker builder prune -a
+```
+
+#### Database Connection Issues
+
+**Problem**: "Connection to database failed"
+```bash
+# Check if database is healthy
+docker-compose -f docker-compose-all.yml ps | grep db
+
+# Verify database credentials in .env file match docker-compose-all.yml
+cat ../.env
+
+# Restart database
+docker-compose -f docker-compose-all.yml restart auth-db main-db notification-db
+```
+
+#### Port Conflicts
+
+**Problem**: "Port already in use"
+```bash
+# Find what's using the port
+sudo lsof -i :<port-number>
+
+# Kill the process or change the port in docker-compose-all.yml
+```
+
+#### Memory Issues
+
+**Problem**: Services crash or become unresponsive
+```bash
+# Check resource usage
+docker stats
+
+# Increase Docker memory limit:
+# Docker Desktop: Preferences → Resources → Memory (set to at least 8GB)
+
+# Reduce service memory limits in docker-compose-all.yml if needed
+```
+
+#### Kafka Connection Issues
+
+**Problem**: "Could not connect to Kafka broker"
+```bash
+# Verify Kafka is healthy
+docker-compose -f docker-compose-all.yml logs kafka
+
+# Check Kafka UI
+open http://localhost:9093
+
+# Restart Kafka stack
+docker-compose -f docker-compose-all.yml restart zookeeper kafka
 ```
 
 ## Development Roadmap
@@ -515,10 +716,10 @@ curl -X POST http://localhost:8083/api/auth/signin \
 
 ### Known Limitations
 
-- Chat service WebSocket connections currently lack JWT authentication
-- Main docker-compose.yml orchestration file is pending
 - Service discovery integration with Eureka requires completion
+- Gateway service route configuration needs completion
 - ELK stack integration needs configuration refinement
+- Redis caching layer not yet integrated (infrastructure ready)
 
 ## Contributing
 

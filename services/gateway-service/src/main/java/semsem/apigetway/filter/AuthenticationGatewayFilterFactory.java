@@ -6,6 +6,7 @@ import com.app.shared.security.dto.TokenValidationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -20,7 +21,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
 
     private final AuthServiceClient authServiceClient;
 
-    public AuthenticationGatewayFilterFactory(AuthServiceClient authServiceClient) {
+    public AuthenticationGatewayFilterFactory(@Lazy AuthServiceClient authServiceClient) {
         super(Config.class);
         this.authServiceClient = authServiceClient;
     }

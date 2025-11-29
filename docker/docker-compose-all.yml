@@ -318,8 +318,8 @@ services:
   auth-service:
     image: social-network/auth-service:latest
     build:
-      context: ../services/auth-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/auth-service/Dockerfile
     container_name: auth_service
     ports:
       - "8087:8087"

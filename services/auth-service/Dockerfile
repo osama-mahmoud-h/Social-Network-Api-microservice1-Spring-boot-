@@ -2,26 +2,30 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-# Layer 1: Copy POM files ONLY (changes infrequently)
-COPY ../../pom.xml .
-COPY ../../shared/security-lib/pom.xml ./shared/security-lib/pom.xml
-COPY pom.xml ./services/auth-service/pom.xml
+# Layer 1: Copy only the POM files we actually need (parent + security-lib + this service)
+COPY pom.xml .
+COPY shared/security-lib/pom.xml ./shared/security-lib/pom.xml
+COPY services/auth-service/pom.xml ./services/auth-service/pom.xml
 
 # Layer 2: Download dependencies (cached until pom.xml changes)
-# This creates a separate Docker layer that won't be invalidated by code changes
-RUN mvn dependency:go-offline -B \
-    -pl shared/security-lib,services/auth-service \
-    -am \
-    || true
+# Build security-lib dependencies first
+WORKDIR /app/shared/security-lib
+RUN mvn dependency:go-offline -B || true
 
-# Layer 3: Now copy ALL source code
-COPY ../../shared ./shared
-COPY . ./services/auth-service
+# Build auth-service dependencies
+WORKDIR /app/services/auth-service
+RUN mvn dependency:go-offline -B || true
 
-# Layer 4: Build (reuses cached dependencies from Layer 2)
-RUN mvn clean install -pl shared/security-lib -am -DskipTests
+# Layer 3: Now copy source code
+WORKDIR /app
+COPY shared/security-lib ./shared/security-lib
+COPY services/auth-service ./services/auth-service
 
-# Build the auth-service
+# Layer 4: Build security-lib first (standalone, not reactor build)
+WORKDIR /app/shared/security-lib
+RUN mvn clean install -DskipTests
+
+# Build the auth-service (standalone)
 WORKDIR /app/services/auth-service
 RUN mvn clean package -DskipTests
 
