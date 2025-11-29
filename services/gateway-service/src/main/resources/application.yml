@@ -1,43 +1,45 @@
 spring:
   application:
     name: api-gateway
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # Default to dev profile
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default for local dev
+          lower-case-service-id: true
       # Gateway Routes Configuration
+      # Using direct URLs instead of load balancer (lb://) since Eureka is disabled
       routes:
         - id: auth-service
-          uri: lb://auth-service
+          uri: lb://AUTH-SERVICE  # Use Eureka service name with lb://
           predicates:
             - Path=/api/auth/**
         - id: main-service
-          uri: lb://server
+          uri: lb://MAIN-SERVICE  # Use Eureka service name
           predicates:
             - Path=/api/v1/**
-          filters:
-            - Authentication
         - id: chat-service
-          uri: lb://chat-service
+          uri: lb://CHAT-SERVICE  # Use Eureka service name
           predicates:
             - Path=/api/chat/**
-          filters:
-            - Authentication
         - id: search-service
-          uri: lb://search-service
+          uri: lb://SEARCH-SERVICE  # Use Eureka service name
           predicates:
             - Path=/api/search/**
-          filters:
-            - Authentication
         - id: notification-service
-          uri: lb://notification-service
+          uri: lb://NOTIFICATION-SERVICE  # Use Eureka service name
           predicates:
             - Path=/api/notifications/**
-          filters:
-            - Authentication
+
+#          filters:
+#            - Authentication
       # CORS Configuration
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: '*'
+            allowed-origin-patterns: '*'  # Use patterns instead of origins with credentials
             allowed-methods: GET,POST,PUT,DELETE,OPTIONS
             allowed-headers: '*'
             allow-credentials: true
@@ -45,11 +47,12 @@ spring:
 server:
   port: 8081
 
-#===================== Eureka Server Configuration ==========================
+# Eureka Configuration - DISABLED by default for local development
 eureka:
   client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
 
@@ -59,16 +62,34 @@ logging:
     org:
       springframework:
         cloud:
-          gateway: DEBUG
+          gateway: INFO
     reactor:
-      netty: DEBUG
-    com:
-      netflix:
-        discovery: DEBUG
-        eureka: DEBUG
+      netty: INFO
 
-#elk stack
+#===================== ELK Stack Configuration - DISABLED ==========================
+# Uncomment when ELK stack is integrated
 #logstash:
 #  host: localhost
 #  port: 5000
-# Enable Spring property resolution in Logback
+
+---
+# Docker/Production Profile - Eureka ENABLED
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # Enable service discovery in Docker
+          lower-case-service-id: true
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/  # Docker DNS name
+  instance:
+    prefer-ip-address: true
+    hostname: api-gateway
