@@ -41,6 +41,18 @@
 			<groupId>com.app.shared</groupId>
 			<artifactId>security-lib</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<!-- Exclude Spring MVC - Gateway uses WebFlux (reactive) -->
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-web</artifactId>
+				</exclusion>
+				<!-- Exclude WebMVC Swagger - Gateway needs WebFlux version -->
+				<exclusion>
+					<groupId>org.springdoc</groupId>
+					<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- OpenFeign for service communication -->
