@@ -13,6 +13,7 @@ services:
       - "2181:2181"
     networks:
       - social_service_dev_network
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -50,6 +51,7 @@ services:
       - social_service_dev_network
     volumes:
       - kafka-data:/bitnami/kafka/data
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -314,6 +316,35 @@ services:
 
   # ======================= Microservices =======================
 
+  # Discovery Service (Eureka)
+  discovery-service:
+    image: social-network/discovery-service:latest
+    build:
+      context: ..
+      dockerfile: services/discovery-service/docker/dev/Dockerfile
+    container_name: discovery_service
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    networks:
+      - social_service_dev_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.1"
+          memory: "128M"
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -tulpn | grep :8761 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Auth Service
   auth-service:
     image: social-network/auth-service:latest
@@ -326,12 +357,15 @@ services:
     env_file:
       - ../.env
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       auth-db:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -360,8 +394,11 @@ services:
     ports:
       - "8081:8081"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
+      discovery-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
     networks:
@@ -387,6 +424,7 @@ services:
     env_file:
       - ../.env
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/social_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
@@ -396,6 +434,8 @@ services:
       main-db:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
       auth-service:
         condition: service_healthy
@@ -424,6 +464,7 @@ services:
     env_file:
       - ../.env
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
       - SPRING_ELASTICSEARCH_USERNAME=elastic
       - SPRING_ELASTICSEARCH_PASSWORD=123456
@@ -433,6 +474,8 @@ services:
       elasticsearch:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
       auth-service:
         condition: service_healthy
@@ -459,6 +502,7 @@ services:
     env_file:
       - ../.env
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
@@ -466,6 +510,8 @@ services:
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     depends_on:
       kafka:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
       auth-service:
         condition: service_healthy
@@ -492,6 +538,7 @@ services:
     ports:
       - "8086:8086"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATA_MONGODB_HOST=chat-db
       - SPRING_DATA_MONGODB_PORT=27017
       - SPRING_DATA_MONGODB_DATABASE=chat-service
@@ -502,6 +549,8 @@ services:
 #      chat-db:
 #        condition: service_healthy
       redis:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
       auth-service:
         condition: service_healthy

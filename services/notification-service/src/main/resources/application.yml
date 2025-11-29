@@ -1,6 +1,8 @@
 spring:
   application:
     name: notification-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # Default to dev profile
 
   #===================== Database Configuration ==========================
   datasource:
@@ -64,6 +66,15 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
+# Eureka Configuration - DISABLED by default for local development
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
 #elk stack
 logstash:
   host: localhost
@@ -71,3 +82,19 @@ logstash:
 # Enable Spring property resolution in Logback
 #logging:
 #  config: classpath:logback-spring.xml
+
+---
+# Docker/Production Profile - Eureka ENABLED
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/  # Docker DNS name
+  instance:
+    prefer-ip-address: true
+    hostname: notification-service

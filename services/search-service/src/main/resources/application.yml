@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: search-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # Default to dev profile
   # Elasticsearch Configuration
   elasticsearch:
     uris: http://localhost:9200
@@ -36,10 +38,35 @@ logging:
       apache:
         kafka: INFO
 
+# Eureka Configuration - DISABLED by default for local development
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
 #elk stack
 logstash:
   host: localhost
   port: 5000
 # Enable Spring property resolution in Logback
+
+---
+# Docker/Production Profile - Eureka ENABLED
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/  # Docker DNS name
+  instance:
+    prefer-ip-address: true
+    hostname: search-service
 
 
