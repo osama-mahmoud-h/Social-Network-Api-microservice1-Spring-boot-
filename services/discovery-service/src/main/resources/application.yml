@@ -36,6 +36,10 @@ spring:
     activate:
       on-profile: docker
 
+# Activate ELK logging in Docker
+logging:
+  config: classpath:logback-spring-prod.xml
+
 # Eureka Server Configuration for Docker
 eureka:
   instance:
@@ -43,3 +47,17 @@ eureka:
   client:
     service-url:
       defaultZone: http://discovery-service:8761/eureka
+  server:
+    # Disable self-preservation mode for dev (prevents false "EMERGENCY" warnings)
+    enable-self-preservation: false
+    # Lower renewal threshold for dev environment
+    renewal-percent-threshold: 0.49
+    # Faster eviction of dead instances
+    eviction-interval-timer-in-ms: 5000
+    # Expected heartbeat renewal interval
+    expected-client-renewal-interval-seconds: 30
+
+# ELK Stack - Use Docker service name
+logstash:
+  host: logstash
+  port: 5000

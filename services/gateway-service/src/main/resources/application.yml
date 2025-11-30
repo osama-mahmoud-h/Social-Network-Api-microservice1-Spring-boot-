@@ -93,3 +93,8 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: api-gateway
+
+# ELK Stack - Use Docker service name (uncomment when ELK is integrated)
+#logstash:
+#  host: logstash
+#  port: 5000
