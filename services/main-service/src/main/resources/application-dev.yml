@@ -1,6 +1,8 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+    activate:
+      on-profile: docker
   # ======================= App =======================
   application:
     name: social_network_app_dev
@@ -114,9 +116,15 @@ file:
 search-service:
   url: http://localhost:8084
 
-#===================== Eureka Server Configuration ==========================
-#eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
-#eureka.instance.prefer-ip-address=true
+
+# Eureka Configuration - DISABLED by default for local development
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
 
 #===================== Logging Configuration ==========================
 # Reduce Hibernate verbose logging
@@ -143,3 +151,21 @@ logstash:
   port: 5000
 # Enable Spring property resolution in Logback
 #logging.config=classpath:logback-spring-prod.xml
+
+# Docker/Production Profile - Eureka ENABLED
+
+---
+# Docker/Production Profile - Eureka ENABLED
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/  # Docker DNS name
+  instance:
+    prefer-ip-address: true
+    hostname: real-estate-api

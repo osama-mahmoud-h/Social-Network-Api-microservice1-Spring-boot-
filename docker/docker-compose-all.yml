@@ -328,8 +328,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-discovery-service:/root/.m2  # Isolated Maven cache for discovery-service
     networks:
       - social_service_dev_network
+    depends_on:
+      - elasticsearch
+      - logstash
     deploy:
       resources:
         limits:
@@ -362,6 +367,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-auth-service:/root/.m2  # Isolated Maven cache for auth-service
     depends_on:
       auth-db:
         condition: service_healthy
@@ -396,6 +403,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-gateway-service:/root/.m2  # Isolated Maven cache for gateway-service
     depends_on:
       discovery-service:
         condition: service_healthy
@@ -442,6 +451,7 @@ services:
     networks:
       - social_service_dev_network
     volumes:
+      - maven-main-service:/root/.m2  # Isolated Maven cache for main-service
       - main-service-uploads:/app/uploads
     deploy:
       resources:
@@ -470,6 +480,8 @@ services:
       - SPRING_ELASTICSEARCH_PASSWORD=123456
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-search-service:/root/.m2  # Isolated Maven cache for search-service
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -508,6 +520,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-notification-service:/root/.m2  # Isolated Maven cache for notification-service
     depends_on:
       kafka:
         condition: service_healthy
@@ -545,6 +559,8 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - maven-chat-service:/root/.m2  # Isolated Maven cache for chat-service
     depends_on:
 #      chat-db:
 #        condition: service_healthy
@@ -578,3 +594,11 @@ volumes:
   chat-service-db-data:
   main-service-uploads:
   notification-db-data:
+  # Isolated Maven caches per service to avoid dependency version conflicts
+  maven-discovery-service:
+  maven-auth-service:
+  maven-gateway-service:
+  maven-main-service:
+  maven-search-service:
+  maven-notification-service:
+  maven-chat-service:

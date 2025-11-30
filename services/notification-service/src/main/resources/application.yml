@@ -90,6 +90,10 @@ spring:
     activate:
       on-profile: docker
 
+# Activate ELK logging in Docker
+logging:
+  config: classpath:logback-spring-prod.xml
+
 eureka:
   client:
     enabled: true
@@ -98,3 +102,8 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: notification-service
+
+# ELK Stack - Use Docker service name
+logstash:
+  host: logstash
+  port: 5000
