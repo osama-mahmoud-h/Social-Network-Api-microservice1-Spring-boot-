@@ -13,6 +13,9 @@ services:
       - "2181:2181"
     networks:
       - social_service_dev_network
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
     restart: unless-stopped
     deploy:
       resources:
@@ -186,6 +189,8 @@ services:
       - "6379:6379"
       networks:
       - social_service_dev_network
+      volumes:
+      - redis-data:/data
       restart: unless-stopped
       deploy:
         resources:
@@ -586,14 +591,21 @@ networks:
     driver: bridge
 
 volumes:
+  # Infrastructure volumes
+  zookeeper-data:
+  zookeeper-log:
   kafka-data:
+  redis-data:
+  # ELK Stack volumes
   elasticsearch_data:
   kibana_data:
+  # Database volumes
   auth-db-data:
   main-db-data:
   chat-service-db-data:
-  main-service-uploads:
   notification-db-data:
+  # Application volumes
+  main-service-uploads:
   # Isolated Maven caches per service to avoid dependency version conflicts
   maven-discovery-service:
   maven-auth-service:
