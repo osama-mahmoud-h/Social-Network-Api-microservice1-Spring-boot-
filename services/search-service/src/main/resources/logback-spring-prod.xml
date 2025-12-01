@@ -12,9 +12,13 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"spring_app_name":"${springAppName:-search-service}"}</customFields>
         </encoder>
-        <!-- Reconnection settings -->
+        <!-- Reconnection settings - more resilient for Docker startup -->
         <keepAliveDuration>5 minutes</keepAliveDuration>
-        <reconnectionDelay>10 seconds</reconnectionDelay>
+        <reconnectionDelay>30 seconds</reconnectionDelay>
+        <secondaryConnectionTTL>5 minutes</secondaryConnectionTTL>
+        <!-- Wait for DNS to be available -->
+        <waitStrategyType>sleeping</waitStrategyType>
+        <connectionTimeout>5000</connectionTimeout>
     </appender>
 
     <!-- Async appender for better performance -->

@@ -64,6 +64,16 @@ spring:
     uris: http://elasticsearch:9200
     username: elastic
     password: '123456'
+    socket-timeout: 10s
+    connection-timeout: 5s
+    restclient:
+      sniffer:
+        interval: 5m
+  # Defer index creation to avoid startup failures
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
   kafka:
     bootstrap-servers: kafka:9092
 
