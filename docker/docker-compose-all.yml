@@ -151,6 +151,12 @@ services:
         reservations:
           cpus: "0.1"
           memory: "128M"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   # Kibana for log visualization
   kibana:
@@ -494,7 +500,7 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      auth-service:
+      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -506,6 +512,13 @@ services:
         reservations:
           cpus: "0.25"
           memory: "192M"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -tulpn | grep :8084 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
 
   # Notification Service
   notification-service:
@@ -535,6 +548,8 @@ services:
       auth-service:
         condition: service_healthy
       notification-db:
+        condition: service_healthy
+      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network

@@ -8,12 +8,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.URI;
+
 @Configuration
 public class ElasticsearchConfig {
+
+    @Value("${spring.elasticsearch.uris}")
+    private String elasticsearchUri;
 
     @Bean
     public ElasticsearchClient elasticsearchClient() {
@@ -22,9 +27,15 @@ public class ElasticsearchConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // Build Elasticsearch client
+        // Parse Elasticsearch URI from configuration (supports both dev and docker profiles)
+        URI uri = URI.create(elasticsearchUri);
+        String host = uri.getHost();
+        int port = uri.getPort() > 0 ? uri.getPort() : 9200;
+        String scheme = uri.getScheme() != null ? uri.getScheme() : "http";
+
+        // Build Elasticsearch client with configured host
         RestClient restClient = RestClient.builder(
-                new HttpHost("localhost", 9200)
+                new HttpHost(host, port, scheme)
         ).build();
 
         return new ElasticsearchClient(
