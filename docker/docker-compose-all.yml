@@ -371,7 +371,7 @@ services:
     ports:
       - "8087:8087"
     env_file:
-      - ../.env
+      - ../services/auth-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
@@ -442,7 +442,7 @@ services:
     ports:
       - "8082:8082"
     env_file:
-      - ../.env
+      - ../services/main-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/social_db
@@ -483,7 +483,7 @@ services:
     ports:
       - "8084:8084"
     env_file:
-      - ../.env
+      - ../services/search-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
@@ -530,7 +530,7 @@ services:
     ports:
       - "8085:8085"
     env_file:
-      - ../.env
+      - ../services/notification-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db

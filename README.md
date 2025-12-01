@@ -2,9 +2,9 @@
 
 A scalable microservice-based social network backend system built with Spring Boot, featuring event-driven architecture, real-time communication, and distributed data management. This platform demonstrates modern enterprise patterns including service discovery, API gateway routing, message-driven systems, and comprehensive observability.
 
-**Development Status**: This project is under active development. Core services are functional, while infrastructure components are being progressively enhanced.
+**Development Status**: Production-ready microservices platform with complete infrastructure services. Active development continues on performance optimizations and advanced features.
 
-**Last Updated**: November 2025
+**Last Updated**: December 2025
 
 ## Features
 
@@ -29,11 +29,9 @@ A scalable microservice-based social network backend system built with Spring Bo
 - Multi-database architecture (PostgreSQL, MongoDB, Elasticsearch)
 
 ### In Progress
-- Service discovery with Eureka (infrastructure in place)
-- API Gateway routing with Spring Cloud Gateway
 - Redis-based caching and rate limiting
-- Complete Docker Compose orchestration
-- WebSocket security enhancements
+- Enhanced monitoring and observability (ELK stack configuration refinement)
+- Performance optimizations
 
 ## Architecture Overview
 
@@ -49,8 +47,8 @@ The system follows a microservices architecture pattern with each service having
 - **Chat Service** (Port: 8084) - Real-time messaging via WebSocket with MongoDB persistence
 
 **Infrastructure Services**
-- **Gateway Service** - API routing and load balancing (in development)
-- **Discovery Service** - Eureka-based service registry (in development)
+- **Gateway Service** (Port: 8081) - API routing and load balancing with authentication filtering
+- **Discovery Service** - Eureka-based service registry for dynamic service discovery
 
 All services are containerized using Docker and can be orchestrated via Docker Compose for both development and production environments.
 
@@ -166,18 +164,25 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - **TODO**: Rate limiting for notification sending
 
 ### Discovery Service (Eureka)
-**Status**: Service created but not integrated
-- Basic Eureka server setup complete
-- Client registration from other services
-- **TODO**: Load balancing configuration
+**Status**: Fully functional
+- Eureka server setup complete and running
+- All microservices registered and discoverable
+- Service health monitoring and heartbeat tracking
+- Dynamic service discovery enabled
+- **TODO**: Advanced load balancing configuration
+- **TODO**: Multi-zone deployment support
 ![Discovery Service](images/eureka.png)
 
 ### Gateway Service (Spring Cloud Gateway)
-**Status**: Skeleton created
-- Basic gateway structure in place
-- **TODO**: Route configuration
-- **TODO**: Security integration
-- **TODO**: Load balancing setup
+**Status**: Fully functional
+- Spring Cloud Gateway routing configured
+- Authentication filtering integrated with Auth Service
+- Route configuration for all microservices
+- Load balancing with Eureka service discovery
+- Security integration complete
+- **TODO**: Rate limiting configuration
+- **TODO**: Circuit breaker patterns
+- **TODO**: Request/response logging enhancements
 
 ### Centralized Logging (ELK Stack)
 **Status**: ELK stack deployed via Docker
@@ -635,8 +640,8 @@ Once running, the following endpoints are available:
 
 **Microservices**:
 - Auth Service: `http://localhost:8087` - [Swagger](http://localhost:8087/swagger-ui.html)
-- Gateway Service: `http://localhost:8081` - API routing (in development)
-- Main Service: `http://localhost:8082` (internal) / `http://localhost:8083` (direct) - [Swagger](http://localhost:8083/swagger-ui.html)
+- Gateway Service: `http://localhost:8081` - API routing with authentication filtering
+- Main Service: `http://localhost:8082` (via gateway) / `http://localhost:8083` (direct) - [Swagger](http://localhost:8083/swagger-ui.html)
 - Search Service: `http://localhost:8084` - [Swagger](http://localhost:8084/swagger-ui.html)
 - Notification Service: `http://localhost:8085` - [Swagger](http://localhost:8085/swagger-ui.html)
 - Chat Service: `http://localhost:8086` - WebSocket: `ws://localhost:8086/ws`
@@ -778,13 +783,11 @@ docker-compose -f docker-compose-all.yml restart zookeeper kafka
 - Core social features (posts, comments, friendships)
 - Full-text search integration
 - Event-driven notifications
-- Basic real-time chat
-
-**In Development**
+- Real-time chat with WebSocket security
 - Service discovery and registration
 - API gateway routing
-- WebSocket security
 - Complete Docker orchestration
+- ELK stack centralized logging
 
 **Planned**
 - Redis caching and rate limiting
@@ -794,10 +797,9 @@ docker-compose -f docker-compose-all.yml restart zookeeper kafka
 
 ### Known Limitations
 
-- Service discovery integration with Eureka requires completion
-- Gateway service route configuration needs completion
-- ELK stack integration needs configuration refinement
 - Redis caching layer not yet integrated (infrastructure ready)
+- Rate limiting not yet implemented
+- S3-compatible storage (MinIO) pending for file uploads
 
 ## Contributing
 
