@@ -38,9 +38,12 @@ build/
 logs/
 **/*.log
 
-services/mainService/.env
-/src/main/resources/static/uploads/
-/services/mainService/target/
-/services/mainService/.env
-.claude/
+### Environment files at any level###
 .env
+**/.env
+!**/.env.example
+
+
+### Uploads ###
+**/src/main/resources/static/uploads/
+
