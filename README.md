@@ -168,8 +168,9 @@ All services are containerized using Docker and can be orchestrated via Docker C
 ### Discovery Service (Eureka)
 **Status**: Service created but not integrated
 - Basic Eureka server setup complete
-- **TODO**: Client registration from other services
+- Client registration from other services
 - **TODO**: Load balancing configuration
+![Discovery Service](images/eureka.png)
 
 ### Gateway Service (Spring Cloud Gateway)
 **Status**: Skeleton created
