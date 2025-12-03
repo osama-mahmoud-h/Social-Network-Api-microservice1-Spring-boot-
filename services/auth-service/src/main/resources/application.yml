@@ -5,9 +5,9 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}  # Default to dev profile
   # Database Configuration (postgresql)
   datasource:
-    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/authdb
-    username: ${DATABASE_USERNAME:osama}
-    password: ${DATABASE_PASSWORD:123456}
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   # JPA Configuration
   jpa:
@@ -40,7 +40,7 @@ spring:
           writetimeout: 5000
   # Kafka Configuration
   kafka:
-    bootstrap-servers: ${spring.kafka.bootstrap-servers:localhost:29092}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -59,7 +59,7 @@ eureka:
   client:
     enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_SERVER_URL}
   instance:
     prefer-ip-address: true
 

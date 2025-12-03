@@ -150,7 +150,7 @@ services:
           memory: "384M"
         reservations:
           cpus: "0.1"
-          memory: "128M"
+          memory: "192M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
       interval: 30s
@@ -179,10 +179,10 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "512M"
+          memory: "960M"
         reservations:
           cpus: "0.1"
-          memory: "384M"
+          memory: "512M"
 
   # ======================= Databases =======================
 
@@ -344,8 +344,10 @@ services:
     networks:
       - social_service_dev_network
     depends_on:
-      - elasticsearch
-      - logstash
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -354,6 +356,11 @@ services:
         reservations:
           cpus: "0.1"
           memory: "128M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "netstat -tulpn | grep :8761 || exit 1"]
       interval: 30s
@@ -385,6 +392,8 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      logstash:
+        condition: service_healthy
     networks:
       - social_service_dev_network
     deploy:
@@ -395,6 +404,11 @@ services:
         reservations:
           cpus: "0.25"
           memory: "192M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "netstat -tulpn | grep :8087 || exit 1"]
       interval: 30s
@@ -421,6 +435,8 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_healthy
+      logstash:
+        condition: service_healthy
     networks:
       - social_service_dev_network
     deploy:
@@ -431,6 +447,11 @@ services:
         reservations:
           cpus: "0.25"
           memory: "192M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
 
   # Main Service
   main-service:
@@ -459,6 +480,8 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_healthy
+      logstash:
+        condition: service_healthy
     networks:
       - social_service_dev_network
     volumes:
@@ -472,6 +495,11 @@ services:
         reservations:
           cpus: "0.25"
           memory: "256M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
 
   # Search Service
   search-service:
@@ -512,6 +540,10 @@ services:
         reservations:
           cpus: "0.25"
           memory: "192M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "netstat -tulpn | grep :8084 || exit 1"]
@@ -561,6 +593,11 @@ services:
         reservations:
           cpus: "0.1"
           memory: "128M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
 
   # Chat Service
   chat-service:
@@ -590,6 +627,8 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_healthy
+      logstash:
+        condition: service_healthy
     networks:
       - social_service_dev_network
     deploy:
@@ -600,6 +639,11 @@ services:
         reservations:
           cpus: "0.25"
           memory: "192M"
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+        delay: 10s
+    restart: on-failure
 
 networks:
   social_service_dev_network:
