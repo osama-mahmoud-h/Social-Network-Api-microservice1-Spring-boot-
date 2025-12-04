@@ -16,6 +16,7 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
+      - zookeeper-secrets:/etc/zookeeper/secrets
     restart: unless-stopped
     deploy:
       resources:
@@ -54,6 +55,8 @@ services:
       - social_service_dev_network
     volumes:
       - kafka-data:/bitnami/kafka/data
+      - kafka-secrets:/etc/kafka/secrets
+      - kafka-lib-data:/var/lib/kafka/data
     restart: unless-stopped
     deploy:
       resources:
@@ -131,9 +134,10 @@ services:
     image: docker.elastic.co/logstash/logstash:8.13.4
     container_name: logstash
     environment:
-      - LS_JAVA_OPTS=-Xms128m -Xmx256m
+      - LS_JAVA_OPTS=-Xms192m -Xmx256m
     volumes:
       - ./elk-stack-docker/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - logstash-data:/usr/share/logstash/data
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -150,7 +154,7 @@ services:
           memory: "256M"
         reservations:
           cpus: "0.1"
-          memory: "128M"
+          memory: "192M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
       interval: 30s
@@ -659,10 +663,14 @@ volumes:
   # Infrastructure volumes
   zookeeper-data:
   zookeeper-log:
+  zookeeper-secrets:
   kafka-data:
+  kafka-secrets:
+  kafka-lib-data:
   redis-data:
   # ELK Stack volumes
   elasticsearch_data:
+  logstash-data:
   kibana_data:
   # Database volumes
   auth-db-data:
