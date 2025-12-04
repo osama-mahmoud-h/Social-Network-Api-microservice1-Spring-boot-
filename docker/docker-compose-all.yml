@@ -123,8 +123,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
+      timeout: 60s
+      retries: 10
 
   # Logstash for log processing
   logstash:
@@ -147,15 +147,15 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "384M"
+          memory: "256M"
         reservations:
           cpus: "0.1"
-          memory: "192M"
+          memory: "128M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
+      timeout: 30s
+      retries: 10
       start_period: 60s
 
   # Kibana for log visualization
@@ -165,7 +165,7 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - xpack.security.enabled=false
-      - NODE_OPTIONS="--max-old-space-size=256"
+      - NODE_OPTIONS="--max-old-space-size=960"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -358,7 +358,7 @@ services:
           memory: "128M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
     healthcheck:
@@ -381,6 +381,7 @@ services:
       - ../services/auth-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
@@ -406,7 +407,7 @@ services:
           memory: "192M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
     healthcheck:
@@ -427,6 +428,7 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     volumes:
       - maven-gateway-service:/root/.m2  # Isolated Maven cache for gateway-service
@@ -466,6 +468,7 @@ services:
       - ../services/main-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/social_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
@@ -497,7 +500,7 @@ services:
           memory: "256M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
 
@@ -514,6 +517,7 @@ services:
       - ../services/search-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
       - SPRING_ELASTICSEARCH_USERNAME=elastic
       - SPRING_ELASTICSEARCH_PASSWORD=123456
@@ -542,7 +546,7 @@ services:
           memory: "192M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
     healthcheck:
@@ -565,6 +569,7 @@ services:
       - ../services/notification-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=osama
       - SPRING_DATASOURCE_PASSWORD=123456
@@ -595,7 +600,7 @@ services:
           memory: "128M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
 
@@ -610,6 +615,7 @@ services:
       - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATA_MONGODB_HOST=chat-db
       - SPRING_DATA_MONGODB_PORT=27017
       - SPRING_DATA_MONGODB_DATABASE=chat-service
@@ -641,7 +647,7 @@ services:
           memory: "192M"
       restart_policy:
         condition: on-failure
-        max_attempts: 5
+        max_attempts: 8
         delay: 10s
     restart: on-failure
 
