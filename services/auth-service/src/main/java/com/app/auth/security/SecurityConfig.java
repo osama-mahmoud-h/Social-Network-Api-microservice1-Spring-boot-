@@ -1,6 +1,6 @@
-package com.app.auth.config;
+package com.app.auth.security;
 
-import com.app.auth.security.JwtAuthenticationFilter;
+import com.app.auth.service.impl.CustomOAuth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +32,9 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomOAuth2UserServiceImpl customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,7 +67,9 @@ public class SecurityConfig {
                                 "/api/auth/validate",
                                 "/api/auth/validate-header",
                                 "/api/auth/verify-registration",
-                                "/api/auth/forgot-password"
+                                "/api/auth/forgot-password",
+                                "/login/oauth2/**",
+                                "/oauth2/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -75,6 +80,13 @@ public class SecurityConfig {
                                 "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

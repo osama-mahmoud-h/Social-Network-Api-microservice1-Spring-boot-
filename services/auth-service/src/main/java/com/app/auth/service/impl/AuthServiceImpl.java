@@ -75,6 +75,25 @@ public class AuthServiceImpl implements AuthService {
         return authMapper.mapToAuthResponse(accessToken, refreshToken, 3600L, user);
     }
 
+    @Transactional
+    @Override
+    public AuthResponse authenticateOAuth2User(User user, DeviceInfoRequest deviceInfo) {
+        // Update last login time
+        user.setLastLoginAt(Instant.now());
+        userRepository.save(user);
+
+        // Generate new tokens
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        // Save the new token with device information
+        saveUserToken(user, accessToken, deviceInfo);
+
+        log.info("OAuth2 user authenticated successfully: {}", user.getEmail());
+
+        return authMapper.mapToAuthResponse(accessToken, refreshToken, 3600L, user);
+    }
+
     @Override
     public TokenValidationResponse validateToken(String token) {
         try {
@@ -274,5 +293,6 @@ public class AuthServiceImpl implements AuthService {
         tokenBuilder = deviceMapper.enrichTokenWithDeviceInfo(tokenBuilder, deviceInfo);
 
         tokenRepository.save(tokenBuilder.build());
+        log.info("Saved token for userId: {} with device info", user.getUserId());
     }
 }

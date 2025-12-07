@@ -10,6 +10,7 @@ import com.app.auth.dto.response.ForgotPasswordResponse;
 import com.app.auth.dto.response.RegistrationResponse;
 import com.app.auth.dto.response.ResetPasswordResponse;
 import com.app.auth.dto.response.TokenValidationResponse;
+import com.app.auth.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,9 @@ public interface AuthService {
 
     @Transactional
     AuthResponse authenticate(Authentication authentication, DeviceInfoRequest deviceInfo);
+
+    @Transactional
+    AuthResponse authenticateOAuth2User(User user, DeviceInfoRequest deviceInfo);
 
     TokenValidationResponse validateToken(String token);
 

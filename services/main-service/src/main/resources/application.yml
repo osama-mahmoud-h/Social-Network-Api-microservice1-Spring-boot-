@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:services/main-service/.env[.properties]
     activate:
       on-profile: docker
   # ======================= App =======================

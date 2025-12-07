@@ -134,7 +134,7 @@ services:
     image: docker.elastic.co/logstash/logstash:8.13.4
     container_name: logstash
     environment:
-      - LS_JAVA_OPTS=-Xms192m -Xmx256m
+      - LS_JAVA_OPTS=-Xms128m -Xmx192m
     volumes:
       - ./elk-stack-docker/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
       - logstash-data:/usr/share/logstash/data

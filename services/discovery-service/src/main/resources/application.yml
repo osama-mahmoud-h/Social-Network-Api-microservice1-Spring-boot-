@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:services/discovery-service/.env[.properties]
   application:
     name: discovery
   profiles:

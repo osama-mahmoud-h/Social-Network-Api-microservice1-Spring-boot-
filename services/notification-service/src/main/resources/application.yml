@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:services/notification-service/.env[.properties]
   application:
     name: notification-service
   profiles:

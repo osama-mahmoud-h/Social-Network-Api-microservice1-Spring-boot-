@@ -10,6 +10,7 @@ A scalable microservice-based social network backend system built with Spring Bo
 
 ### Core Functionality
 - User authentication and authorization with JWT token management
+- **OAuth2 Social Login** (Google, Facebook, GitHub) with automatic user registration
 - User profile management with support for bio, skills, and profile pictures
 - Post creation and management with full CRUD operations
 - Comment system with nested comment support
@@ -17,6 +18,8 @@ A scalable microservice-based social network backend system built with Spring Bo
 - Full-text search powered by Elasticsearch
 - Event-driven notification system using Apache Kafka
 - Real-time chat functionality via WebSocket with online user tracking
+- Multi-device session management and selective logout
+- OTP verification system with email delivery
 - Comprehensive API documentation via Swagger/OpenAPI
 - Containerized deployment using Docker
 
@@ -84,19 +87,29 @@ All services are containerized using Docker and can be orchestrated via Docker C
 ## Service Details & Status
 
 ### Auth Service (Port: 8087)
-**Status**: Fully functional with pending optimizations
+**Status**: Production ready with OAuth2 social login
 - Centralized authentication and authorization
 - JWT token generation and validation
 - Token revocation tracking in PostgreSQL database
 - Multi-device logout support
 - User registration and login with Spring Security
+- **OAuth2 Social Login** (Google, Facebook, GitHub)
+  - Google OAuth2 authentication (fully tested and working)
+  - Facebook OAuth2 configuration (ready for testing)
+  - GitHub OAuth2 configuration (ready for testing)
+  - Automatic user registration/linking via OAuth2
+  - Custom OAuth2 success and failure handlers
+  - Seamless JWT token generation for OAuth2 users
 - Feign client integration for inter-service communication
 - OTP functionality with email verification
+- Device fingerprinting and multi-device session management
 - Swagger documentation available at `/swagger-ui.html`
 - **TODO**: Migrate token storage to Redis for improved performance
 - **TODO**: Implement rate limiting for authentication endpoints
 - **TODO**: Add Redis-based session management
 - **TODO**: Implement distributed rate limiting across service instances
+- **TODO**: Test and verify Facebook/GitHub OAuth2 integration
+- **TODO**: Implement OAuth2 account linking (multiple providers per user)
 
 ### Main Service (Port: 8083)
 **Status**: Fully functional
@@ -301,12 +314,16 @@ public interface AuthServiceClient {
 ### Security Features Implemented
 - Centralized authentication service
 - JWT-based stateless authentication
+- **OAuth2 social login integration** (Google, Facebook, GitHub)
 - Token revocation tracking in database
 - Gateway-level authentication filtering
 - Service-level security filters
 - Role-based access control (RBAC)
 - Multi-device logout support
+- Device fingerprinting and session tracking
 - Token expiration validation
+- Custom OAuth2 authentication handlers
+- Automatic email verification for OAuth2 users
 
 ## Architecture Diagrams
 
@@ -780,10 +797,13 @@ docker-compose -f docker-compose-all.yml restart zookeeper kafka
 
 **Production Ready**
 - User authentication and authorization
+- **OAuth2 social login** (Google, Facebook, GitHub)
 - Core social features (posts, comments, friendships)
 - Full-text search integration
 - Event-driven notifications
 - Real-time chat with WebSocket security
+- Multi-device session management
+- OTP verification system
 - Service discovery and registration
 - API gateway routing
 - Complete Docker orchestration
