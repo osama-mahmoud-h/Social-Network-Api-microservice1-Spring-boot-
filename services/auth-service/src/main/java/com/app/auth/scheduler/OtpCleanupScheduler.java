@@ -18,9 +18,9 @@ public class OtpCleanupScheduler {
 
     /**
      * Cleanup expired OTPs every hour
-     * Cron: At minute 0 past every hour
+     * Cron: At minute 0 past every day
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void cleanupExpiredOtps() {
         try {

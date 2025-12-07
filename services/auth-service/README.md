@@ -33,10 +33,14 @@ The Auth Service is a comprehensive authentication and authorization microservic
   - Password strength validation
   - Auto-logout from all devices after password change
 
-- [x] **OAuth2 Integration** (Prepared)
-  - User model extended with OAuth2 fields
-  - OAuth2 provider enum (Google, Facebook, GitHub)
-  - Ready for OAuth2 client integration
+- [x] **OAuth2 Social Login**
+  - Google OAuth2 authentication (fully implemented and tested)
+  - Facebook OAuth2 configuration (ready for testing)
+  - GitHub OAuth2 configuration (ready for testing)
+  - Automatic user registration/linking via OAuth2
+  - Custom OAuth2 success and failure handlers
+  - JWT token generation for OAuth2 users
+  - Seamless integration with existing token management
 
 - [x] **Security Features**
   - Password encryption with BCrypt
@@ -70,6 +74,7 @@ The Auth Service is a comprehensive authentication and authorization microservic
 ```
 src/main/java/com/app/auth/
 ├── config/              # Configuration classes
+│   └── SecurityConfig   # OAuth2 + JWT security configuration
 ├── controller/          # REST API endpoints
 ├── dto/
 │   ├── request/         # Request DTOs
@@ -99,14 +104,23 @@ src/main/java/com/app/auth/
 │   ├── UserRepository
 │   ├── TokenRepository
 │   └── OtpRepository
-├── security/            # Security configurations
+├── security/            # Security configurations and handlers
+│   ├── JwtAuthenticationFilter
+│   ├── OAuth2AuthenticationSuccessHandler
+│   └── OAuth2AuthenticationFailureHandler
 ├── service/             # Business logic
 │   ├── AuthService
+│   ├── CustomOAuth2User (interface)
+│   ├── CustomOAuth2UserService (interface)
 │   ├── DeviceService
 │   ├── EmailService
 │   ├── OtpService
 │   ├── PasswordService
 │   └── JwtService
+│   └── impl/
+│       ├── AuthServiceImpl
+│       ├── CustomOAuth2UserImpl
+│       └── CustomOAuth2UserServiceImpl
 └── utils/               # Utility classes
 ```
 
@@ -313,7 +327,38 @@ Response: 200 OK
 
 ### Password Management Endpoints
 
-#### 10. Change Password
+### OAuth2 Endpoints
+
+#### 10. OAuth2 Login (Google)
+```http
+GET /oauth2/authorization/google
+
+Response: Redirects to Google login page
+After successful authentication, redirects to:
+http://localhost:3000/oauth/callback?token=eyJhbGc...&userId=1&email=user@example.com&firstName=John&lastName=Doe
+```
+
+#### 11. OAuth2 Login (Facebook)
+```http
+GET /oauth2/authorization/facebook
+
+Response: Redirects to Facebook login page
+After successful authentication, redirects to frontend with token
+```
+
+#### 12. OAuth2 Login (GitHub)
+```http
+GET /oauth2/authorization/github
+
+Response: Redirects to GitHub login page
+After successful authentication, redirects to frontend with token
+```
+
+**Note**: See `OAUTH2_SETUP.md` for detailed OAuth2 configuration instructions.
+
+### Password Management Endpoints
+
+#### 13. Change Password
 ```http
 POST /api/auth/change-password?userId=1
 Authorization: Bearer eyJhbGc...
@@ -402,27 +447,29 @@ jwt:
   refresh-expiration: 86400000  # 24 hours
 ```
 
-### OAuth2 Configuration (For Future Implementation)
+### OAuth2 Configuration
 
-```yaml
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: your-google-client-id
-            client-secret: your-google-client-secret
-            scope:
-              - email
-              - profile
-          facebook:
-            client-id: your-facebook-client-id
-            client-secret: your-facebook-client-secret
-            scope:
-              - email
-              - public_profile
+Add the following OAuth2 configuration to your `.env` file:
+
+```bash
+# OAuth2 Providers
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+FACEBOOK_CLIENT_ID=your-facebook-app-id
+FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
+
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# OAuth2 Redirect URLs (Your Frontend URLs)
+OAUTH2_SUCCESS_REDIRECT_URL=http://localhost:3000/oauth/callback
+OAUTH2_FAILURE_REDIRECT_URL=http://localhost:3000/login?error=oauth_failed
 ```
+
+The OAuth2 configuration in `application.yml` automatically uses these environment variables.
+
+**For detailed OAuth2 setup instructions, see `OAUTH2_SETUP.md`**
 
 ## Database Schema
 
@@ -580,7 +627,8 @@ curl -X GET "http://localhost:8081/api/auth/devices?userId=1" \
 
 ## Future Enhancements
 
-- [ ] Complete OAuth2 implementation (Google, Facebook, GitHub)
+- [ ] Test and verify Facebook OAuth2 integration
+- [ ] Test and verify GitHub OAuth2 integration
 - [ ] Implement refresh token endpoint
 - [ ] Add 2FA (Two-Factor Authentication)
 - [ ] Implement password reset via email
@@ -592,6 +640,8 @@ curl -X GET "http://localhost:8081/api/auth/devices?userId=1" \
 - [ ] Implement biometric authentication support
 - [ ] Add user profile management
 - [ ] Implement role-based access control (RBAC)
+- [ ] OAuth2 account linking (multiple providers per user)
+- [ ] HTTP-only cookies for OAuth2 tokens (instead of query params)
 
 ## Troubleshooting
 
@@ -671,16 +721,22 @@ For questions or support, please open an issue in the repository.
 - [x] Auto-logout on password change
 - [x] Password strength validation
 
-### Phase 5: OAuth2 Integration ⏳
+### Phase 5: OAuth2 Integration ✅
 - [x] OAuth2 client dependency
 - [x] OAuthProvider enum
-- [x] User model OAuth2 fields
-- [ ] OAuth2 DTOs and mapper
-- [ ] OAuth2 strategy interface
-- [ ] Google OAuth2 strategy
-- [ ] Facebook OAuth2 strategy
-- [ ] OAuth2 service implementation
-- [ ] OAuth2 endpoints
+- [x] User model OAuth2 fields (oauth_provider, oauth_provider_id, email_verified)
+- [x] CustomOAuth2User interface
+- [x] CustomOAuth2UserImpl implementation
+- [x] CustomOAuth2UserService interface
+- [x] CustomOAuth2UserServiceImpl (user creation/linking logic)
+- [x] OAuth2AuthenticationSuccessHandler (JWT generation and redirect)
+- [x] OAuth2AuthenticationFailureHandler (error handling)
+- [x] Google OAuth2 integration (tested and working)
+- [x] Facebook OAuth2 configuration (ready for testing)
+- [x] GitHub OAuth2 configuration (ready for testing)
+- [x] OAuth2 endpoints (Spring Security auto-configured)
+- [x] OAuth2 documentation (OAUTH2_SETUP.md)
+- [x] Integration with existing AuthService for token management
 
 ### Phase 6: Documentation ✅
 - [x] Comprehensive README
@@ -693,6 +749,6 @@ For questions or support, please open an issue in the repository.
 
 ---
 
-**Last Updated**: 2025-01-07
-**Version**: 1.0.0
-**Status**: In Development
+**Last Updated**: 2025-12-07
+**Version**: 1.1.0
+**Status**: Production Ready (Core Features Complete)

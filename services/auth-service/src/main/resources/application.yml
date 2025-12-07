@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:services/auth-service/.env[.properties]
   application:
     name: auth-service
   profiles:
@@ -45,8 +47,42 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+  # OAuth2 Configuration
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            scope:
+              - email
+              - public_profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - user:email
+              - read:user
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
 server:
   port: 8087
+
+# OAuth2 Redirect URLs
+oauth2:
+  success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL:http://localhost:3000/oauth/callback}
+  failure-redirect-url: ${OAUTH2_FAILURE_REDIRECT_URL:http://localhost:3000/login?error=oauth_failed}
 
 # JWT Configuration
 jwt:
@@ -68,10 +104,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,env,beans,loggers,httptrace
   endpoint:
     health:
       show-details: always
+  health:
+    redis:
+      enabled: false  # Disable Redis health check since it's not actively used
 
 # Logging
 logging:

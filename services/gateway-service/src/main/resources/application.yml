@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:services/gateway-service/.env[.properties]
   application:
     name: api-gateway
   profiles:

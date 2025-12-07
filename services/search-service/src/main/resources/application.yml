@@ -2,6 +2,8 @@ server:
   port: 8084
 
 spring:
+  config:
+    import: optional:file:services/search-service/.env[.properties]
   application:
     name: search-service
   profiles:

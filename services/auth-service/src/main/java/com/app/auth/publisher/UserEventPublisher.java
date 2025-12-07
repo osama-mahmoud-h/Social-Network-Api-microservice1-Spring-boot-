@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CompletableFuture;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -19,15 +21,18 @@ public class UserEventPublisher {
 
     private static final String USER_EVENTS_TOPIC = "user-events";
 
-    public void publishUserCreated(UserCreatedEvent event) {
-        try {
-            event.setEventType("USER_CREATED");
-            String eventJson = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(USER_EVENTS_TOPIC, event.getUserId().toString(), eventJson);
-            log.info("Published UserCreatedEvent for userId: {}", event.getUserId());
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing UserCreatedEvent: {}", e.getMessage(), e);
-        }
+    public CompletableFuture<Void> publishUserCreated(UserCreatedEvent event) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                event.setEventType("USER_CREATED");
+                String eventJson = objectMapper.writeValueAsString(event);
+                kafkaTemplate.send(USER_EVENTS_TOPIC, event.getUserId().toString(), eventJson);
+                log.info("Published UserCreatedEvent for userId: {}", event.getUserId());
+            } catch (JsonProcessingException e) {
+                log.error("Error serializing UserCreatedEvent: {}", e.getMessage(), e);
+                throw new RuntimeException("Failed to publish UserCreatedEvent", e);
+            }
+        });
     }
 
     public void publishUserUpdated(UserUpdatedEvent event) {

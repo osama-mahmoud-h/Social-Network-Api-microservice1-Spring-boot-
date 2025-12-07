@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:services/chat-service/.env[.properties]
   application:
     name: chat-service
   profiles:
