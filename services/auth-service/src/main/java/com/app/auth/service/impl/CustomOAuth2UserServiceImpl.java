@@ -7,6 +7,8 @@ import com.app.auth.model.User;
 import com.app.auth.publisher.UserEventPublisher;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.CustomOAuth2UserService;
+import com.app.auth.strategy.OAuthAttributeExtractor;
+import com.app.auth.strategy.OAuthExtractorRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -26,6 +28,7 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
     private final UserRepository userRepository;
     private final UserEventPublisher userEventPublisher;
     private final AuthMapper authMapper;
+    private final OAuthExtractorRegistry extractorRegistry;
 
     @Override
     @Transactional
@@ -33,40 +36,28 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        log.info("Processing OAuth2 user for registrationId: {}", registrationId);
+
         OAuthProvider provider = OAuthProvider.valueOf(registrationId.toUpperCase());
+        log.info("Identified OAuth2 provider: {}", provider);
+
+        // Get the appropriate extractor for this provider
+        OAuthAttributeExtractor extractor = extractorRegistry.getExtractor(provider);
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        String email = extractEmail(attributes, provider);
-        String providerId = extractProviderId(attributes, provider);
+        String email = extractor.extractEmail(attributes);
+        String providerId = extractor.extractProviderId(attributes);
 
         log.info("OAuth2 login attempt - Provider: {}, Email: {}", provider, email);
 
         User user = userRepository.findByEmail(email)
                 .map(existingUser -> updateExistingUser(existingUser, provider, providerId))
-                .orElseGet(() -> createNewUser(email, attributes, provider, providerId));
+                .orElseGet(() -> createNewUser(email, attributes, provider, providerId, extractor));
 
         return CustomOAuth2UserImpl.builder()
                 .oAuth2User(oAuth2User)
                 .user(user)
                 .build();
-    }
-
-    private String extractEmail(Map<String, Object> attributes, OAuthProvider provider) {
-        log.info("Extracting email for provider: {}", provider);
-        return switch (provider) {
-            case GOOGLE, GITHUB, FACEBOOK -> (String) attributes.get("email");
-            default -> throw new OAuth2AuthenticationException("Unsupported OAuth2 provider");
-        };
-    }
-
-    private String extractProviderId(Map<String, Object> attributes, OAuthProvider provider) {
-        log.info("Extracting provider ID for provider: {}, with id: {}", provider,
-                provider.name().equals(OAuthProvider.GOOGLE.name()) ? attributes.get("sub") : attributes.get("id"));
-        return switch (provider) {
-            case GOOGLE -> (String) attributes.get("sub");
-            case FACEBOOK, GITHUB -> String.valueOf(attributes.get("id"));
-            default -> throw new OAuth2AuthenticationException("Unsupported OAuth2 provider");
-        };
     }
 
     private User updateExistingUser(User user, OAuthProvider provider, String providerId) {
@@ -81,9 +72,10 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
     }
 
     private User createNewUser(String email, Map<String, Object> attributes,
-                               OAuthProvider provider, String providerId) {
-        String firstName = extractFirstName(attributes, provider);
-        String lastName = extractLastName(attributes, provider);
+                               OAuthProvider provider, String providerId,
+                               OAuthAttributeExtractor extractor) {
+        String firstName = extractor.extractFirstName(attributes);
+        String lastName = extractor.extractLastName(attributes);
 
         User newUser = User.builder()
                 .email(email)
@@ -109,42 +101,5 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
         });
         log.info("Published UserCreatedEvent Async for userId: {}", createdUser.getUserId());
         return createdUser;
-    }
-
-    private String extractFirstName(Map<String, Object> attributes, OAuthProvider provider) {
-        log.info("Extracting first name for provider: {}", provider);
-        return switch (provider) {
-            case GOOGLE -> (String) attributes.get("given_name");
-            case FACEBOOK -> {
-                String name = (String) attributes.get("name");
-                yield name != null ? name.split(" ")[0] : "User";
-            }
-            case GITHUB -> {
-                String name = (String) attributes.get("name");
-                yield name != null && name.contains(" ") ? name.split(" ")[0] : name;
-            }
-            default -> "User";
-        };
-    }
-
-    private String extractLastName(Map<String, Object> attributes, OAuthProvider provider) {
-        log.info("Extracting last name for provider: {}", provider);
-        return switch (provider) {
-            case GOOGLE -> (String) attributes.get("family_name");
-            case FACEBOOK -> {
-                String name = (String) attributes.get("name");
-                String[] parts = name != null ? name.split(" ") : new String[]{};
-                yield parts.length > 1 ? parts[parts.length - 1] : "";
-            }
-            case GITHUB -> {
-                String name = (String) attributes.get("name");
-                if (name != null && name.contains(" ")) {
-                    String[] parts = name.split(" ");
-                    yield parts.length > 1 ? parts[parts.length - 1] : "";
-                }
-                yield "";
-            }
-            default -> "";
-        };
     }
 }
