@@ -35,6 +35,7 @@ public class SearchServiceImpl implements SearchService {
     private final CommentIndexRepository commentIndexRepository;
 
     private final Map<IndexType, BiFunction<String, Pageable, Set<?>>> searchStrategies = this.initSearchStrategies();
+    private final Map<IndexType, BiFunction<String, Pageable, List<Long>>> idSearchStrategies = this.initIdSearchStrategies();
 
     @Override
     public Set<?> searchAcrossMultiIndices(SearchMultiIndexesRequestDto requestDto) {
@@ -67,37 +68,37 @@ public class SearchServiceImpl implements SearchService {
         );
     }
 
+    private Map<IndexType, BiFunction<String, Pageable, List<Long>>> initIdSearchStrategies() {
+        return Map.of(
+                IndexType.POST_INDEX, (searchTerm, pageable) ->
+                        postIndexRepository.fuzzyFullTextSearch(searchTerm, pageable).stream()
+                                .map(PostIndex::getPostId)
+                                .collect(Collectors.toList()),
+
+                IndexType.COMMENT_INDEX, (searchTerm, pageable) ->
+                        commentIndexRepository.fuzzyFullTextSearch(searchTerm, pageable).stream()
+                                .map(CommentIndex::getCommentId)
+                                .collect(Collectors.toList()),
+
+                IndexType.APP_USER_INDEX, (searchTerm, pageable) ->
+                        appUserIndexRepository.fuzzyFullTextSearch(searchTerm, pageable).stream()
+                                .map(AppUserIndex::getUserId)
+                                .collect(Collectors.toList())
+        );
+    }
+
     @Override
     public SearchIdsResponseDto searchAndReturnIdsOnly(SearchMultiIndexesRequestDto requestDto) {
         Pageable pageable = PageRequest.of(requestDto.getPage(), requestDto.getSize());
-        List<Long> ids = new ArrayList<>();
+        BiFunction<String, Pageable, List<Long>> strategy = idSearchStrategies.get(requestDto.getSearchCategory());
 
-        switch (requestDto.getSearchCategory()) {
-            case POST_INDEX:
-                List<PostIndex> posts = postIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
-                ids = posts.stream()
-                        .map(PostIndex::getPostId)
-                        .collect(Collectors.toList());
-                break;
-
-            case COMMENT_INDEX:
-                List<CommentIndex> comments = commentIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
-                ids = comments.stream()
-                        .map(CommentIndex::getCommentId)
-                        .collect(Collectors.toList());
-                break;
-
-            case APP_USER_INDEX:
-                List<AppUserIndex> users = appUserIndexRepository.fuzzyFullTextSearch(requestDto.getSearchTerm(), pageable);
-                ids = users.stream()
-                        .map(AppUserIndex::getUserId)
-                        .collect(Collectors.toList());
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported IndexType: " + requestDto.getSearchCategory());
+        if (strategy == null) {
+            throw new IllegalArgumentException("Unsupported IndexType: " + requestDto.getSearchCategory());
         }
-        System.out.println("retrieved ids: "+ids);
+
+        List<Long> ids = strategy.apply(requestDto.getSearchTerm(), pageable);
+        System.out.println("retrieved ids: " + ids);
+
         return SearchIdsResponseDto.builder()
                 .indexType(requestDto.getSearchCategory())
                 .ids(ids)

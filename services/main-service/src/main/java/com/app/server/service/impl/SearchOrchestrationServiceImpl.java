@@ -20,8 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,20 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
     private final UserProfileRepository userProfileRepository;
     private final PostMapper postMapper;
     private final CommentMapper commentMapper;
+
+    private final Map<SearchEntityType, EntityFetchStrategy> fetchStrategies = new HashMap<>();
+
+    @FunctionalInterface
+    private interface EntityFetchStrategy {
+        SearchResultsResponseDto<?> fetch(List<Long> ids, String entityType, int page, int size);
+    }
+
+    @PostConstruct
+    private void registerStrategies() {
+        fetchStrategies.put(SearchEntityType.POST_INDEX, this::fetchPosts);
+        fetchStrategies.put(SearchEntityType.COMMENT_INDEX, this::fetchComments);
+        fetchStrategies.put(SearchEntityType.USER_INDEX, this::fetchUsers);
+    }
 
     @Override
     public SearchResultsResponseDto<?> search(String searchTerm, SearchEntityType entityType, int size, int page) {
@@ -57,12 +75,12 @@ public class SearchOrchestrationServiceImpl implements SearchOrchestrationServic
         List<Long> ids = searchIdsResponse.getIds();
         log.info("Found {} IDs from search-service", ids.size());
 
-        return switch (entityType) {
-            case POST_INDEX -> fetchPosts(ids, entityType.toString(), page, size);
-            case COMMENT_INDEX -> fetchComments(ids, entityType.toString(), page, size);
-            case USER_INDEX -> fetchUsers(ids, entityType.toString(), page, size);
-            default -> throw new IllegalArgumentException("Unsupported entity type: " + entityType);
-        };
+        EntityFetchStrategy strategy = fetchStrategies.get(entityType);
+        if (strategy == null) {
+            throw new IllegalArgumentException("Unsupported entity type: " + entityType);
+        }
+
+        return strategy.fetch(ids, entityType.toString(), page, size);
     }
 
     private SearchResultsResponseDto<PostResponseDto> fetchPosts(List<Long> postIds, String entityType, int page, int size) {
