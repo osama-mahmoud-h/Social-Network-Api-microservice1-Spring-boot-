@@ -1,6 +1,7 @@
 package com.app.server.repository;
 
 import com.app.server.model.Post;
+import com.app.server.projection.PostDetailProjection;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,25 +19,43 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     List<Post> findAll();
 
     // TODO: find posts of friends of the user.
-    // TODO: get count of comments on each post.
-    // TODO: get count of reactions on each post.
-    //TODO check if the user reacted the post.
+    /**
+     * Fetches recent posts with aggregate counts.
+     * Uses PostDetailProjection for type-safe result mapping.
+     *
+     * PAGINATION FIX: This query now uses a subquery to paginate post IDs first,
+     * then joins with files. This prevents pagination issues where LIMIT is applied
+     * to intermediate rows before GROUP BY.
+     */
     @Query(value = """
-           SELECT 
-               p.post_id AS postId,
-               p.content AS content,
+           WITH paginated_posts AS (
+               SELECT
+                   p.post_id,
+                   p.content,
+                   p.publicity,
+                   p.created_at,
+                   p.updated_at,
+                   p.author_id
+               FROM posts p
+               ORDER BY p.created_at DESC, p.post_id DESC
+               LIMIT :limit OFFSET :offset
+           )
+           SELECT
+               pp.post_id AS postId,
+               pp.content AS content,
+               pp.publicity AS publicity,
                COUNT(DISTINCT cmnt.comment_id) AS commentsCount,
                COUNT(DISTINCT re.reaction_id) AS reactionsCount,
-               p.created_at AS createdAt,
-               p.updated_at AS updatedAt,
+               pp.created_at AS createdAt,
+               pp.updated_at AS updatedAt,
                json_build_object(
                    'userId', au.user_id,
                    'firstName', au.first_name,
                    'lastName', au.last_name,
-                    'email', null,
+                   'email', null,
                    'profilePictureUrl', null,
-                    'bio', null
-               ) AS author,
+                   'bio', null
+               )::text AS author,
                MAX(CASE WHEN re.author_id = :userId THEN re.reaction_type ELSE NULL END) AS myReactionType,
                COALESCE(
                    json_agg(
@@ -48,22 +67,26 @@ public interface PostRepository extends JpaRepository<Post,Long> {
                            'fileName', f.file_name,
                            'fileExtension', f.file_extension
                        )
-                   ) FILTER (WHERE f.file_id IS NOT NULL), 
+                   ) FILTER (WHERE f.file_id IS NOT NULL),
                    '[]'::json
-               ) AS files
-           FROM 
-               posts p
-               LEFT JOIN comments cmnt ON p.post_id = cmnt.post_id
-               LEFT JOIN reactions re ON re.target_id = p.post_id
-               LEFT JOIN user_profiles au ON p.author_id = au.user_id
-               LEFT JOIN post_files pf ON p.post_id = pf.post_id
+               )::text AS files
+           FROM
+               paginated_posts pp
+               LEFT JOIN comments cmnt ON pp.post_id = cmnt.post_id
+               LEFT JOIN reactions re ON re.target_id = pp.post_id
+               INNER JOIN user_profiles au ON pp.author_id = au.user_id
+               LEFT JOIN post_files pf ON pp.post_id = pf.post_id
                LEFT JOIN files f ON pf.file_id = f.file_id
-           GROUP BY 
-               p.post_id, au.user_id, p.created_at
-           ORDER BY 
-               p.post_id, p.created_at DESC
+           GROUP BY
+               pp.post_id, pp.content, pp.publicity, pp.created_at, pp.updated_at, au.user_id, au.first_name, au.last_name
+           ORDER BY
+               pp.created_at DESC, pp.post_id DESC
            """, nativeQuery = true)
-        List<Object[]> findRecentPosts(@Param("userId") Long userId, Pageable pageable);
+    List<PostDetailProjection> findRecentPosts(
+        @Param("userId") Long userId,
+        @Param("limit") int limit,
+        @Param("offset") int offset
+    );
 
 
     //TODO: --
@@ -87,9 +110,10 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     int updatePostById(@Param("userId") Long userId, @Param("postId") Long postId, @Param("content") String content);
 
     @Query(value = """
-           SELECT 
+           SELECT
                p.post_id AS postId,
                p.content AS content,
+               p.publicity AS publicity,
                COUNT(DISTINCT cmnt.comment_id) AS commentsCount,
                COUNT(DISTINCT re.reaction_id) AS reactionsCount,
                p.created_at AS createdAt,
@@ -98,10 +122,10 @@ public interface PostRepository extends JpaRepository<Post,Long> {
                    'userId', au.user_id,
                    'firstName', au.first_name,
                    'lastName', au.last_name,
-                    'email', null,
+                   'email', null,
                    'profilePictureUrl', null,
-                    'bio', null
-               ) AS author,
+                   'bio', null
+               )::text AS author,
                MAX(CASE WHEN re.author_id = :userId THEN re.reaction_type ELSE NULL END) AS myReactionType,
                COALESCE(
                    json_agg(
@@ -113,22 +137,22 @@ public interface PostRepository extends JpaRepository<Post,Long> {
                            'fileName', f.file_name,
                            'fileExtension', f.file_extension
                        )
-                   ) FILTER (WHERE f.file_id IS NOT NULL), 
+                   ) FILTER (WHERE f.file_id IS NOT NULL),
                    '[]'::json
-               ) AS files
-           FROM 
+               )::text AS files
+           FROM
                posts p
                LEFT JOIN comments cmnt ON p.post_id = cmnt.post_id
                LEFT JOIN reactions re ON re.target_id = p.post_id
-               LEFT JOIN user_profiles au ON p.author_id = au.user_id
+               INNER JOIN user_profiles au ON p.author_id = au.user_id
                LEFT JOIN post_files pf ON p.post_id = pf.post_id
                LEFT JOIN files f ON pf.file_id = f.file_id
-           WHERE 
+           WHERE
                p.post_id = :postId
-           GROUP BY 
-               p.post_id, au.user_id
+           GROUP BY
+               p.post_id, p.content, p.publicity, p.created_at, p.updated_at, au.user_id, au.first_name, au.last_name
            """, nativeQuery = true)
-    Optional<Object> findPostDetailsById(@Param("userId") Long userId, @Param("postId") Long postId);
+    Optional<PostDetailProjection> findPostDetailsById(@Param("userId") Long userId, @Param("postId") Long postId);
 
 
     @Query("""

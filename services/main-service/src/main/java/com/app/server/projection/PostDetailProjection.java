@@ -9,6 +9,7 @@ import java.time.Instant;
 public interface PostDetailProjection {
     Long getPostId();
     String getContent();
+    String getPublicity();
     Long getCommentsCount();
     Long getReactionsCount();
     Instant getCreatedAt();

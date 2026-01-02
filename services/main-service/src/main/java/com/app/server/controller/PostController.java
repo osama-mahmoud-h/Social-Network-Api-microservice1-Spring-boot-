@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 
@@ -60,12 +61,12 @@ public class PostController {
     })
     @GetMapping("/recent")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<MyApiResponse<Set<PostResponseDto>>> allPosts(
+    public ResponseEntity<MyApiResponse<List<PostResponseDto>>> allPosts(
             @Valid @ModelAttribute GetRecentPostsRequestDto req
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
         System.out.println("currentUserId = " + currentUserId);
-        Set<PostResponseDto> posts = postService.getRecentPosts(currentUserId, req);
+        List<PostResponseDto> posts = postService.getRecentPosts(currentUserId, req);
         return ResponseEntity.ok(MyApiResponse.success("All posts retrieved successfully", posts));
     }
 

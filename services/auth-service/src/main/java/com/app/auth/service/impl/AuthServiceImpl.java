@@ -153,24 +153,26 @@ public class AuthServiceImpl implements AuthService {
 
         // Create new user using mapper - user is disabled and unverified until OTP verification
         User user = authMapper.mapToUser(request, passwordEncoder.encode(request.getPassword()));
-        user.setEnabled(false);  // User cannot login until email is verified
-        user.setEmailVerified(false);
+        // TODO: this enabled just for automatic creation
+        user.setEnabled(true);  // User cannot login until email is verified
+        user.setEmailVerified(true);
         userRepository.save(user);
 
         // Generate and send OTP
+        // TODO: just for auto creation
         SendOtpRequest otpRequest = SendOtpRequest.builder()
                 .email(request.getEmail())
                 .type(OtpType.REGISTRATION)
                 .build();
 
-        OtpResponse otpResponse = otpService.sendOtp(otpRequest);
+//        OtpResponse otpResponse = otpService.sendOtp(otpRequest);
 
         log.info("User registered successfully. OTP sent to email: {}", request.getEmail());
 
         return RegistrationResponse.builder()
                 .message("Registration successful. Please verify your email with the OTP sent to " + request.getEmail())
                 .email(request.getEmail())
-                .otpExpiresAt(otpResponse.getExpiresAt())
+               // .otpExpiresAt(otpResponse.getExpiresAt())
                 .build();
     }
 

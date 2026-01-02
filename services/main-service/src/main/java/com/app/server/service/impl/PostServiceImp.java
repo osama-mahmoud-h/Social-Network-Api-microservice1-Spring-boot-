@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ObjectOutput;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,13 +65,9 @@ public class PostServiceImp implements PostService {
 
      @Override
      public PostResponseDto getPostDetails(Long userId, Long postId){
-        Optional<Object> fetchRow = this.postRepository.findPostDetailsById(userId, postId);
-        if(fetchRow.isEmpty()){
-            throw new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND);
-        }
-         log.info("fetchRow {}", fetchRow.get());
-
-         return postMapper.mapDbRowToPostResponseDto((Object[]) fetchRow.get());
+        return this.postRepository.findPostDetailsById(userId, postId)
+                .map(postMapper::mapProjectionToPostResponseDto)
+                .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
     }
 
 
@@ -94,21 +91,32 @@ public class PostServiceImp implements PostService {
         Post post = this.postRepository.findById(requestDto.getPostId())
                 .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
 
-        int rowAffected = this.postRepository.updatePostById(userId, requestDto.getPostId(), requestDto.getContent());
-        if(rowAffected == 0){
-            throw new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND);
+        // Verify the user is the author
+        if (!post.getAuthor().getUserId().equals(userId)) {
+            throw new CustomRuntimeException("Unauthorized to update this post", HttpStatus.FORBIDDEN);
         }
+
+        // Update content
+        post.setContent(requestDto.getContent());
+
+        // Update publicity if provided
+        if (requestDto.getPublicity() != null) {
+            post.setPublicity(requestDto.getPublicity());
+        }
+
+        this.postRepository.save(post);
         this.sendPostUpdateNotification(post);
         return true;
     }
 
     @Override
-    public Set<PostResponseDto> getRecentPosts(Long user, GetRecentPostsRequestDto req) {
-        Pageable pageable = Pageable.ofSize(req.getSize()).withPage(req.getPage());
+    public List<PostResponseDto> getRecentPosts(Long user, GetRecentPostsRequestDto req) {
+        int limit = req.getSize();
+        int offset = req.getPage() * req.getSize();
 
-       return postRepository.findRecentPosts(user, pageable).stream()
-                .map(postMapper::mapDbRowToPostResponseDto)
-                .collect(Collectors.toSet());
+        return postRepository.findRecentPosts(user, limit, offset).stream()
+                .map(postMapper::mapProjectionToPostResponseDto)
+                .collect(Collectors.toList());
     }
 
     private Set<File> uploadFiles(MultipartFile[] multipartFiles){

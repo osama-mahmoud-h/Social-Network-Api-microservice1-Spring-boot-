@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
 
 
@@ -93,7 +94,7 @@ public class ProfileController {
             @ModelAttribute @Valid GetRecentPostsRequestDto requestDto
     ){
         UserProfile currentUser = getCurrentUserProfile();
-        Set<PostResponseDto> posts = profileService.getMyPosts(currentUser, requestDto);
+        List<PostResponseDto> posts = profileService.getMyPosts(currentUser, requestDto);
         return ResponseEntity.ok(MyApiResponse.success("Posts retrieved successfully", posts));
     }
 

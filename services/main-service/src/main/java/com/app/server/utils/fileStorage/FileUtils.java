@@ -13,4 +13,6 @@ public interface FileUtils {
 
     //file size
     long getFileSize(MultipartFile file);
+
+    String determineContentType(String filename);
 }

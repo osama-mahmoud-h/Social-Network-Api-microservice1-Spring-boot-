@@ -8,6 +8,7 @@ import com.app.server.dto.response.profile.ProfileResponseDto;
 import com.app.server.model.UserProfile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
 
 public interface ProfileService {
@@ -20,7 +21,7 @@ public interface ProfileService {
     boolean updateImage(UserProfile userProfile, MultipartFile file);
 
 
-    Set<PostResponseDto> getMyPosts(UserProfile userProfile, GetRecentPostsRequestDto requestDto);
+    List<PostResponseDto> getMyPosts(UserProfile userProfile, GetRecentPostsRequestDto requestDto);
 
     ProfileResponseDto getProfile(UserProfile userProfile);
 }

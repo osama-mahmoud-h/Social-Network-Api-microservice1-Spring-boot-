@@ -18,7 +18,6 @@ public interface UserReactionsRepository  extends JpaRepository<UserReaction, Lo
     Optional<UserReaction> findByAuthorAndTargetIdAndReactionTargetType(@Param("authorId") Long authorId,
                                                                         @Param("targetId") Long targetId,
                                                                         @Param("reactionTargetType") String reactionTargetType);
-
     @Modifying
     @Transactional
     @Query("UPDATE UserReaction ur SET ur.reactionType = :reactionType WHERE ur.reactionId = :reactionId")
