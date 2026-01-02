@@ -1,5 +1,6 @@
 package com.app.server.model;
 
+import com.app.server.enums.PostPublicity;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
 import jakarta.persistence.CascadeType;
@@ -31,6 +32,12 @@ public class Post implements Serializable {
 
     @Column(nullable = false, length = 512)
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @ColumnDefault("'PUBLIC'")
+    @Builder.Default
+    private PostPublicity publicity = PostPublicity.PUBLIC;
 
     @Column(nullable = false, updatable = false)
     @JsonDeserialize(as = InstantDeserializer.class)

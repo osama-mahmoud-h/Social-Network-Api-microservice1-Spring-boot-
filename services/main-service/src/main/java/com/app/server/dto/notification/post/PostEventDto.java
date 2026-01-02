@@ -31,6 +31,7 @@ public class PostEventDto implements Serializable {
     public static class PostData implements Serializable {
         private Long postId;
         private String content;
+        private String publicity;
         private Long createdAt;  // Unix timestamp in seconds
         private Long updatedAt;  // Unix timestamp in seconds
         private AuthorData author;

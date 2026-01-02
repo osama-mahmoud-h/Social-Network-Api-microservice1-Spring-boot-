@@ -1,6 +1,7 @@
 package com.app.server.utils.fileStorage.impl;
 
 
+import com.app.server.enums.FileStorageServiceType;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.utils.fileStorage.FileUtils;
 import com.app.server.utils.fileStorage.FilesStorageService;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -24,7 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-@Service
+@Service("FilesStorageServiceImpl")
+@ConditionalOnProperty(name = "minio.enabled", havingValue = "false")
 public class FilesStorageServiceImpl implements FilesStorageService {
     private static final Logger logger = LoggerFactory.getLogger(FilesStorageServiceImpl.class);
     private final FileUtils fileUtils;
@@ -37,13 +41,19 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     public FilesStorageServiceImpl(FileUtils fileUtils) {
         this.fileUtils = fileUtils;
     }
+
+    @Override
+    public FileStorageServiceType getProvider() {
+        return FileStorageServiceType.FILE_SYSTEM;
+    }
+
     @Override
     @PostConstruct
     public void init() {
         try {
             this.root = Paths.get(uploadDir);
             Files.createDirectories(root);
-            logger.info("Upload directory created at: " + root.toString());
+            logger.info("Upload directory created at: {}", root.toString());
         } catch (IOException e) {
             logger.error("Could not initialize folder for upload!", e);
             throw new RuntimeException("Could not initialize folder for upload!");
@@ -101,9 +111,31 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public Stream<Path> loadAll() {
         try {
-            return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
+            return Files.walk(this.root, 1)
+                    .filter(path -> !path.equals(this.root))
+                    .map(this.root::relativize);
         } catch (IOException e) {
             throw new RuntimeException("Could not load the files!");
         }
+    }
+
+    @Override
+    public String getPresignedUrl(String objectName) {
+        return "";
+    }
+
+    @Override
+    public InputStream loadRange(String filename, long offset, long length) {
+        return null;
+    }
+
+    @Override
+    public long getFileSize(String filename) {
+        return 0;
+    }
+
+    @Override
+    public boolean fileExists(String filename) {
+        return false;
     }
 }

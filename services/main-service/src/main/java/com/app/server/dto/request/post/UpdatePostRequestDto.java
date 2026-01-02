@@ -1,6 +1,7 @@
 package com.app.server.dto.request.post;
 
 
+import com.app.server.enums.PostPublicity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,4 +17,6 @@ public class UpdatePostRequestDto {
     @NotBlank(message = "Post content cannot be blank")
     @Size(min = 1, max = 512, message = "Post content must be between 1 and 512 characters")
     private String content;
+
+    private PostPublicity publicity;
 }

@@ -27,9 +27,12 @@ public class FileMapper {
     }
 
     public FileResponseDto mapFileToFileResponseDto(File file){
+        // Generate presigned URL if using MinIO, otherwise return object key/filename
+        String accessUrl = filesStorageService.getFileUrl(file.getFileUrl());
+
         return FileResponseDto.builder()
                 .fileId(file.getFileId())
-                .fileUrl(file.getFileUrl())
+                .fileUrl(accessUrl)
                 .fileType(file.getFileType())
                 .fileSize(file.getFileSizeInBytes())
                 .fileName(file.getFileName())

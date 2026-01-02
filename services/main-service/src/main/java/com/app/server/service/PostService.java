@@ -19,5 +19,5 @@ public interface PostService {
 
     boolean updatePost(Long appUser, UpdatePostRequestDto requestDto);
 
-    Set<PostResponseDto> getRecentPosts(Long currentUserDetails, GetRecentPostsRequestDto req);
+    List<PostResponseDto> getRecentPosts(Long currentUserDetails, GetRecentPostsRequestDto req);
 }

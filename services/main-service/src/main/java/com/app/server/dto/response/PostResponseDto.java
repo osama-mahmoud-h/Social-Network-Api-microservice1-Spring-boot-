@@ -1,6 +1,7 @@
 package com.app.server.dto.response;
 
 import com.app.server.dto.response.user.AuthorResponseDto;
+import com.app.server.enums.PostPublicity;
 import com.app.server.enums.ReactionType;
 import lombok.*;
 
@@ -14,6 +15,7 @@ import java.util.Set;
 public class PostResponseDto {
     private Long postId;
     private String content;
+    private PostPublicity publicity;
     private Long commentsCount;
     private Long reactionsCount;
     private Instant createdAt;

@@ -88,6 +88,7 @@ public class DomainEventPublisher {
         return PostEventDto.PostData.builder()
                 .postId(post.getPostId())
                 .content(post.getContent())
+                .publicity(post.getPublicity() != null ? post.getPublicity().name() : null)
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt().getEpochSecond() : null)
                 .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt().getEpochSecond() : null)
                 .author(authorData)

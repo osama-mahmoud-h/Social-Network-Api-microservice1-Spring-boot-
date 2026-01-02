@@ -5,8 +5,10 @@ import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.response.FileResponseDto;
 import com.app.server.dto.response.PostResponseDto;
 import com.app.server.dto.response.user.AuthorResponseDto;
+import com.app.server.enums.PostPublicity;
 import com.app.server.enums.ReactionType;
 import com.app.server.model.Post;
+import com.app.server.projection.PostDetailProjection;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class PostMapper {
     public Post mapCreatePostRequestDtoToPost(CreatePostRequestDto createPostRequestDto) {
         return Post.builder()
                 .content(createPostRequestDto.getContent())
+                .publicity(createPostRequestDto.getPublicity())
                 .files(null)
                 .author(null)
                 .createdAt(Instant.now())
@@ -40,6 +43,7 @@ public class PostMapper {
         return PostResponseDto.builder()
                 .postId(post.getPostId())
                 .content(post.getContent())
+                .publicity(post.getPublicity())
                 .commentsCount(0L)
                 .author(this.userMapper.mapToAuthorResponseDto(post.getAuthor()))
                 .myReactionType(null)
@@ -51,6 +55,11 @@ public class PostMapper {
                 .build();
     }
 
+    /**
+     * Maps database row (Object[]) to PostResponseDto.
+     * @deprecated Use mapProjectionToPostResponseDto instead for type-safe mapping
+     */
+    @Deprecated
     public PostResponseDto mapDbRowToPostResponseDto(Object[] row) {
         try {
             return PostResponseDto.builder()
@@ -67,6 +76,29 @@ public class PostMapper {
         } catch (Exception e) {
             log.error("Failed to map row to PostResponseDto", e);
             throw new RuntimeException("Failed to map row to PostResponseDto", e);
+        }
+    }
+
+
+    public PostResponseDto mapProjectionToPostResponseDto(PostDetailProjection projection) {
+        try {
+            return PostResponseDto.builder()
+                    .postId(projection.getPostId())
+                    .content(projection.getContent())
+                    .publicity(projection.getPublicity() != null ?
+                        PostPublicity.valueOf(projection.getPublicity()) : null)
+                    .commentsCount(projection.getCommentsCount())
+                    .reactionsCount(projection.getReactionsCount())
+                    .createdAt(projection.getCreatedAt())
+                    .updatedAt(projection.getUpdatedAt())
+                    .author(objectMapper.readValue(projection.getAuthor(), AuthorResponseDto.class))
+                    .myReactionType(projection.getMyReactionType() != null ?
+                        ReactionType.valueOf(projection.getMyReactionType()) : null)
+                    .files(parseFilesJson(projection.getFiles()))
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to map projection to PostResponseDto: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to map projection to PostResponseDto", e);
         }
     }
 

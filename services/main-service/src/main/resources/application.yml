@@ -1,8 +1,8 @@
 spring:
   config:
     import: optional:file:services/main-service/.env[.properties]
-    activate:
-      on-profile: docker
+#    activate:
+#      on-profile: docker
   # ======================= App =======================
   application:
     name: main-service
@@ -37,9 +37,9 @@ spring:
     multipart:
       enabled: true
       # Maximum file size
-      max-file-size: 5MB
+      max-file-size: 100MB
       # Maximum request size
-      max-request-size: 6MB
+      max-request-size: 105MB
   #===================== Mail Sender ==========================
   mail:
     host: ${MAIL_SERVICE_HOST}
@@ -112,6 +112,22 @@ encryption:
 file:
   upload-dir: src/main/resources/static/uploads/
 
+# ======================= MinIO Object Storage =======================
+  storage:
+    default-provider: MINIO  # Change to AWS_S3 when migrating
+minio:
+  endpoint: ${MINIO_ENDPOINT}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: ${MINIO_BUCKET_NAME:social-network-files}
+  auto-create-bucket: ${MINIO_BUCKET_AUTO_CREATE:false}
+  # URL expiration for presigned URLs (in seconds)
+  url-expiration: 604800  # 7 days
+  # Folder prefixes for organization
+  folders:
+    profiles: profiles/
+    posts: posts/
+
 #===================== Search Service Configuration ==========================
 search-service:
   url: http://localhost:8084
@@ -169,3 +185,7 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: main-service
+
+# MinIO Docker configuration
+minio:
+  endpoint: http://minio:9000
