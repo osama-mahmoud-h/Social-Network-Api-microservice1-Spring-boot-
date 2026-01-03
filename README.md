@@ -123,6 +123,7 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Friendship system featuring requests, mutual friends, and friend suggestions
 - File upload handling for user content(File System storage currently).
 - Swagger documentation available at `/swagger-ui.html`
+- SetUp S3 Compatible storage for file uploads(MinIO) instead of local storage.
 - **TODO**: create Profile automatically when user registers.
 - **TODO**: create indexes in postgreSQL for performance optimization (create index on foreign keys to speed up joins)
 - **TODO**: Implement Redis caching for frequently accessed data (user data).
@@ -134,7 +135,6 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - **TODO**: Implement CI/CD pipeline for automated testing and deployment
 - **TODO**: Add integration tests for critical workflows
 - **TODO**: Implement database migration strategy (e.g., Flyway or Liquibase)
-- **TODO**: SetUp S3 Compatible storage for file uploads(MinIO) instead of local storage.
 
 ### Chat Service (WebSocket)
 **Status**: Basic functionality implemented, security pending
