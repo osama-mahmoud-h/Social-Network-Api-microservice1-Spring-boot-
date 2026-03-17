@@ -22,7 +22,7 @@ import com.app.auth.mapper.AuthMapper;
 import com.app.auth.mapper.DeviceMapper;
 import com.app.auth.model.Token;
 import com.app.auth.model.User;
-import com.app.auth.publisher.UserEventPublisher;
+import com.app.auth.service.OutboxEventService;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.AuthService;
@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
-    private final UserEventPublisher userEventPublisher;
+    private final OutboxEventService outboxEventService;
     private final DeviceMapper deviceMapper;
     private final EmailService emailService;
     private final OtpService otpService;
@@ -153,26 +153,25 @@ public class AuthServiceImpl implements AuthService {
 
         // Create new user using mapper - user is disabled and unverified until OTP verification
         User user = authMapper.mapToUser(request, passwordEncoder.encode(request.getPassword()));
-        // TODO: this enabled just for automatic creation
         user.setEnabled(true);  // User cannot login until email is verified
-        user.setEmailVerified(true);
+        user.setEmailVerified(false);
         userRepository.save(user);
 
+        outboxEventService.saveUserCreatedEvent(authMapper.mapToUserCreatedEvent(user));
         // Generate and send OTP
-        // TODO: just for auto creation
         SendOtpRequest otpRequest = SendOtpRequest.builder()
                 .email(request.getEmail())
                 .type(OtpType.REGISTRATION)
                 .build();
 
-//        OtpResponse otpResponse = otpService.sendOtp(otpRequest);
+        OtpResponse otpResponse = otpService.sendOtp(otpRequest);
 
         log.info("User registered successfully. OTP sent to email: {}", request.getEmail());
 
         return RegistrationResponse.builder()
                 .message("Registration successful. Please verify your email with the OTP sent to " + request.getEmail())
                 .email(request.getEmail())
-               // .otpExpiresAt(otpResponse.getExpiresAt())
+                .otpExpiresAt(otpResponse.getExpiresAt())
                 .build();
     }
 
@@ -209,9 +208,9 @@ public class AuthServiceImpl implements AuthService {
         // Save the token with device information
         saveUserToken(user, accessToken, deviceInfo);
 
-        // Publish UserCreatedEvent to Kafka for main-service
+        // Save UserCreatedEvent to outbox (published to Kafka by OutboxEventScheduler)
         UserCreatedEvent event = authMapper.mapToUserCreatedEvent(user);
-        userEventPublisher.publishUserCreated(event);
+        outboxEventService.saveUserCreatedEvent(event);
 
         log.info("User registration verified and completed for email: {}", request.getEmail());
 

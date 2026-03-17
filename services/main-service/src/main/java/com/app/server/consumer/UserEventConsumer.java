@@ -20,7 +20,7 @@ public class UserEventConsumer {
     private final UserProfileMapper userProfileMapper;
 
     @KafkaListener(topics = "user-events", groupId = "main-service-group")
-    public void consumeUserEvent(String eventJson) {
+        public void consumeUserEvent(String eventJson) {
         try {
             log.debug("Received event: {}", eventJson);
 

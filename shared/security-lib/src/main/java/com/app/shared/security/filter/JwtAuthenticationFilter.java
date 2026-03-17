@@ -70,6 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Add user details to the authentication
                 authToken.setDetails(validationResponse);
+                System.out.println("Auth Token: " + authToken);
 
                 // Set authentication in security context
                 SecurityContextHolder.getContext().setAuthentication(authToken);

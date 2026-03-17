@@ -45,4 +45,5 @@ public class UserEventPublisher {
             log.error("Error serializing UserUpdatedEvent: {}", e.getMessage(), e);
         }
     }
+
 }

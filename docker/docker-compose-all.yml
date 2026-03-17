@@ -72,6 +72,45 @@ services:
       timeout: 10s
       retries: 5
 
+  # Kafka Connect with Debezium for CDC
+  kafka-connect:
+    image: debezium/connect:2.7
+    container_name: kafka_connect
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect-configs
+      OFFSET_STORAGE_TOPIC: connect-offsets
+      STATUS_STORAGE_TOPIC: connect-status
+      KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      auth-db:
+        condition: service_healthy
+    networks:
+      - social_service_dev_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/connectors || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+
   # Kafka UI for monitoring
   kafka-ui:
     container_name: kafka-ui
@@ -255,7 +294,7 @@ services:
       POSTGRES_DB: auth_db
       POSTGRES_USER: osama
       POSTGRES_PASSWORD: 123456
-    command: postgres -c shared_buffers=64MB -c effective_cache_size=128MB -c max_connections=30
+    command: postgres -c shared_buffers=64MB -c effective_cache_size=128MB -c max_connections=30 -c wal_level=logical
     ports:
       - "5433:5432"
     networks:

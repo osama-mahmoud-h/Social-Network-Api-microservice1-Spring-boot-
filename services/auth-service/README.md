@@ -56,6 +56,46 @@ The Auth Service is a comprehensive authentication and authorization microservic
 2. **Factory Pattern**: Device information extraction from HTTP requests
 3. **Mapper Pattern**: DTO to Entity conversions with builders
 4. **Repository Pattern**: Data access layer abstraction
+5. **Transactional Outbox Pattern**: Event publishing with guaranteed delivery (see section below)
+
+### Transactional Outbox Pattern
+
+The auth-service implements the **Transactional Outbox Pattern** to guarantee reliable event delivery to Kafka without data loss:
+
+**Problem Solved:**
+- Previously, user creation and Kafka event publishing were separate operations, risking event loss if the app crashed between them
+- This pattern ensures atomicity: domain write and event write succeed or fail together
+
+**How It Works:**
+```
+1. User Registration/OAuth2 Creation
+   └─ @Transactional
+       ├─ userRepository.save(user)           ← Same DB Transaction
+       └─ outboxEventRepository.save(event)   ← Same DB Transaction
+          (Atomic: both or neither)
+
+2. OutboxEventScheduler (runs every 5 seconds)
+   └─ SELECT * FROM outbox_events WHERE status='PENDING' FOR UPDATE
+       ├─ Publishes to Kafka
+       ├─ Updates status to 'PUBLISHED' (or 'FAILED' after 5 retries)
+       └─ Auto-cleanup: Deletes PUBLISHED events older than 7 days
+
+3. Main-Service Consumer
+   └─ Receives event from Kafka
+       └─ Creates UserProfile (idempotent due to userId uniqueness)
+```
+
+**Key Components:**
+- `OutboxEvent` entity: Stores pending events in `outbox_events` table
+- `OutboxEventService`: Serializes events and saves to outbox (joins caller's transaction)
+- `OutboxEventScheduler`: Polls and publishes events asynchronously
+- `OutboxEventRepository`: Pessimistic locking prevents duplicate processing
+
+**Benefits:**
+- ✅ Guaranteed at-least-once delivery (no event loss)
+- ✅ Atomic domain + event write (single transaction)
+- ✅ Kafka unavailability doesn't cause data loss (events queue in DB)
+- ✅ Multi-instance safe (pessimistic lock prevents duplicates)
 
 ### Technology Stack
 
@@ -84,6 +124,7 @@ src/main/java/com/app/auth/
 │   ├── OtpType
 │   ├── OtpStatus
 │   ├── OAuthProvider
+│   ├── OutboxEventStatus
 │   ├── PasswordChangeResult
 │   ├── UserRole
 │   └── UserEventType
@@ -98,11 +139,15 @@ src/main/java/com/app/auth/
 ├── model/               # JPA entities
 │   ├── User
 │   ├── Token
+│   ├── OutboxEvent
 │   └── Otp (Redis)
 ├── publisher/           # Kafka publishers
+├── scheduler/           # Scheduled tasks
+│   └── OutboxEventScheduler
 ├── repository/          # Data repositories
 │   ├── UserRepository
 │   ├── TokenRepository
+│   ├── OutboxEventRepository
 │   └── OtpRepository
 ├── security/            # Security configurations and handlers
 │   ├── JwtAuthenticationFilter
@@ -115,12 +160,14 @@ src/main/java/com/app/auth/
 │   ├── DeviceService
 │   ├── EmailService
 │   ├── OtpService
+│   ├── OutboxEventService
 │   ├── PasswordService
 │   └── JwtService
 │   └── impl/
 │       ├── AuthServiceImpl
 │       ├── CustomOAuth2UserImpl
-│       └── CustomOAuth2UserServiceImpl
+│       ├── CustomOAuth2UserServiceImpl
+│       └── OutboxEventServiceImpl
 └── utils/               # Utility classes
 ```
 
@@ -523,6 +570,23 @@ CREATE TABLE user_roles (
 );
 ```
 
+### Outbox Events Table (Transactional Outbox Pattern)
+```sql
+CREATE TABLE outbox_events (
+    id BIGSERIAL PRIMARY KEY,
+    aggregate_type VARCHAR(100) NOT NULL,
+    aggregate_id BIGINT NOT NULL,
+    event_type VARCHAR(50) NOT NULL,
+    payload TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL,
+    processed_at TIMESTAMP,
+    retry_count INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_outbox_status_created ON outbox_events(status, created_at);
+```
+
 ## Setup Instructions
 
 ### Prerequisites
@@ -627,6 +691,9 @@ curl -X GET "http://localhost:8081/api/auth/devices?userId=1" \
 
 ## Future Enhancements
 
+- [x] Transactional Outbox Pattern (✅ Implemented in Phase 7)
+- [ ] Dead Letter Topic (DLT) for failed Kafka events
+- [ ] Event sourcing for complete audit trail
 - [ ] Test and verify Facebook OAuth2 integration
 - [ ] Test and verify GitHub OAuth2 integration
 - [ ] Implement refresh token endpoint
@@ -747,8 +814,20 @@ For questions or support, please open an issue in the repository.
 - [x] Architecture overview
 - [x] Implementation checklist
 
+### Phase 7: Transactional Outbox Pattern ✅
+- [x] OutboxEventStatus enum (PENDING, PUBLISHED, FAILED)
+- [x] OutboxEvent JPA entity
+- [x] OutboxEventRepository with pessimistic locking
+- [x] OutboxEventService interface and implementation
+- [x] OutboxEventScheduler (5-second poll, daily cleanup)
+- [x] UserEventPublisher refactor (add publishOutboxEvent method)
+- [x] AuthServiceImpl integration (replace direct publish with outbox save)
+- [x] CustomOAuth2UserServiceImpl integration (remove fire-and-forget pattern)
+- [x] Database schema documentation
+- [x] Architecture documentation
+
 ---
 
-**Last Updated**: 2025-12-07
-**Version**: 1.1.0
-**Status**: Production Ready (Core Features Complete)
+**Last Updated**: 2026-02-21
+**Version**: 1.2.0
+**Status**: Production Ready (Transactional Outbox Pattern Implemented)
