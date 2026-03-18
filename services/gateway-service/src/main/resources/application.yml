@@ -4,61 +4,110 @@ spring:
   application:
     name: api-gateway
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}  # Default to dev profile
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default for local dev
+          enabled: ${EUREKA_CLIENT_ENABLED:false}
           lower-case-service-id: true
-      # Gateway Routes Configuration
-      # Using direct URLs instead of load balancer (lb://) since Eureka is disabled
       routes:
         - id: auth-service
-          uri: lb://AUTH-SERVICE  # Use Eureka service name with lb://
+          uri: ${AUTH_SERVICE_URL:http://localhost:8087}
           predicates:
             - Path=/api/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@authRateLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+
         - id: main-service
-          uri: lb://MAIN-SERVICE  # Use Eureka service name
+          uri: ${MAIN_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@defaultRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+
         - id: chat-service
-          uri: lb://CHAT-SERVICE  # Use Eureka service name
+          uri: ${CHAT_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/chat/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@chatRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+
         - id: search-service
-          uri: lb://SEARCH-SERVICE  # Use Eureka service name
+          uri: ${SEARCH_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/search/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@searchRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+
         - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE  # Use Eureka service name
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/api/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@defaultRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
 
-#          filters:
-#            - Authentication
-      # CORS Configuration
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origin-patterns: '*'  # Use patterns instead of origins with credentials
+            allowed-origin-patterns: '*'
             allowed-methods: GET,POST,PUT,DELETE,OPTIONS
             allowed-headers: '*'
             allow-credentials: true
 
+# Rate Limiter Configuration
+# per: SECOND | MINUTE | HOUR | DAY
+# burst: max number of requests allowed in a spike
+gateway:
+  rate-limiter:
+    auth:
+      rate: 5
+      per: MINUTE
+      burst: 5
+    general:
+      rate: 30
+      per: SECOND
+      burst: 30
+    search:
+      rate: 15
+      per: SECOND
+      burst: 15
+    chat:
+      rate: 20
+      per: SECOND
+      burst: 20
+
 server:
   port: 8081
 
-# Eureka Configuration - DISABLED by default for local development
 eureka:
   client:
-    enabled: ${EUREKA_CLIENT_ENABLED:false}  # Disabled by default
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
 
-# Logging
 logging:
   level:
     org:
@@ -68,35 +117,29 @@ logging:
     reactor:
       netty: INFO
 
-#===================== ELK Stack Configuration - DISABLED ==========================
-# Uncomment when ELK stack is integrated
-#logstash:
-#  host: localhost
-#  port: 5000
-
 ---
-# Docker/Production Profile - Eureka ENABLED
+# Docker/Production Profile
 spring:
   config:
     activate:
       on-profile: docker
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: true  # Enable service discovery in Docker
+          enabled: true
           lower-case-service-id: true
 
 eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: http://discovery-service:8761/eureka/  # Docker DNS name
+      defaultZone: http://discovery-service:8761/eureka/
   instance:
     prefer-ip-address: true
     hostname: api-gateway
-
-# ELK Stack - Use Docker service name (uncomment when ELK is integrated)
-#logstash:
-#  host: logstash
-#  port: 5000

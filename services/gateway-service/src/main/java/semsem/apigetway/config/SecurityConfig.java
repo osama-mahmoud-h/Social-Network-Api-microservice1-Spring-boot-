@@ -18,12 +18,12 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)  // Disable CSRF
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)  // Disable HTTP Basic
-            .formLogin(ServerHttpSecurity.FormLoginSpec::disable)  // Disable form login
+            .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+            .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
             .authorizeExchange(exchange -> exchange
-                .anyExchange().permitAll()  // Allow all requests (no authentication)
+                .anyExchange().permitAll()
             );
 
         return http.build();
