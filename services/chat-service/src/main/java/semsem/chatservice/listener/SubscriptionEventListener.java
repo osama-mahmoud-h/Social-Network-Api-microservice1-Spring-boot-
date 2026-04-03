@@ -17,7 +17,6 @@ public class SubscriptionEventListener {
 //        log.info("New subscription - destination: {}, sessionId: {}",
 //                headerAccessor.getDestination(),
 //                headerAccessor.getSessionId());
-//        System.out.println("New subscription - destination: "+headerAccessor.getDestination()+
 //                ", sessionId: "+headerAccessor.getSessionId());
     }
 }

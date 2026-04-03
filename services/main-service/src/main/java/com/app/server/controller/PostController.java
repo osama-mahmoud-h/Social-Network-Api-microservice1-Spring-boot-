@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Set;
 
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/post")
@@ -47,7 +48,7 @@ public class PostController {
     public ResponseEntity<MyApiResponse<Boolean>> savePost(@Valid @ModelAttribute CreatePostRequestDto createPostRequestDto
     ) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        System.out.println("currentUserId = " + currentUserId);
+        log.info("currentUserId = {}" , currentUserId);
         Post savedPost = postService.savePost(currentUserId, createPostRequestDto);
         return ResponseEntity.ok(MyApiResponse.success("Post created successfully", savedPost != null));
     }
@@ -65,7 +66,7 @@ public class PostController {
             @Valid @ModelAttribute GetRecentPostsRequestDto req
     ){
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        System.out.println("currentUserId = " + currentUserId);
+        log.debug("currentUserId = {}" , currentUserId);
         List<PostResponseDto> posts = postService.getRecentPosts(currentUserId, req);
         return ResponseEntity.ok(MyApiResponse.success("All posts retrieved successfully", posts));
     }

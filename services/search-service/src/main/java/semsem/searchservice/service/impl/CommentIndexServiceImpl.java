@@ -3,6 +3,7 @@ package semsem.searchservice.service.impl;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import semsem.searchservice.dto.response.CommentIndexResponseDto;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentIndexServiceImpl implements CommentIndexService {
@@ -39,10 +41,10 @@ public class CommentIndexServiceImpl implements CommentIndexService {
                     .index("comment_index")
                     .document(commentIndex)
             );
-            System.out.println("Comment saved successfully: " + response);
+
             return response.id();
         } catch (Exception e) {
-            System.out.println("Error saving comment: " + e.getMessage());
+
             throw new RuntimeException("Error saving comment: " + e.getMessage(), e);
         }
     }
@@ -67,9 +69,7 @@ public class CommentIndexServiceImpl implements CommentIndexService {
                     .document(commentIndex)
             );
 
-            System.out.println("Comment updated successfully with ID: " + commentIndex.getId());
         } catch (Exception e) {
-            System.out.println("Error updating comment: " + e.getMessage());
             throw new RuntimeException("Error updating comment: " + e.getMessage(), e);
         }
     }
@@ -81,7 +81,7 @@ public class CommentIndexServiceImpl implements CommentIndexService {
             List<CommentIndex> existingComments = commentIndexRepository.findByCommentId(commentId);
 
             if (existingComments.isEmpty()) {
-                System.out.println("Comment not found with commentId: " + commentId);
+               log.debug("Comment not found with commentId: {}" , commentId);
                 return;
             }
 
@@ -91,9 +91,7 @@ public class CommentIndexServiceImpl implements CommentIndexService {
                     .id(existingComments.get(0).getId())
             );
 
-            System.out.println("Comment deleted successfully with commentId: " + commentId);
         } catch (Exception e) {
-            System.out.println("Error deleting comment: " + e.getMessage());
             throw new RuntimeException("Error deleting comment: " + e.getMessage(), e);
         }
     }

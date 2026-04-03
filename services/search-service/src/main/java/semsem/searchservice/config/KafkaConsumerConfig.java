@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfig {
@@ -46,7 +47,7 @@ public class KafkaConsumerConfig {
             props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Object.class.getName());
 
 
-            System.out.println("Initializing Kafka Consumer Factory with properties: " + props);
+            log.debug("Initializing Kafka Consumer Factory with properties: {}" , props);
             return new DefaultKafkaConsumerFactory<>(
                     props,
                     new StringDeserializer(),

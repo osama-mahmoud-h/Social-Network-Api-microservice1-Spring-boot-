@@ -1,6 +1,7 @@
 package semsem.notificationservice.factory;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.enums.NotificationType;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationHandlerFactory {
@@ -22,7 +24,7 @@ public class NotificationHandlerFactory {
     public NotificationHandlerFactory(List<NotificationHandler> handlers) {
         handlerMap = handlers.stream()
                 .collect(Collectors.toMap(NotificationHandler::getNotificationType, Function.identity()));
-        System.out.println("handlerMap = " + handlerMap);
+        log.debug("handlerMap = {}" , handlerMap);
     }
 
     public NotificationHandler getHandler(NotificationType type) {

@@ -23,7 +23,7 @@ public class DeletePostEventHandler implements PostEventHandler {
             Map<String, Object> postMap = (Map<String, Object>) entityEventDto;
             Long postId = Long.valueOf(postMap.get("postId").toString());
             postIndexService.deleteByPostId(postId);
-            System.out.println("Post index deleted with postId: " + postId);
+
         }
     }
 }

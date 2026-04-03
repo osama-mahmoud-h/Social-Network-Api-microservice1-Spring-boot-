@@ -36,7 +36,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
             // Try to get token from different sources
             String token = extractToken(httpRequest);
             log.info("Extracted token for WebSocket handshake");
-            System.out.println("Extracted token for WebSocket handshake: " + token);
+            log.debug("Extracted token for WebSocket handshake: {}" , token);
 
             if (token != null) {
                 try {
@@ -90,7 +90,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             log.info("Token extracted from Authorization header");
-            System.out.println("Token extracted from Authorization header");
+
             return authHeader.substring(7);
         }
 
@@ -98,8 +98,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         if (request.getCookies() != null) {
             for (var cookie : request.getCookies()) {
                 if ("jwt".equals(cookie.getName())) {
-                    //log.info("Token extracted from cookie{cookie.getName()}"); fix this line in new line
-                    System.out.println("Token extracted from cookie: " + cookie.getName());
+                    log.info("Token extracted from cookie{} ", cookie.getName());
                     log.debug("Token extracted from cookie");
                     return cookie.getValue();
                 }

@@ -22,6 +22,5 @@ public class CreateCommentEventHandler implements CommentEventHandler {
     public void handleEvent(Object entityEventDto) {
         CommentIndex commentIndex = commentIndexMapper.mapCommentEventObjectToCommentIndex(entityEventDto);
         String createdIndexId = commentIndexService.save(commentIndex);
-        System.out.println("Comment index created with ID: " + createdIndexId);
     }
 }

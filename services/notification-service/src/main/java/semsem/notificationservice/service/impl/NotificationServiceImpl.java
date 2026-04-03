@@ -48,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationPageResponse getUserNotifications(Long userId, Pageable pageable) {
         log.debug("Fetching notifications for user: {}", userId);
         Page<Notification> notificationPage = notificationRepository.findByReceiverIdOrderByCreatedAtDesc(userId, pageable);
-        System.out.println("notification Page : "+notificationPage);
+        log.debug("notification Page : {}",notificationPage);
         Long unreadCount = notificationRepository.countByReceiverIdAndIsReadFalse(userId);
 
         List<NotificationResponse> notifications = notificationPage.getContent()
