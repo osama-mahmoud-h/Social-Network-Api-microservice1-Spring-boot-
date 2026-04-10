@@ -16,13 +16,11 @@ import com.app.auth.dto.response.TokenValidationResponse;
 import com.app.auth.enums.OtpStatus;
 import com.app.auth.enums.OtpType;
 import com.app.auth.enums.UserRole;
-import com.app.auth.event.UserCreatedEvent;
 import com.app.auth.exception.*;
 import com.app.auth.mapper.AuthMapper;
 import com.app.auth.mapper.DeviceMapper;
 import com.app.auth.model.Token;
 import com.app.auth.model.User;
-import com.app.auth.service.OutboxEventService;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.AuthService;
@@ -51,7 +49,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
-    private final OutboxEventService outboxEventService;
     private final DeviceMapper deviceMapper;
     private final EmailService emailService;
     private final OtpService otpService;
@@ -143,6 +140,7 @@ public class AuthServiceImpl implements AuthService {
         tokenRepository.deleteAll(validTokens);
     }
 
+    //TODO: try to achieve single responsibility later.
     @Transactional
     @Override
     public RegistrationResponse register(RegisterRequest request) {
@@ -157,7 +155,6 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerified(false);
         userRepository.save(user);
 
-        outboxEventService.saveUserCreatedEvent(authMapper.mapToUserCreatedEvent(user));
         // Generate and send OTP
         SendOtpRequest otpRequest = SendOtpRequest.builder()
                 .email(request.getEmail())
@@ -207,10 +204,6 @@ public class AuthServiceImpl implements AuthService {
 
         // Save the token with device information
         saveUserToken(user, accessToken, deviceInfo);
-
-        // Save UserCreatedEvent to outbox (published to Kafka by OutboxEventScheduler)
-        UserCreatedEvent event = authMapper.mapToUserCreatedEvent(user);
-        outboxEventService.saveUserCreatedEvent(event);
 
         log.info("User registration verified and completed for email: {}", request.getEmail());
 

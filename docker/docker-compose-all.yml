@@ -74,10 +74,10 @@ services:
 
   # Kafka Connect with Debezium for CDC
   kafka-connect:
-    image: debezium/connect:2.7
+    image: debezium/connect:2.6.1.Final
     container_name: kafka_connect
     ports:
-      - "8083:8083"
+      - "8778:8083"
     environment:
       BOOTSTRAP_SERVERS: kafka:9092
       GROUP_ID: 1

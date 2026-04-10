@@ -1,0 +1,32 @@
+{
+  "name": "auth-users-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "${DATABASE_HOST}",
+    "database.port": "${DATABASE_PORT}",
+    "database.user": "${DATABASE_USERNAME}",
+    "database.password": "${DATABASE_PASSWORD}",
+    "database.dbname": "${DATABASE_NAME}",
+    "topic.prefix": "auth",
+    "plugin.name": "pgoutput",
+    "slot.name": "auth_users_slot",
+    "publication.name": "auth_users_pub",
+    "publication.autocreate.mode": "disabled",
+    "table.include.list": "public.users",
+    "column.exclude.list": "public.users.password,public.users.oauth_provider,public.users.oauth_provider_id",
+    "tombstones.on.delete": "false",
+    "time.precision.mode": "connect",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "transforms": "unwrap,route",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "transforms.unwrap.add.fields": "op,ts_ms",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.route.regex": "auth\\.public\\.users",
+    "transforms.route.replacement": "user-events"
+  }
+}

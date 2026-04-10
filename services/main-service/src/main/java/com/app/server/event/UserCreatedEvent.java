@@ -1,25 +1,40 @@
 package com.app.server.event;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
-/**
- * Event received when a new user is created in auth-service
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCreatedEvent {
+
+    @JsonProperty("user_id")
     private Long userId;
+
+    @JsonProperty("first_name")
     private String firstName;
+
+    @JsonProperty("last_name")
     private String lastName;
+
     private String email;
+
+    @JsonProperty("phone_number")
     private String phoneNumber;
-    private Instant createdAt;
-    private String eventType;
+
+    @JsonProperty("created_at")
+    private String createdAt;
+
+    @JsonProperty("email_verified")
+    private boolean emailVerified;
+
+    @JsonProperty("__op")
+    private CdcOperation op;
+
+    @JsonProperty("__deleted")
+    private String deleted;
 }

@@ -4,7 +4,7 @@ A scalable microservice-based social network backend system built with Spring Bo
 
 **Development Status**: Production-ready microservices platform with complete infrastructure services. Active development continues on performance optimizations and advanced features.
 
-**Last Updated**: December 2025
+**Last Updated**: April 2026
 
 ## Features
 
@@ -75,6 +75,7 @@ All services are containerized using Docker and can be orchestrated via Docker C
 
 **Communication & Messaging**
 - Apache Kafka - Event streaming and inter-service messaging
+- **Debezium + Kafka Connect** - Change Data Capture (CDC) on PostgreSQL WAL for user identity propagation
 - WebSocket - Real-time bidirectional communication for chat
 - OpenFeign - Declarative REST client for inter-service calls
 
@@ -104,10 +105,13 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Feign client integration for inter-service communication
 - OTP functionality with email verification
 - Device fingerprinting and multi-device session management
+- **CDC via Debezium**: user identity changes propagate automatically through PostgreSQL WAL — no dual-write, no outbox table
+  - Postgres publication filters to `email_verified = true` — unverified rows never enter the event stream
+  - Connector config: `services/auth-service/debezium/users-cdc-connector.json`
+  - Sensitive columns (`password`, `oauth_provider`, `oauth_provider_id`) excluded at connector level
 - Swagger documentation available at `/swagger-ui.html`
 - **TODO**: Migrate token storage to Redis for improved performance
 - **TODO**: Add Redis-based session management
-- **TODO**: Implement distributed rate limiting across service instances
 - **TODO**: Test and verify Facebook/GitHub OAuth2 integration
 - **TODO**: Implement OAuth2 account linking (multiple providers per user)
 
@@ -121,10 +125,13 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Comment reply functionality
 - Comment reactions
 - Friendship system featuring requests, mutual friends, and friend suggestions
-- File upload handling for user content(File System storage currently).
+- File upload handling for user content (File System storage currently)
+- **CDC-driven `UserProfile` sync**: `user_profiles` table is automatically populated from `user-events` Kafka topic (sourced by Debezium CDC on auth-service's `users` table)
+  - Idempotent upsert — safe to replay on consumer restart or Kafka redelivery
+  - `auto-offset-reset: earliest` — catches all events including those published while the service was down
+  - Retry with exponential backoff (1s → 2s → 4s → 8s) on transient DB failures; exhausted retries go to `user-events.DLT`
 - Swagger documentation available at `/swagger-ui.html`
-- SetUp S3 Compatible storage for file uploads(MinIO) instead of local storage.
-- **TODO**: create Profile automatically when user registers.
+- SetUp S3 Compatible storage for file uploads (MinIO) instead of local storage.
 - **TODO**: create indexes in postgreSQL for performance optimization (create index on foreign keys to speed up joins)
 - **TODO**: Implement Redis caching for frequently accessed data (user data).
 - **TODO**: Add rate limiting for critical endpoints
@@ -156,6 +163,9 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Full-text search capabilities across the platform
 - Kafka integration for automatic content indexing
 - Search functionality across posts and user profiles
+- **CDC-driven user index sync**: consumes `user-events` via a dedicated `userEventListenerContainerFactory` (separate from the post/comment factory — correct `StringDeserializer` vs `JsonDeserializer` per topic)
+  - ES document ID set to `userId` — upsert is idempotent, no duplicate documents on replay
+  - Retry with exponential backoff + dead letter topic (`user-events.DLT`) on ES failures
 
 ### Notification Service (Port: 8085)
 **Status**: Fully functional with PostgreSQL persistence
