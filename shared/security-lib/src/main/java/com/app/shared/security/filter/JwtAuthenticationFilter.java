@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             TokenValidationResponse validationResponse = apiResponse.getData();
-            System.out.println("Validation Response: " + validationResponse);
+            log.debug("Validation Response: {}" , validationResponse);
             if (validationResponse.isValid()) {
                 // Create authorities from roles
                 List<SimpleGrantedAuthority> authorities = validationResponse.getRoles().stream()
@@ -70,11 +70,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Add user details to the authentication
                 authToken.setDetails(validationResponse);
+                System.out.println("Auth Token: " + authToken);
 
                 // Set authentication in security context
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                System.out.println("Token validation failed: " + validationResponse.getMessage());
+                log.debug("Token validation failed: {}" , validationResponse.getMessage());
                 log.warn("Token validation failed: {}", validationResponse.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");

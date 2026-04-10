@@ -1,6 +1,7 @@
 package semsem.searchservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchServiceImpl implements SearchService {
@@ -97,7 +99,7 @@ public class SearchServiceImpl implements SearchService {
         }
 
         List<Long> ids = strategy.apply(requestDto.getSearchTerm(), pageable);
-        System.out.println("retrieved ids: " + ids);
+        log.debug("retrieved ids: " + ids);
 
         return SearchIdsResponseDto.builder()
                 .indexType(requestDto.getSearchCategory())

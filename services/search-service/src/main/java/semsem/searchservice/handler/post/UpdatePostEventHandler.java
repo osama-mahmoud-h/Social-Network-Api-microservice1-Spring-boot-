@@ -22,6 +22,5 @@ public class UpdatePostEventHandler implements PostEventHandler {
     public void handleEvent(Object entityEventDto) {
         PostIndex postIndex = postIndexMapper.mapPostEventObjectToPostIndex(entityEventDto);
         postIndexService.update(postIndex);
-        System.out.println("Post index updated with postId: " + postIndex.getPostId());
     }
 }

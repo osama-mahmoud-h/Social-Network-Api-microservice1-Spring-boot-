@@ -22,6 +22,6 @@ public class UpdateCommentEventHandler implements CommentEventHandler {
     public void handleEvent(Object entityEventDto) {
         CommentIndex commentIndex = commentIndexMapper.mapCommentEventObjectToCommentIndex(entityEventDto);
         commentIndexService.update(commentIndex);
-        System.out.println("Comment index updated with commentId: " + commentIndex.getCommentId());
+
     }
 }

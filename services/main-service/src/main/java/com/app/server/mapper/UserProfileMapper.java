@@ -8,23 +8,24 @@ import java.time.Instant;
 
 @Service
 public class UserProfileMapper {
-    public UserProfile mapCreatedEventToUserProfile(UserCreatedEvent event) {
+
+    public UserProfile toUserProfile(UserCreatedEvent event, UserProfile existing) {
+        if (existing != null) {
+            existing.setFirstName(event.getFirstName());
+            existing.setLastName(event.getLastName());
+            existing.setEmail(event.getEmail());
+            existing.setPhoneNumber(event.getPhoneNumber());
+            existing.setSyncedAt(Instant.now());
+            return existing;
+        }
         return UserProfile.builder()
                 .userId(event.getUserId())
                 .firstName(event.getFirstName())
                 .lastName(event.getLastName())
                 .email(event.getEmail())
                 .phoneNumber(event.getPhoneNumber())
-                .createdAt(event.getCreatedAt())
+                .createdAt(Instant.parse(event.getCreatedAt()))
                 .syncedAt(Instant.now())
                 .build();
-    }
-
-    public void updateUserProfileFromEvent(UserProfile userProfile, UserCreatedEvent event) {
-        userProfile.setFirstName(event.getFirstName());
-        userProfile.setLastName(event.getLastName());
-        userProfile.setEmail(event.getEmail());
-        userProfile.setPhoneNumber(event.getPhoneNumber());
-        userProfile.setSyncedAt(Instant.now());
     }
 }

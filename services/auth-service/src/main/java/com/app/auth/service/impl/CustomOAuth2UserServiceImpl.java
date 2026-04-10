@@ -4,7 +4,6 @@ import com.app.auth.enums.OAuthProvider;
 import com.app.auth.enums.UserRole;
 import com.app.auth.mapper.AuthMapper;
 import com.app.auth.model.User;
-import com.app.auth.publisher.UserEventPublisher;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.CustomOAuth2UserService;
 import com.app.auth.strategy.OAuthAttributeExtractor;
@@ -26,7 +25,6 @@ import java.util.Set;
 @Slf4j
 public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implements CustomOAuth2UserService {
     private final UserRepository userRepository;
-    private final UserEventPublisher userEventPublisher;
     private final AuthMapper authMapper;
     private final OAuthExtractorRegistry extractorRegistry;
 
@@ -93,13 +91,6 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
                 .build();
 
         log.info("Creating new OAuth2 user: {}", newUser.getEmail());
-        User createdUser = userRepository.save(newUser);
-
-        userEventPublisher.publishUserCreated(authMapper.mapToUserCreatedEvent(createdUser)).exceptionally(ex -> {
-            log.error("Failed to publish UserCreatedEvent async for userId: {}", createdUser.getUserId(), ex);
-            return null;
-        });
-        log.info("Published UserCreatedEvent Async for userId: {}", createdUser.getUserId());
-        return createdUser;
+        return userRepository.save(newUser);
     }
 }
