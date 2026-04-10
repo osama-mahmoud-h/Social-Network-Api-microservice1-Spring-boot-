@@ -2,8 +2,6 @@ package com.app.auth.mapper;
 
 import com.app.auth.dto.request.RegisterRequest;
 import com.app.auth.dto.response.AuthResponse;
-import com.app.auth.enums.UserEventType;
-import com.app.auth.event.UserCreatedEvent;
 import com.app.auth.model.User;
 import com.app.auth.enums.UserRole;
 import org.springframework.stereotype.Component;
@@ -49,15 +47,4 @@ public class AuthMapper {
                 .build();
     }
 
-    public UserCreatedEvent mapToUserCreatedEvent(User user) {
-        return UserCreatedEvent.builder()
-                .userId(user.getUserId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .createdAt(user.getCreatedAt())
-                .eventType(UserEventType.USER_CREATED.name())
-                .build();
-    }
 }

@@ -22,18 +22,17 @@ public class AppUserIndexMapper {
                 .build();
     }
 
-    public AppUserIndex AppUserEventObjectToAppUserIndex(Object appUserEvent) {
-        if (appUserEvent instanceof Map) {
-            Map<String, Object> appUserMap = (Map<String, Object>) appUserEvent;
-            return AppUserIndex.builder()
-                    .userId(Long.valueOf(appUserMap.get("userId").toString()))
-                    .firstName(appUserMap.get("firstName").toString())
-                    .lastName(appUserMap.get("lastName").toString())
-                    .profilePictureUrl(appUserMap.get("profilePictureUrl").toString())
-                    .email(appUserMap.get("email").toString())
-                    .build();
-        }
-        return null; // or throw an exception if the input is not as expected
+    public AppUserIndex toAppUserIndex(Map<String, Object> event) {
+        Long userId = Long.valueOf(event.get("user_id").toString());
+        Object profilePic = event.get("profile_picture_url");
+        return AppUserIndex.builder()
+                .id(userId.toString()) // deterministic ES doc ID → upsert is idempotent
+                .userId(userId)
+                .firstName(event.get("first_name") != null ? event.get("first_name").toString() : null)
+                .lastName(event.get("last_name") != null ? event.get("last_name").toString() : null)
+                .email(event.get("email") != null ? event.get("email").toString() : null)
+                .profilePictureUrl(profilePic != null ? profilePic.toString() : null)
+                .build();
     }
 
 }

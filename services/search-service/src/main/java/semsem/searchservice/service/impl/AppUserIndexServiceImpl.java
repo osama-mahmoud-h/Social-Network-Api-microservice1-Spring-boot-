@@ -2,7 +2,6 @@ package semsem.searchservice.service.impl;
 
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,6 @@ import semsem.searchservice.model.AppUserIndex;
 import semsem.searchservice.repository.AppUserIndexRepository;
 import semsem.searchservice.service.AppUserIndexService;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,40 +32,21 @@ public class AppUserIndexServiceImpl implements AppUserIndexService {
     }
 
     @Override
-    public String save(AppUserIndex appUserIndex) {
+    public void upsert(AppUserIndex appUserIndex) {
         try {
-            IndexResponse response = elasticsearchClient.index(i -> i
+            elasticsearchClient.index(i -> i
                     .index("app_user_index")
+                    .id(appUserIndex.getId()) // deterministic id -> idempotent upsert
                     .document(appUserIndex)
             );
-            return response.id();
         } catch (Exception e) {
-            throw new RuntimeException("Error saving user: " + e.getMessage(), e);
+            throw new RuntimeException("Error upserting user index: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public void update(AppUserIndex appUserIndex) {
-        try {
-            // Find the existing document by userId - we need to add this query method
-            Optional<AppUserIndex> existingUser = appUserIndexRepository.findById(appUserIndex.getId());
-
-            if (existingUser.isEmpty()) {
-                // If not found by ID, try to find by userId
-                save(appUserIndex);
-                return;
-            }
-
-            // Update the document
-            elasticsearchClient.index(i -> i
-                    .index("app_user_index")
-                    .id(appUserIndex.getId())
-                    .document(appUserIndex)
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating user: " + e.getMessage(), e);
-        }
+    public void deleteByUserId(Long userId) {
+        appUserIndexRepository.deleteById(userId.toString());
     }
 
 
