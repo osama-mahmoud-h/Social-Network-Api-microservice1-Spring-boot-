@@ -48,7 +48,7 @@ public class CommentController {
             @RequestBody AddNewCommentRequestDto commentDto
     ) {
         UserProfile currentUserProfile = getCurrentUserProfile();
-        System.out.println();
+
         return ResponseEntity.ok(
                 MyApiResponse.success("Comment added successfully",
                         commentService.addNewComment(currentUserProfile, commentDto))

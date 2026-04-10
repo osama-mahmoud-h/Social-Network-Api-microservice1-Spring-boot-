@@ -28,11 +28,12 @@ A scalable microservice-based social network backend system built with Spring Bo
 - Centralized authentication service with Feign client integration
 - Gateway-level and service-level security filters
 - Role-based access control across all services
+- **Token Bucket rate limiting** at the API Gateway (Redis-backed, per-route configurable)
 - Centralized logging with ELK stack (Elasticsearch, Logstash, Kibana)
 - Multi-database architecture (PostgreSQL, MongoDB, Elasticsearch)
 
 ### In Progress
-- Redis-based caching and rate limiting
+- Redis-based caching
 - Enhanced monitoring and observability (ELK stack configuration refinement)
 - Performance optimizations
 
@@ -105,7 +106,6 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Device fingerprinting and multi-device session management
 - Swagger documentation available at `/swagger-ui.html`
 - **TODO**: Migrate token storage to Redis for improved performance
-- **TODO**: Implement rate limiting for authentication endpoints
 - **TODO**: Add Redis-based session management
 - **TODO**: Implement distributed rate limiting across service instances
 - **TODO**: Test and verify Facebook/GitHub OAuth2 integration
@@ -193,7 +193,20 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - Route configuration for all microservices
 - Load balancing with Eureka service discovery
 - Security integration complete
-- **TODO**: Rate limiting configuration
+- **Token Bucket rate limiting** (Redis-backed) with per-route configuration:
+  - Algorithm: Token Bucket via `RedisRateLimiter`
+  - Key strategies: by authenticated user ID (from JWT), fallback to IP; IP-only for auth endpoints
+  - Configurable via `application.yml` — no code changes needed:
+    ```yaml
+    gateway:
+      rate-limiter:
+        auth:    { rate: 5,  per: MINUTE, burst: 1  }   # brute-force protection
+        general: { rate: 30, per: SECOND, burst: 60 }   # posts, notifications
+        search:  { rate: 15, per: SECOND, burst: 30 }
+        chat:    { rate: 20, per: SECOND, burst: 40 }
+    ```
+  - Supported time units: `SECOND`, `MINUTE`, `HOUR`, `DAY`
+  - Returns `429 Too Many Requests` with `X-RateLimit-Remaining` headers
 - **TODO**: Circuit breaker patterns
 - **TODO**: Request/response logging enhancements
 
@@ -810,7 +823,7 @@ docker-compose -f docker-compose-all.yml restart zookeeper kafka
 - ELK stack centralized logging
 
 **Planned**
-- Redis caching and rate limiting
+- Redis caching
 - Enhanced monitoring and observability
 - CI/CD pipeline
 - Comprehensive test coverage
@@ -818,7 +831,6 @@ docker-compose -f docker-compose-all.yml restart zookeeper kafka
 ### Known Limitations
 
 - Redis caching layer not yet integrated (infrastructure ready)
-- Rate limiting not yet implemented
 - S3-compatible storage (MinIO) pending for file uploads
 
 ## Contributing

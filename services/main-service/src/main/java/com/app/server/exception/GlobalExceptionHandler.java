@@ -114,19 +114,19 @@ public class GlobalExceptionHandler {
         List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();
         //error filed name
         FieldError fieldError = (FieldError) allErrors.get(0);
-        System.out.println("error field name: " + fieldError.getField());
+        log.debug("error field name: {}" , fieldError.getField());
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(allErrors.get(0).getDefaultMessage())
                 .build();
-        //System.out.println("error object name: " + allErrors.get(0).getObjectName());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex) {
-        //System.out.println("Exception occurred: " + ex.getMessage());
+
         String errorMessage = "Internal Server Error";// ex.getMessage();
         log.error("Internal Server Error: ", ex);
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        System.out.println("message"+ex.getMostSpecificCause().getMessage());
+        log.debug("message: {}",ex.getMostSpecificCause().getMessage());
         String specificMessage = extractSpecificMessage(ex);
 
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()

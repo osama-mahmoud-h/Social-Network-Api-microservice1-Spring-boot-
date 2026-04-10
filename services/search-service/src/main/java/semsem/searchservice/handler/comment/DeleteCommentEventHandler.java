@@ -23,7 +23,6 @@ public class DeleteCommentEventHandler implements CommentEventHandler {
             Map<String, Object> commentMap = (Map<String, Object>) entityEventDto;
             Long commentId = Long.valueOf(commentMap.get("commentId").toString());
             commentIndexService.deleteByCommentId(commentId);
-            System.out.println("Comment index deleted with commentId: " + commentId);
         }
     }
 }

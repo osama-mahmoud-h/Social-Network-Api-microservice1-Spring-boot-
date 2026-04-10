@@ -23,6 +23,5 @@ public class CreatePostEventHandler implements PostEventHandler {
     public void handleEvent(Object entityEventDto) {
         PostIndex postIndex = postIndexMapper.mapPostEventObjectToPostIndex(entityEventDto);
         String createdIndexId = postIndexService.save(postIndex);
-        System.out.println("Post index created with ID: " + createdIndexId);
     }
 }

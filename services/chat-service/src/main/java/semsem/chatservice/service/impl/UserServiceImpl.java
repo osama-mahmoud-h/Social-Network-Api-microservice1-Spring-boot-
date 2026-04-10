@@ -20,7 +20,6 @@ public class UserServiceImpl /*implements UserService*/ {
 
 //    @Override
 //    public void disconnect(AppUser user) {
-//        System.out.println("disconnecting user: service-layer " + user);
 //       AppUser storedUser = appUserRepository.findOneByNickName(user .getNickName()).map(
 //                u -> {
 //                     u.setStatus(UserStatus.OFFLINE);

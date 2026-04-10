@@ -68,7 +68,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public boolean acceptFriend(UserProfile currentUser, Long friendId) {
-        System.out.println("Accepting friend request for userId: " + currentUser.getUserId() + " and friendId: " + friendId);
+
         Friendship friendship = friendshipServiceRepository.findFriendshipByTwoUsers(currentUser.getUserId(), friendId)
                 .orElseThrow(() -> new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND));
 

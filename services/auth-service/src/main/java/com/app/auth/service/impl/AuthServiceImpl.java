@@ -103,7 +103,7 @@ public class AuthServiceImpl implements AuthService {
 
             // Check if token is revoked
             Optional<Token> storedToken = tokenRepository.findByToken(token);
-            System.out.println("Stored Token: " + storedToken);
+            log.debug("Stored Token: {}" , storedToken);
             if (storedToken.isEmpty() || ( storedToken.get().isExpired() || storedToken.get().isRevoked()) ) {
                 throw new TokenExpiredException("Token is revoked or expired");
             }

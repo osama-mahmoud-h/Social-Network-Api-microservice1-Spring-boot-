@@ -40,11 +40,9 @@ public class PostIndexServiceImpl implements PostIndexService {
                     .index("post_index")
                     .document(postIndex)
             );
-            System.out.println("Post saved successfully: " + response);
             // Set postId to null after saving to avoid conflicts with the original postId
             return response.id();
         } catch (Exception e) {
-            System.out.println("Error saving post: " + e.getMessage());
             throw new RuntimeException("Error setting postId to null: " + e.getMessage(), e);
         }
     }
@@ -77,9 +75,7 @@ public class PostIndexServiceImpl implements PostIndexService {
                     .document(postIndex)
             );
 
-            System.out.println("Post updated successfully with ID: " + postIndex.getId());
         } catch (Exception e) {
-            System.out.println("Error updating post: " + e.getMessage());
             throw new RuntimeException("Error updating post: " + e.getMessage(), e);
         }
     }
@@ -91,7 +87,6 @@ public class PostIndexServiceImpl implements PostIndexService {
             List<PostIndex> existingPosts = postIndexRepository.findByPostId(postId);
 
             if (existingPosts.isEmpty()) {
-                System.out.println("Post not found with postId: " + postId);
                 return;
             }
 
@@ -101,9 +96,7 @@ public class PostIndexServiceImpl implements PostIndexService {
                     .id(existingPosts.get(0).getId())
             );
 
-            System.out.println("Post deleted successfully with postId: " + postId);
         } catch (Exception e) {
-            System.out.println("Error deleting post: " + e.getMessage());
             throw new RuntimeException("Error deleting post: " + e.getMessage(), e);
         }
     }

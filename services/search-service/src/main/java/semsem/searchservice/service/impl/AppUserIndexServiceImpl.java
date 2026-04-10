@@ -40,10 +40,8 @@ public class AppUserIndexServiceImpl implements AppUserIndexService {
                     .index("app_user_index")
                     .document(appUserIndex)
             );
-            System.out.println("User saved successfully: " + response);
             return response.id();
         } catch (Exception e) {
-            System.out.println("Error saving user: " + e.getMessage());
             throw new RuntimeException("Error saving user: " + e.getMessage(), e);
         }
     }
@@ -56,7 +54,6 @@ public class AppUserIndexServiceImpl implements AppUserIndexService {
 
             if (existingUser.isEmpty()) {
                 // If not found by ID, try to find by userId
-                System.out.println("User not found with id: " + appUserIndex.getId() + ", creating new index");
                 save(appUserIndex);
                 return;
             }
@@ -68,9 +65,7 @@ public class AppUserIndexServiceImpl implements AppUserIndexService {
                     .document(appUserIndex)
             );
 
-            System.out.println("User updated successfully with ID: " + appUserIndex.getId());
         } catch (Exception e) {
-            System.out.println("Error updating user: " + e.getMessage());
             throw new RuntimeException("Error updating user: " + e.getMessage(), e);
         }
     }

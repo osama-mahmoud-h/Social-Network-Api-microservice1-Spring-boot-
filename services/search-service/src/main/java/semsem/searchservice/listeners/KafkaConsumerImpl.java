@@ -23,7 +23,6 @@ public class KafkaConsumerImpl implements KafkaConsumer{
     @KafkaListener(topics = "post-events", groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void listenPostEvents(ConsumerRecord<String, Object> record) {
 
-        System.out.println("Post event received: " + record.value());
         log.info("Post event received: {}", record.value());
 
         Map<String,Object> eventDto = (Map<String, Object>) record.value();
@@ -58,7 +57,6 @@ public class KafkaConsumerImpl implements KafkaConsumer{
 
     @KafkaListener(topics = "comment-events", groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void listenCommentEvents(ConsumerRecord<String, Object> record) {
-        System.out.println("Comment event received: " + record.value());
         log.info("Comment event received: {}", record.value());
         Map<String,Object> eventDto = (Map<String, Object>) record.value();
         Object commentObject = eventDto.get("comment");
