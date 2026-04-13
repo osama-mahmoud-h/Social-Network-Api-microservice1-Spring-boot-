@@ -12,6 +12,7 @@ public enum KafkaTopics {
     FOLLOW_EVENTS("follow-events"),
     MESSAGE_EVENTS("message-events"),
     ACTIVITY_EVENTS("activity-events"),
+    FRIENDSHIP_EVENTS("friendship-events"),
     ;
 
     private final String value;

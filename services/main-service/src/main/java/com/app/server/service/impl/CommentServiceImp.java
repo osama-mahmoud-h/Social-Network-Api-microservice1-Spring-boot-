@@ -6,7 +6,7 @@ import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
 import com.app.server.enums.CommentActionType;
-import com.app.server.event.domain.CommentDomainEvent;
+import com.app.server.event.app.domain.CommentDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
 import com.app.server.model.Comment;
@@ -22,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -111,10 +110,6 @@ public class CommentServiceImp implements CommentService {
                 .orElseThrow(() -> new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND));
     }
 
-    /**
-     * Publishes domain event for comment actions
-     * Event will be asynchronously converted to Kafka message by DomainEventPublisher
-     */
     private void publishCommentEvent(Comment comment, CommentActionType actionType){
         log.debug("Publishing comment domain event: action={}, commentId={}", actionType, comment.getCommentId());
 

@@ -162,4 +162,121 @@ public interface PostRepository extends JpaRepository<Post,Long> {
         WHERE p.postId IN :postIds
         """)
     List<Post> getPostsByIds(List<Long> postIds, Pageable pageable);
+
+    @Query(value = """
+           WITH friend_ids AS (
+               SELECT CASE
+                   WHEN user_id1 = :userId THEN user_id2
+                   WHEN user_id2 = :userId THEN user_id1
+               END AS friend_id
+               FROM friendships
+               WHERE (user_id1 = :userId OR user_id2 = :userId)
+               AND status = 'ACCEPTED'
+           ),
+           eligible_posts AS (
+               SELECT p.post_id
+               FROM posts p
+               WHERE (p.author_id IN (SELECT friend_id FROM friend_ids) OR p.author_id = :userId)
+               AND p.publicity != 'PRIVATE'
+               AND (:cursorEpochMs IS NULL OR (EXTRACT(EPOCH FROM p.created_at) * 1000) < :cursorEpochMs)
+               ORDER BY p.created_at DESC
+               LIMIT :limit
+           )
+           SELECT
+               pp.post_id AS postId,
+               pp.content AS content,
+               pp.publicity AS publicity,
+               COUNT(DISTINCT cmnt.comment_id) AS commentsCount,
+               COUNT(DISTINCT re.reaction_id) AS reactionsCount,
+               pp.created_at AS createdAt,
+               pp.updated_at AS updatedAt,
+               json_build_object(
+                   'userId', au.user_id,
+                   'firstName', au.first_name,
+                   'lastName', au.last_name,
+                   'email', null,
+                   'profilePictureUrl', null,
+                   'bio', null
+               )::text AS author,
+               MAX(CASE WHEN re.author_id = :userId THEN re.reaction_type ELSE NULL END) AS myReactionType,
+               COALESCE(
+                   json_agg(
+                       json_build_object(
+                           'fileId', f.file_id,
+                           'fileUrl', f.file_url,
+                           'fileType', f.file_type,
+                           'fileSize', f.file_size_in_bytes,
+                           'fileName', f.file_name,
+                           'fileExtension', f.file_extension
+                       )
+                   ) FILTER (WHERE f.file_id IS NOT NULL),
+                   '[]'::json
+               )::text AS files
+           FROM
+               eligible_posts ep
+               JOIN posts pp ON ep.post_id = pp.post_id
+               LEFT JOIN comments cmnt ON pp.post_id = cmnt.post_id
+               LEFT JOIN reactions re ON re.target_id = pp.post_id
+               INNER JOIN user_profiles au ON pp.author_id = au.user_id
+               LEFT JOIN post_files pf ON pp.post_id = pf.post_id
+               LEFT JOIN files f ON pf.file_id = f.file_id
+           GROUP BY
+               pp.post_id, pp.content, pp.publicity, pp.created_at, pp.updated_at,
+               au.user_id, au.first_name, au.last_name
+           ORDER BY
+               pp.created_at DESC
+           """, nativeQuery = true)
+    List<PostDetailProjection> findFriendsFeedWithCursor(
+            @Param("userId") Long userId,
+            @Param("cursorEpochMs") Long cursorEpochMs,
+            @Param("limit") int limit
+    );
+
+    @Query(value = """
+           SELECT
+               pp.post_id AS postId,
+               pp.content AS content,
+               pp.publicity AS publicity,
+               COUNT(DISTINCT cmnt.comment_id) AS commentsCount,
+               COUNT(DISTINCT re.reaction_id) AS reactionsCount,
+               pp.created_at AS createdAt,
+               pp.updated_at AS updatedAt,
+               json_build_object(
+                   'userId', au.user_id,
+                   'firstName', au.first_name,
+                   'lastName', au.last_name,
+                   'email', null,
+                   'profilePictureUrl', null,
+                   'bio', null
+               )::text AS author,
+               MAX(CASE WHEN re.author_id = :userId THEN re.reaction_type ELSE NULL END) AS myReactionType,
+               COALESCE(
+                   json_agg(
+                       json_build_object(
+                           'fileId', f.file_id,
+                           'fileUrl', f.file_url,
+                           'fileType', f.file_type,
+                           'fileSize', f.file_size_in_bytes,
+                           'fileName', f.file_name,
+                           'fileExtension', f.file_extension
+                       )
+                   ) FILTER (WHERE f.file_id IS NOT NULL),
+                   '[]'::json
+               )::text AS files
+           FROM
+               posts pp
+               LEFT JOIN comments cmnt ON pp.post_id = cmnt.post_id
+               LEFT JOIN reactions re ON re.target_id = pp.post_id
+               INNER JOIN user_profiles au ON pp.author_id = au.user_id
+               LEFT JOIN post_files pf ON pp.post_id = pf.post_id
+               LEFT JOIN files f ON pf.file_id = f.file_id
+           WHERE pp.post_id IN (:postIds)
+           GROUP BY
+               pp.post_id, pp.content, pp.publicity, pp.created_at, pp.updated_at,
+               au.user_id, au.first_name, au.last_name
+           """, nativeQuery = true)
+    List<PostDetailProjection> findPostDetailsByIds(
+            @Param("userId") Long userId,
+            @Param("postIds") List<Long> postIds
+    );
 }

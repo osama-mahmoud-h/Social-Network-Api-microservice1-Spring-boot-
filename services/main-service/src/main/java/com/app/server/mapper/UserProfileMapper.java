@@ -1,6 +1,6 @@
 package com.app.server.mapper;
 
-import com.app.server.event.UserCreatedEvent;
+import com.app.server.event.app.cdc.UserCreatedEvent;
 import com.app.server.model.UserProfile;
 import org.springframework.stereotype.Service;
 

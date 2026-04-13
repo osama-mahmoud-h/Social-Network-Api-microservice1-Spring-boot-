@@ -1,4 +1,4 @@
-package com.app.server.event;
+package com.app.server.event.app.cdc;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

@@ -1,9 +1,11 @@
 package com.app.server.service.impl;
 
 import com.app.server.dto.response.AppUserResponseDto;
+import com.app.server.enums.FriendshipActionType;
 import com.app.server.enums.FriendshipStatus;
 import com.app.server.enums.NotificationType;
-import com.app.server.event.domain.FriendshipDomainEvent;
+import com.app.server.event.app.domain.FeedFriendshipDomainEvent;
+import com.app.server.event.app.domain.FriendshipDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FriendshipMapper;
 import com.app.server.mapper.UserMapper;
@@ -62,7 +64,9 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new CustomRuntimeException("You are not friends", HttpStatus.NOT_FOUND);
         }
         friendshipServiceRepository.delete(optionalFriendship);
-
+        eventPublisher.publishEvent(new FeedFriendshipDomainEvent(
+                currentUser.getUserId(), FriendshipActionType.REMOVED,
+                currentUser.getUserId(), friendId));
         return true;
     }
 
@@ -77,6 +81,9 @@ public class FriendshipServiceImpl implements FriendshipService {
         }else if (this.isPendingFriendRequest(currentUser, Optional.of(friendship))) {
             friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.ACCEPTED);
             this.sendFriendRequestAcceptedNotification(currentUser, getUserById(friendId));
+            eventPublisher.publishEvent(new FeedFriendshipDomainEvent(
+                    currentUser.getUserId(), FriendshipActionType.ACCEPTED,
+                    currentUser.getUserId(), friendId));
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);
@@ -101,6 +108,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         if(isMyFriend(currentUser, Optional.of(friendship))) {
             friendshipServiceRepository.updateFriendshipStatusById(friendship.getFriendshipId(), FriendshipStatus.BLOCKED);
+            eventPublisher.publishEvent(new FeedFriendshipDomainEvent(
+                    currentUser.getUserId(), FriendshipActionType.BLOCKED,
+                    currentUser.getUserId(), friendId));
             return true;
         }
         throw new CustomRuntimeException("Friend request not found", HttpStatus.NOT_FOUND);
@@ -208,10 +218,6 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .isPresent();
     }
 
-    /**
-     * publishes domain event for friend request
-     * event will be asynchronously converted to Kafka message by DomainEventPublisher
-     */
     private void sendFriendRequestNotification(UserProfile currentUser, UserProfile friend) {
         log.debug("Publishing friendship domain event: REQUEST, senderId={}, receiverId={}",
                   currentUser.getUserId(), friend.getUserId());

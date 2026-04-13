@@ -91,8 +91,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      auth-db:
-        condition: service_healthy
+#      auth-db:
+#        condition: service_healthy
     networks:
       - social_service_dev_network
     restart: unless-stopped
@@ -275,10 +275,10 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "512M"
+          memory: "256M"
         reservations:
           cpus: "0.25"
-          memory: "256M"
+          memory: "198M"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
