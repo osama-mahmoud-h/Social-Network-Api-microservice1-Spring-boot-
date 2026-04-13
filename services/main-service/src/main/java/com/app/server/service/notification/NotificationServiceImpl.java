@@ -7,14 +7,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 
-/**
- * Implementation of NotificationService
- * Delegates to KafkaNotificationProducer
- */
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
-    private final KafkaNotificationProducer kafkaProducerService;
+    private final KafkaEventProducer kafkaProducerService;
 
     @Override
     public void sendNotification(NotificationEvent notificationEvent) {

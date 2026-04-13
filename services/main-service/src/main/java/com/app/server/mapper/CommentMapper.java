@@ -1,6 +1,8 @@
 package com.app.server.mapper;
 
 
+import com.app.server.dto.notification.comment.CommentEventDto;
+import com.app.server.enums.CommentActionType;
 import com.app.server.dto.request.comment.AddNewCommentRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
@@ -35,6 +37,39 @@ public class CommentMapper {
            comment.setContent(updateCommentRequestDto.getContent());
        }
        return comment;
+    }
+
+    public CommentEventDto toCommentEventDto(Comment comment, CommentActionType actionType) {
+        CommentEventDto.AuthorData authorData = null;
+        if (comment.getAuthor() != null) {
+            authorData = CommentEventDto.AuthorData.builder()
+                    .userId(comment.getAuthor().getUserId())
+                    .firstName(comment.getAuthor().getFirstName())
+                    .lastName(comment.getAuthor().getLastName())
+                    .build();
+        }
+
+        Long postAuthorId = null;
+        if (comment.getPost() != null && comment.getPost().getAuthor() != null) {
+            postAuthorId = comment.getPost().getAuthor().getUserId();
+        }
+
+        CommentEventDto.CommentData commentData = CommentEventDto.CommentData.builder()
+                .commentId(comment.getCommentId())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt() != null ? comment.getCreatedAt().getEpochSecond() : null)
+                .updatedAt(comment.getUpdatedAt() != null ? comment.getUpdatedAt().getEpochSecond() : null)
+                .postId(comment.getPost() != null ? comment.getPost().getPostId() : null)
+                .postAuthorId(postAuthorId)
+                .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
+                .author(authorData)
+                .build();
+
+        return CommentEventDto.builder()
+                .actionType(actionType)
+                .commentId(comment.getCommentId())
+                .comment(commentData)
+                .build();
     }
 
     public CommentResponseDto mapCommentToCommentResponseDto(Comment comment) {

@@ -1,10 +1,13 @@
 package com.app.server.dto.request;
 
 
+import com.app.server.exception.PageOffsetOverflowException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Data
 public class PaginationRequestDto {
@@ -25,4 +28,13 @@ public class PaginationRequestDto {
             defaultValue = "10"
     )
     private Integer size = 10;
+
+    public Pageable toPageable() {
+        try {
+            Math.multiplyExact(page, size);
+        } catch (ArithmeticException e) {
+            throw new PageOffsetOverflowException(page, size);
+        }
+        return PageRequest.of(page, size);
+    }
 }

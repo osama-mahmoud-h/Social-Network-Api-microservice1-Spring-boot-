@@ -1,6 +1,6 @@
 package com.app.server.consumer;
 
-import com.app.server.event.UserCreatedEvent;
+import com.app.server.event.app.cdc.UserCreatedEvent;
 import com.app.server.mapper.UserProfileMapper;
 import com.app.server.model.UserProfile;
 import com.app.server.repository.UserProfileRepository;

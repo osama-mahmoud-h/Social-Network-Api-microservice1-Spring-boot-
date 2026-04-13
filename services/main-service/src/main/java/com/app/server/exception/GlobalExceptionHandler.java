@@ -3,6 +3,7 @@ package com.app.server.exception;
 import com.app.server.exception.user.UserNotFoundException;
 //import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,18 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(PageOffsetOverflowException.class)
+    public ResponseEntity<ApiErrorResponse> handlePageOffsetOverflow(PageOffsetOverflowException ex, HttpServletRequest request) {
+        log.error("Page offset overflow for request: {} - error: {}", request.getRequestURI(), ex.getMessage());
+        ApiErrorResponse errorResponse =  ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .message( "Invalid Pagination" + ex.getMessage())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 
 //    @ExceptionHandler(SignatureException.class)
 //    public ResponseEntity<ApiErrorResponse> handleSignatureException(SignatureException ex) {

@@ -55,6 +55,11 @@ spring:
             required: true
           connectiontimeout: 5000
           timeout: 5000
+  #===================== Redis Configuration ==========================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   #===================== Kafka Configuration ==========================
   # Use port 29092 for local development (outside Docker)
   # Inside Docker containers, use kafka:9092
@@ -146,6 +151,7 @@ eureka:
 # Reduce Hibernate verbose logging
 logging:
   level:
+    com.app.server: DEBUG
     org:
       hibernate:
         SQL: DEBUG
