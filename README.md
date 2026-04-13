@@ -400,6 +400,151 @@ Illustrates real-time chat communication via WebSocket, including event types (J
 
 Provides a layered view of system components across frontend (Web, Mobile, Admin), edge services (Gateway, Load Balancer), business services (Auth, Main, Chat, Notification, Search), data access layer (PostgreSQL, MongoDB, Elasticsearch, Redis), message broker (Kafka), and monitoring infrastructure (ELK, Prometheus, Grafana).
 
+### News Feed Fanout System
+
+Fanout-on-write architecture: events from posts, reactions, and comments are pushed into each friend's Redis sorted set immediately after the DB transaction commits. Reads are O(1) — a single `ZREVRANGEBYSCORE` on the pre-computed feed.
+
+#### System Design Overview
+
+```mermaid
+flowchart LR
+    Client(["Client"])
+    GW["API Gateway"]
+    MS["Main Service"]
+    Kafka(["Kafka"])
+    FC["Feed Consumers"]
+    NS["Notification\nService"]
+    SS["Search\nService"]
+    PG[("PostgreSQL")]
+    REDIS[("Redis\nfeed:{userId}")]
+
+    Client -->|JWT| GW
+    GW -->|write / read| MS
+    MS -->|DB write| PG
+    MS -->|domain event\nafter commit| Kafka
+    Kafka -->|feed-service-group| FC
+    Kafka -->|notification-group| NS
+    Kafka -->|search-group| SS
+    FC -->|ZADD / ZREM| REDIS
+    MS -->|GET /feed| REDIS
+    REDIS -->|cache miss| PG
+    REDIS -->|feed response| Client
+```
+
+#### Write Path — Three Fanout Triggers
+
+```mermaid
+flowchart TD
+    subgraph SVC["Service Layer (@Transactional)"]
+        PS[PostServiceImp]
+        RS[ReactionServiceImpl]
+        CS[CommentServiceImp]
+        FS[FriendshipServiceImpl]
+    end
+
+    subgraph DEL["DomainEventListener\n@TransactionalEventListener AFTER_COMMIT"]
+        H1[handlePostEvent]
+        H2[handleReactionEvent]
+        H3[handleCommentEvent]
+        H4[handleFeedFriendshipEvent]
+    end
+
+    subgraph KAFKA["Kafka Topics"]
+        K1([post-events])
+        K2([like-events])
+        K3([comment-events])
+        K4([friendship-events])
+    end
+
+    subgraph CONSUMERS["Feed Consumers — feed-service-group"]
+        FC1[FeedPostEventConsumer]
+        FC2[FeedReactionEventConsumer]
+        FC3[FeedCommentEventConsumer]
+        FC4[FeedFriendshipEventConsumer]
+    end
+
+    subgraph FANOUT["FeedServiceImpl"]
+        FO1["fanoutNewPost\nZADD feed:{friendId} score postId\n(author + all friends)"]
+        FO2["fanoutFriendActivity\nZADD NX — skip if already present\n(reactor's or commenter's friends)"]
+        FO3["handleFriendshipChange\nACCEPTED → backfill recent posts\nREMOVED/BLOCKED → ZREM ex-friend's posts"]
+        FO4["removePostFromAllFeeds\nZREM from author + all friends"]
+    end
+
+    REDIS[("Redis ZSET\nfeed:{userId}\nScore: epoch ms\nMember: postId\nCap: 500 entries")]
+
+    PS -->|publishEvent| H1
+    RS -->|publishEvent| H2
+    CS -->|publishEvent| H3
+    FS -->|publishEvent| H4
+
+    H1 --> K1
+    H2 --> K2
+    H3 --> K3
+    H4 --> K4
+
+    K1 --> FC1
+    K2 --> FC2
+    K3 --> FC3
+    K4 --> FC4
+
+    FC1 -->|CREATE| FO1
+    FC1 -->|DELETE| FO4
+    FC2 -->|ADDED| FO2
+    FC3 -->|CREATE| FO2
+    FC4 --> FO3
+
+    FO1 --> REDIS
+    FO2 --> REDIS
+    FO3 --> REDIS
+    FO4 --> REDIS
+```
+
+#### Read Path — Cursor-Based Pagination
+
+```mermaid
+flowchart TD
+    REQ["GET /api/v1/feed?cursor={epochMs}&size=20"]
+
+    subgraph CACHE["Redis Cache"]
+        ZREV["ZREVRANGEBYSCORE feed:{userId}\nscore < cursor LIMIT size"]
+    end
+
+    subgraph DB["PostgreSQL Fallback"]
+        SQL["findFriendsFeedWithCursor\nCTE: friends' posts + activity\nWHERE created_at < cursor"]
+        BACKFILL["Backfill Redis\nZADD for each result"]
+    end
+
+    subgraph HYDRATE["Hydration"]
+        HYD["findPostDetailsByIds\nbatch fetch full post data\n(author, counts, reactions, files)"]
+    end
+
+    RESP["FeedResponseDto\n{ posts, nextCursor, hasMore }"]
+
+    REQ --> ZREV
+    ZREV -->|"Cache hit\npostIds returned"| HYD
+    ZREV -->|"Cache miss\nempty result"| SQL
+    SQL --> BACKFILL
+    BACKFILL --> ZREV
+    SQL --> RESP
+    HYD --> RESP
+```
+
+#### Redis Data Structure
+
+```
+Key:    feed:{userId}          — one sorted set per user
+Type:   ZSET
+Score:  event timestamp (epoch milliseconds)
+Member: postId (String)
+Cap:    500 entries — ZREMRANGEBYRANK trims oldest on every write
+```
+
+**Key design decisions:**
+- `ZADD NX` for reaction/comment fanout — post stays at original insertion time, not bumped on every new reaction
+- `@TransactionalEventListener(AFTER_COMMIT)` — Kafka event fires only after DB commits, eliminating race conditions
+- Cache miss falls back to PostgreSQL and backfills Redis automatically
+- Cold start / LRU eviction transparent to the client
+
 ### Regenerating Diagrams
 
 To regenerate PNG/SVG images from PlantUML source files:

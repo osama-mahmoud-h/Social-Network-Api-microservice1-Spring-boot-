@@ -1,4 +1,4 @@
-package com.app.server.event.domain;
+package com.app.server.event.app.domain;
 
 import lombok.Getter;
 

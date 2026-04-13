@@ -4,7 +4,7 @@ import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
 import com.app.server.enums.PostActionType;
-import com.app.server.event.domain.PostDomainEvent;
+import com.app.server.event.app.domain.PostDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
 import com.app.server.mapper.PostMapper;
@@ -20,13 +20,11 @@ import com.app.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ObjectOutput;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -127,10 +125,6 @@ public class PostServiceImp implements PostService {
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Publishes domain event for post actions
-     * Event will be asynchronously converted to Kafka message by DomainEventPublisher
-     */
     private void publishPostEvent(PostActionType actionType, Post post) {
         log.debug("Publishing post domain event: action={}, postId={}", actionType, post.getPostId());
 

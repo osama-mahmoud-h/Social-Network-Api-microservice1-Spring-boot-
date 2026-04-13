@@ -9,14 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 
-/**
- * Implementation of Kafka notification producer
- * Publishes events to appropriate Kafka topics
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaNotificationProducerImpl implements KafkaNotificationProducer {
+public class KafkaEventProducerImpl implements KafkaEventProducer {
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
@@ -35,8 +32,7 @@ public class KafkaNotificationProducerImpl implements KafkaNotificationProducer 
     public void sendEventDto(Serializable eventDto, KafkaTopics topic) {
         try {
             kafkaTemplate.send(topic.getValue().toLowerCase(), eventDto);
-            log.info("Event DTO sent to topic '{}': eventDto={}",
-                     topic.getValue(), eventDto.getClass().getSimpleName());
+            log.info("Event DTO sent to topic '{}': {}", topic.getValue(), eventDto.getClass().getSimpleName());
         } catch (Exception e) {
             log.error("Failed to send event DTO to topic '{}': {}", topic.getValue(), e.getMessage(), e);
             throw e;

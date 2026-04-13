@@ -1,6 +1,8 @@
 package com.app.server.mapper;
 
 
+import com.app.server.dto.notification.post.PostEventDto;
+import com.app.server.enums.PostActionType;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.response.FileResponseDto;
 import com.app.server.dto.response.PostResponseDto;
@@ -100,6 +102,32 @@ public class PostMapper {
             log.error("Failed to map projection to PostResponseDto: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to map projection to PostResponseDto", e);
         }
+    }
+
+    public PostEventDto toPostEventDto(Post post, PostActionType actionType) {
+        PostEventDto.AuthorData authorData = null;
+        if (post.getAuthor() != null) {
+            authorData = PostEventDto.AuthorData.builder()
+                    .userId(post.getAuthor().getUserId())
+                    .firstName(post.getAuthor().getFirstName())
+                    .lastName(post.getAuthor().getLastName())
+                    .build();
+        }
+
+        PostEventDto.PostData postData = PostEventDto.PostData.builder()
+                .postId(post.getPostId())
+                .content(post.getContent())
+                .publicity(post.getPublicity() != null ? post.getPublicity().name() : null)
+                .createdAt(post.getCreatedAt() != null ? post.getCreatedAt().getEpochSecond() : null)
+                .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt().getEpochSecond() : null)
+                .author(authorData)
+                .build();
+
+        return PostEventDto.builder()
+                .actionType(actionType)
+                .postId(post.getPostId())
+                .post(postData)
+                .build();
     }
 
     private Set<FileResponseDto> parseFilesJson(String filesJson) {
