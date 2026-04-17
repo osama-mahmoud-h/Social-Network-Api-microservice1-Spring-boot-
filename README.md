@@ -30,7 +30,7 @@ A scalable microservice-based social network backend system built with Spring Bo
 - Role-based access control across all services
 - **Token Bucket rate limiting** at the API Gateway (Redis-backed, per-route configurable)
 - Centralized logging with ELK stack (Elasticsearch, Logstash, Kibana)
-- Multi-database architecture (PostgreSQL, MongoDB, Elasticsearch)
+- Multi-database architecture (PostgreSQL, Cassandra, Elasticsearch)
 
 ### In Progress
 - Redis-based caching
@@ -48,7 +48,7 @@ The system follows a microservices architecture pattern with each service having
 - **Main Service** (Port: 8083) - Core business logic including posts, comments, and friendships
 - **Search Service** - Full-text search powered by Elasticsearch with Kafka-based indexing
 - **Notification Service** - Event-driven notification system consuming Kafka topics
-- **Chat Service** (Port: 8084) - Real-time messaging via WebSocket with MongoDB persistence
+- **Chat Service** (Port: 8086) - Real-time messaging via WebSocket/STOMP, Cassandra persistence, Kafka async pipeline
 
 **Infrastructure Services**
 - **Gateway Service** (Port: 8081) - API routing and load balancing with authentication filtering
@@ -69,7 +69,7 @@ All services are containerized using Docker and can be orchestrated via Docker C
   - Auth Service: User credentials, JWT tokens, revocation tracking
   - Main Service: User data, posts, comments, friendships, reactions
   - Notification Service: Notification history, read/unread status, delivery tracking
-- MongoDB - Document store for chat messages
+- Cassandra - Distributed KV store for permanent chat message storage (cursor-paginated via Snowflake IDs)
 - Elasticsearch - Full-text search engine for content discovery
 - Redis - Caching and session management (infrastructure ready)
 
@@ -144,19 +144,19 @@ All services are containerized using Docker and can be orchestrated via Docker C
 - **TODO**: Implement database migration strategy (e.g., Flyway or Liquibase)
 
 ### Chat Service (WebSocket)
-**Status**: Basic functionality implemented, security pending
-- WebSocket server setup complete
-- Authorize WebSocket connections using Jwt tokens in http Only Cookies.
-- MongoDB integration for message persistence
-- Online user tracking with join and leave events
-- Real-time message sending and receiving
-- Typing indicators and user presence notifications
-- get friends paginated.
-- chat privately between two users.
-- Fetch chat history between users
-- **TODO**: Offline message storage
-- **TODO**: Api Documentation with Swagger
-- **TODO**: ensure that frontend works as expected.
+**Status**: Phase 1 (foundation) complete — scalable redesign in progress
+- WebSocket server with STOMP/SockJS, JWT authentication via HTTP-only cookies
+- **Snowflake ID generation** per message (datacenter + machine + sequence bits), worker ID assigned via Zookeeper ephemeral sequential node
+- **Kafka-based async message pipeline** — messages published to `chat-messages` topic (partitioned by `conversationId` for ordering guarantees)
+- **Dual-write transition**: Kafka publish + Redis write-through during Phase 1; Redis removed in Phase 3
+- **Cassandra persistence** (`messages_by_conversation` table) via dedicated Persistence Consumer — manual offset commit ensures offset only acknowledged after successful write
+- **Cross-instance routing** — `userId → instanceId` stored in Redis on connect; Delivery Consumer routes via Redis Pub/Sub to the correct Chat Service instance
+- Heartbeat-based presence (10s interval, 30s timeout) replacing fragile connect/disconnect tracking
+- 1:1 private messaging with friendship validation
+- **TODO**: Group chat (max 100 members) with fan-out in Delivery Consumer
+- **TODO**: Presence Service as standalone microservice
+- **TODO**: Remove dual-write (Phase 3)
+- **TODO**: API documentation with Swagger
 
 ### Search Service
 **Status**: Integrated with Elasticsearch
@@ -394,11 +394,124 @@ Illustrates real-time chat communication via WebSocket, including event types (J
 
 ### Component Architecture
 
-![System Components](diagrams/system-components.png)
+```mermaid
+graph TB
+    subgraph CLIENT["Client Layer"]
+        WEB["Web Browser"]
+        MOB["Mobile App"]
+    end
 
-**Source**: [`diagrams/system-components.puml`](diagrams/system-components.puml)
+    subgraph EDGE["Edge Layer"]
+        LB["L4 Load Balancer\n(WebSocket-compatible)"]
+        GW["API Gateway :8081\nRate Limiting · Auth Filter\nEureka Load Balancing"]
+    end
 
-Provides a layered view of system components across frontend (Web, Mobile, Admin), edge services (Gateway, Load Balancer), business services (Auth, Main, Chat, Notification, Search), data access layer (PostgreSQL, MongoDB, Elasticsearch, Redis), message broker (Kafka), and monitoring infrastructure (ELK, Prometheus, Grafana).
+    subgraph SERVICES["Business Services"]
+        AUTH["Auth Service :8087\nJWT · OAuth2\nToken Revocation"]
+        MAIN["Main Service :8083\nPosts · Friends\nFeed · Reactions"]
+        CHAT["Chat Service :8086\nWebSocket/STOMP\nSnowflake IDs"]
+        NOTIF["Notification Service :8085\nKafka Consumer\nPush Delivery"]
+        SEARCH["Search Service :8084\nElasticsearch\nKafka Indexing"]
+    end
+
+    subgraph MESSAGING["Message Broker"]
+        ZK["Zookeeper\nKafka Coordination\nSnowflake Worker IDs"]
+        KAFKA["Apache Kafka\nchat-messages · post-events\npresence-events · push-notifications\ngroup-events · notification-events"]
+    end
+
+    subgraph DATA["Data Layer"]
+        PG[("PostgreSQL\nAuth · Main · Notification")]
+        CASS[("Cassandra\nChat Messages\nPermanent Storage")]
+        REDIS[("Redis\nPresence · Cache\nPub/Sub Routing")]
+        ES[("Elasticsearch\nSearch Index")]
+    end
+
+    subgraph OBS["Observability"]
+        ELK["ELK Stack\nElasticsearch · Logstash · Kibana"]
+    end
+
+    WEB & MOB --> LB
+    LB -->|"REST/WS"| GW
+    GW --> AUTH & MAIN & CHAT & NOTIF & SEARCH
+
+    MAIN -->|"domain events"| KAFKA
+    CHAT -->|"chat-messages"| KAFKA
+    KAFKA --> NOTIF & SEARCH & CHAT
+
+    ZK --> KAFKA
+    ZK -.->|"worker ID\nassignment"| CHAT
+
+    AUTH --> PG
+    MAIN --> PG
+    NOTIF --> PG
+    CHAT --> CASS
+    CHAT <--> REDIS
+    SEARCH --> ES
+    MAIN --> REDIS
+
+    SERVICES -.->|"structured logs"| ELK
+```
+
+### Scalable Chat Service — Internal Architecture
+
+```mermaid
+flowchart TD
+    subgraph CLIENTS["Clients  (Web / Mobile)"]
+        C["STOMP over WebSocket\n+ 10s heartbeat"]
+    end
+
+    subgraph CHATINSTANCES["Chat Service  ×100–200 instances"]
+        AUTH_IC["JWT Handshake\nAuthHandshakeInterceptor"]
+        WS["WebSocket Handler\n/app/private.sendMessage"]
+        SNOW["SnowflakeIdGenerator\ndatacenter(5) · machine(5) · seq(12)"]
+        SUB["Redis Pub/Sub Subscriber\nchat:instance:{instanceId}"]
+    end
+
+    subgraph ZK_BOX["Zookeeper"]
+        ZK_NODE["/chat/snowflake/{dc}/workers/\nephemeral sequential node\n→ machine ID 0–31"]
+    end
+
+    subgraph KAFKA_BOX["Kafka  —  chat-messages topic  (32 partitions)"]
+        PART["partition key = conversationId\nguarantees per-conversation ordering"]
+    end
+
+    subgraph CONSUMERS["Kafka Consumer Groups"]
+        PERSIST["Persistence Consumer\ngroup: chat-persistence\nManual ACK — offset committed\nonly after Cassandra write succeeds"]
+        DELIVER["Delivery Consumer\ngroup: chat-delivery\nPresence check → route message"]
+    end
+
+    subgraph STORAGE["Storage"]
+        CASS[("Cassandra\nmessages_by_conversation\nPK: conversation_id · message_id DESC\nCursor pagination via Snowflake ID")]
+        REDIS_S[("Redis\npresence:heartbeats  ZSET\nuser:ws:{userId}  STRING\nchat:recent:{convId}  LIST")]
+    end
+
+    subgraph PRESENCE["Presence  (heartbeat-based)"]
+        HB["ZADD presence:heartbeats\nscore = epoch ms"]
+        SWEEP["Sweeper  every 15s\nZRANGEBYSCORE evict stale\n→ publish presence-events"]
+    end
+
+    C -->|"WS connect"| AUTH_IC
+    AUTH_IC --> WS
+    WS --> SNOW
+    ZK_NODE -->|"machine ID"| SNOW
+    SNOW -->|"messageId"| WS
+    WS -->|"publish\nkey=conversationId"| PART
+    PART --> PERSIST & DELIVER
+
+    PERSIST -->|"save()"| CASS
+    PERSIST -->|"ack() after write"| PART
+    PERSIST -->|"write-through"| REDIS_S
+
+    DELIVER -->|"isOnline?"| REDIS_S
+    DELIVER -->|"online:\nPub/Sub to instance"| REDIS_S
+    REDIS_S -->|"message frame"| SUB
+    SUB -->|"WS push"| C
+    DELIVER -->|"offline:\npush-notifications topic"| NOTIF_SVC(["Notification Service"])
+
+    C -->|"heartbeat\nevery 10s"| HB
+    HB --> REDIS_S
+    SWEEP --> REDIS_S
+```
 
 ### News Feed Fanout System
 
@@ -631,7 +744,7 @@ Application Layer (Dependent on Infrastructure):
 - `elasticsearch_data`: Search index storage
 - `kibana_data`: Kibana configuration
 - `auth-db-data`, `main-db-data`, `notification-db-data`: PostgreSQL data
-- `chat-service-db-data`: MongoDB data
+- `cassandra-data`: Cassandra chat message storage
 - `main-service-uploads`: User-uploaded files
 
 ### Build Strategy
