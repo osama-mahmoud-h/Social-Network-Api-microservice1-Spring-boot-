@@ -1,103 +1,90 @@
 package semsem.chatservice.listener;
 
-
-
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import semsem.chatservice.client.MainServiceClient;
-import semsem.chatservice.dto.response.AppUserForChatDto;
-import semsem.chatservice.dto.response.EventMessageResponseDto;
-import com.app.shared.security.dto.MyApiResponse;
 import semsem.chatservice.dto.response.OnlineUserStatusResponseDto;
-import semsem.chatservice.enums.EventMessageType;
 import semsem.chatservice.repository.RedisOnlineUserRepository;
 import semsem.chatservice.security.WebSocketAuthenticationHelper;
-import semsem.chatservice.service.ActiveUserService;
-import semsem.chatservice.utils.OnlineUserVal;
-import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
+
+    private static final String USER_INSTANCE_KEY_PREFIX = "user:ws:";
+    private static final long   USER_INSTANCE_TTL_HOURS  = 24;
+
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketAuthenticationHelper webSocketAuthenticationHelper;
     private final RedisOnlineUserRepository redisOnlineUserRepository;
-    private final MainServiceClient mainServiceClient;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    // Unique ID for this Chat Service instance (set via env var in deployment)
+    @Value("${chat.instance-id:default-instance}")
+    private String instanceId;
+
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("New WebSocket connection established - sessionId: {}", headerAccessor.getSessionId());
-
         Long userId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String token = webSocketAuthenticationHelper.getToken(headerAccessor);
 
-        if (Objects.nonNull(userId)) {
-            redisOnlineUserRepository.addOnlineUser(userId.toString());
-            long onlineUsersCount = redisOnlineUserRepository.getOnlineUserCount();
-
-            log.info("User connected - userId: {}, sessionId: {}, total online users: {}",
-                    userId, headerAccessor.getSessionId(), onlineUsersCount);
-
-            // Get current online users list
-            Set<String> onlineUsers = redisOnlineUserRepository.getAllOnlineUsers();
-            broadcastUserConnectionStatus(userId , true);
-
-        } else {
-            log.warn("WebSocket connection established without valid user info - sessionId: {}",
-                    headerAccessor.getSessionId());
+        if (Objects.isNull(userId)) {
+            log.warn("WebSocket connect without valid userId — sessionId={}", headerAccessor.getSessionId());
+            return;
         }
+
+        redisOnlineUserRepository.addOnlineUser(userId.toString());
+
+        // Record which Chat Service instance holds this user's WebSocket connection.
+        // The Delivery Consumer uses this to route messages via Redis Pub/Sub.
+        redisTemplate.opsForValue().set(
+                USER_INSTANCE_KEY_PREFIX + userId,
+                instanceId,
+                USER_INSTANCE_TTL_HOURS, TimeUnit.HOURS
+        );
+
+        log.info("User connected: userId={}, instance={}, totalOnline={}",
+                userId, instanceId, redisOnlineUserRepository.getOnlineUserCount());
+
+        broadcastUserStatus(userId, true);
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         Long userId = webSocketAuthenticationHelper.getUserId(headerAccessor);
-        String token = webSocketAuthenticationHelper.getToken(headerAccessor);
 
-        if (Objects.nonNull(userId)) {
-            redisOnlineUserRepository.removeOnlineUser(userId.toString());
-            long onlineUsersCount = redisOnlineUserRepository.getOnlineUserCount();
-            log.info("User disconnected - userId: {}, sessionId: {}, total online users: {}",
-                    userId, headerAccessor.getSessionId(), onlineUsersCount);
-
-        } else {
-            log.warn("WebSocket disconnection without valid user info - sessionId: {}",
-                    headerAccessor.getSessionId());
+        if (Objects.isNull(userId)) {
+            log.warn("WebSocket disconnect without valid userId — sessionId={}", headerAccessor.getSessionId());
+            return;
         }
-        // Get current online users list
-        Set<String> onlineUsers = redisOnlineUserRepository.getAllOnlineUsers();
-        broadcastUserConnectionStatus(userId , false);
+
+        redisOnlineUserRepository.removeOnlineUser(userId.toString());
+        redisTemplate.delete(USER_INSTANCE_KEY_PREFIX + userId);
+
+        log.info("User disconnected: userId={}, instance={}, totalOnline={}",
+                userId, instanceId, redisOnlineUserRepository.getOnlineUserCount());
+
+        broadcastUserStatus(userId, false);
     }
 
-    /**
-     * Notify only online friends about a user's status change (online/offline)
-     * @param userId The ID of the user whose status changed
-     * @param isOnline True if the user is online, false if offline
-     */
-    private void broadcastUserConnectionStatus(Long userId, boolean isOnline) {
+    private void broadcastUserStatus(Long userId, boolean isOnline) {
         try {
-            OnlineUserStatusResponseDto userStatusResponseDto = OnlineUserStatusResponseDto.builder()
-                    .userId(userId)
-                    .isOnline(isOnline)
-                    .build();
             simpMessagingTemplate.convertAndSend("/topic/public",
-                    userStatusResponseDto
-            );
-            log.info("Notified users about userId: {} status change to isOnline: {}", userId, isOnline);
+                    OnlineUserStatusResponseDto.builder().userId(userId).isOnline(isOnline).build());
         } catch (Exception e) {
-            log.error("Error notifying users about online status: {}", e.getMessage(), e);
+            log.error("Failed to broadcast status for userId={}: {}", userId, e.getMessage(), e);
         }
     }
 }

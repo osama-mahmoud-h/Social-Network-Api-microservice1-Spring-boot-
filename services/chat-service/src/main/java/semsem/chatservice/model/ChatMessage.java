@@ -18,10 +18,10 @@ import java.time.Instant;
 //@Document
 public class ChatMessage {
     @Id
-    private String messageId;
-    private String chatId;
+    private Long messageId;     // Snowflake ID — sortable, embeds timestamp
+    private String chatId;      // deterministic: sorted(senderId, receiverId) for 1:1; groupId for groups
     private String senderId;
-    private String receiverId;
+    private String receiverId;  // null for group messages
     private String content;
     private MessageType messageType;
     private boolean isSeen;

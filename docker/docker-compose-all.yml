@@ -22,7 +22,7 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "256M"
+          memory: "198M"
         reservations:
           cpus: "0.1"
           memory: "128M"
@@ -374,30 +374,52 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB for chat-service
-#  chat-db:
-#    image: mongo:latest
-#    container_name: chat-service-db
-#    command: mongod --wiredTigerCacheSizeGB 0.15
-#    ports:
-#      - "27018:27017"
-#    networks:
-#      - social_service_dev_network
-#    volumes:
-#      - chat-service-db-data:/data/db
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.25"
-#          memory: "256M"
-#        reservations:
-#          cpus: "0.1"
-#          memory: "128M"
-#    healthcheck:
-#      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+  # Cassandra for chat-service (permanent message storage)
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=chat-cluster
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - MAX_HEAP_SIZE=256M
+      - HEAP_NEWSIZE=64M
+      - JVM_OPTS=-Xms256m -Xmx256m
+    networks:
+      - social_service_dev_network
+    volumes:
+      - kv-chat-cassandra-data:/var/lib/cassandra
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  cassandra-init:
+    image: cassandra:4.1
+    container_name: cassandra-init
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    volumes:
+      - ../services/chat-service/cassandra/schema.cql:/schema.cql
+    command: cqlsh cassandra -f /schema.cql
+    networks:
+      - social_service_dev_network
+    restart: on-failure
 
   # ======================= Microservices =======================
 
@@ -692,18 +714,26 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_ENABLED=true
-      - SPRING_DATA_MONGODB_HOST=chat-db
-      - SPRING_DATA_MONGODB_PORT=27017
-      - SPRING_DATA_MONGODB_DATABASE=chat-service
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CASSANDRA_HOST=cassandra
+      - CASSANDRA_PORT=9042
+      - CASSANDRA_KEYSPACE=chat_service
+      - CASSANDRA_DC=datacenter1
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - ZOOKEEPER_CONNECT=zookeeper:2181
+      - CHAT_INSTANCE_ID=${HOSTNAME:-chat-instance-1}
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     volumes:
-      - maven-chat-service:/root/.m2  # Isolated Maven cache for chat-service
+      - maven-chat-service:/root/.m2
     depends_on:
-#      chat-db:
-#        condition: service_healthy
       redis:
+        condition: service_healthy
+      cassandra-init:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_healthy
+      zookeeper:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
@@ -748,7 +778,7 @@ volumes:
   # Database volumes
   auth-db-data:
   main-db-data:
-  chat-service-db-data:
+  kv-chat-cassandra-data:
   notification-db-data:
   # Isolated Maven caches per service to avoid dependency version conflicts
   maven-discovery-service:
