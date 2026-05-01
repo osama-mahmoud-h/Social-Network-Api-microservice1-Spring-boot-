@@ -13,17 +13,58 @@ spring:
 #      database: chat-service
     # Redis Configuration
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       password: ''
       timeout: 60000
   cache:
     type: redis
     redis:
       time-to-live: 600000
+  cassandra:
+    contact-points: "${CASSANDRA_HOST:localhost}:${CASSANDRA_PORT:9042}"
+    keyspace-name: ${CASSANDRA_KEYSPACE:chat_service}
+    local-datacenter: ${CASSANDRA_DC:datacenter1}
+    schema-action: none
+    request:
+      consistency: ONE
+      serial-consistency: LOCAL_SERIAL
+    connection:
+      connect-timeout: 10s
+      init-query-timeout: 10s
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:chat-service}
+      # Manual offset commit: offset only acknowledged after successful DB write
+      # Prevents message loss if Cassandra crashes mid-write
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "semsem.chatservice.*"
+        spring.json.add.type.headers: false
+    listener:
+      # MANUAL_IMMEDIATE: commit offset immediately after consumer calls acknowledgment
+      # If processing fails before ack(), offset is not committed → message reprocessed
+      ack-mode: MANUAL_IMMEDIATE
 
 server:
   port: 8086
+
+chat:
+  # Unique per running instance — set via env var in deployment (e.g. POD_NAME in K8s)
+  instance-id: ${CHAT_INSTANCE_ID:chat-instance-local}
 
 # Auth Service
 auth-service:
@@ -32,6 +73,21 @@ auth-service:
 # Main Service
 main-service:
   url: http://localhost:8083
+
+# Zookeeper for Snowflake worker-ID coordination
+zookeeper:
+  connect-string: ${ZOOKEEPER_CONNECT:localhost:2181}
+  session-timeout-ms: 5000
+  connection-timeout-ms: 3000
+  snowflake:
+    worker-path: /chat/snowflake/workers
+
+# Snowflake ID Generator
+snowflake:
+  # Fallback worker ID if Zookeeper is unavailable (0-1023)
+  fallback-worker-id: ${SNOWFLAKE_WORKER_ID:0}
+  # Custom epoch: 2024-01-01T00:00:00Z in millis
+  epoch: 1704067200000
 
 # Eureka Configuration - DISABLED by default for local development
 eureka:

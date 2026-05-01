@@ -10,7 +10,7 @@ import java.time.Instant;
 @Data
 @Builder
 public class ChatMessageResponseDto {
-    private String id;
+    private Long id;        // Snowflake ID
     private String chatId;
     private String senderId;
     private String receiverId;

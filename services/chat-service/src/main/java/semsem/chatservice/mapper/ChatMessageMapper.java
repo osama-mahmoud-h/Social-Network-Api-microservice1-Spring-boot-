@@ -33,6 +33,7 @@ public class ChatMessageMapper {
     public ChatMessageResponseDto mapChatMessageToResponseDto(ChatMessage chatMessage) {
         return ChatMessageResponseDto.builder()
                         .id(chatMessage.getMessageId())
+                        .chatId(chatMessage.getChatId())
                         .senderId(chatMessage.getSenderId())
                         .receiverId(chatMessage.getReceiverId())
                         .content(chatMessage.getContent())
