@@ -6,7 +6,12 @@
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!-- @Entity(name="files") — table name derived from entity name -->
-    <changeSet id="004-create-files-table" author="main-service">
+    <changeSet id="004-create-files-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'files' already exists — skipping changeset 004-create-files-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 004-create-files-table — halting migration">
+            <not><tableExists tableName="files" schemaName="public"/></not>
+        </preConditions>
         <createTable tableName="files">
             <column name="file_id" type="BIGINT" defaultValueSequenceNext="file_sequence">
                 <constraints primaryKey="true" primaryKeyName="PK_files" nullable="false"/>

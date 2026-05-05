@@ -6,7 +6,12 @@
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!-- @Table(name="reactions"), @Entity(name="reactions") -->
-    <changeSet id="008-create-reactions-table" author="main-service">
+    <changeSet id="008-create-reactions-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'reactions' already exists — skipping changeset 008-create-reactions-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 008-create-reactions-table — halting migration">
+            <not><tableExists tableName="reactions" schemaName="public"/></not>
+        </preConditions>
         <createTable tableName="reactions">
             <column name="reaction_id" type="BIGINT" defaultValueSequenceNext="reaction_sequence">
                 <constraints primaryKey="true" primaryKeyName="PK_reactions" nullable="false"/>

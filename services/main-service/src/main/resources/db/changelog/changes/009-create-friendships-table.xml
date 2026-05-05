@@ -6,7 +6,12 @@
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!-- IDENTITY strategy: autoIncrement="true" is correct (not sequence-backed) -->
-    <changeSet id="009-create-friendships-table" author="main-service">
+    <changeSet id="009-create-friendships-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'friendships' already exists — skipping changeset 009-create-friendships-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 009-create-friendships-table — halting migration">
+            <not><tableExists tableName="friendships" schemaName="public"/></not>
+        </preConditions>
         <createTable tableName="friendships">
             <column name="friendship_id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="PK_friendships" nullable="false"/>

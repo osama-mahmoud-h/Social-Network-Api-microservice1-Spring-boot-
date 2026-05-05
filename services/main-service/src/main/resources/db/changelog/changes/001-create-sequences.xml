@@ -5,23 +5,57 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="001-create-sequences" author="main-service">
-        <!-- Post: @SequenceGenerator(sequenceName="post_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-post" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'post_sequence' already exists — skipping changeset 001-create-sequence-post"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-post — halting migration">
+            <not><sequenceExists sequenceName="post_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="post_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
 
-        <!-- File: @SequenceGenerator(sequenceName="file_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-file" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'file_sequence' already exists — skipping changeset 001-create-sequence-file"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-file — halting migration">
+            <not><sequenceExists sequenceName="file_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="file_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
 
-        <!-- UserReaction: @SequenceGenerator(sequenceName="reaction_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-reaction" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'reaction_sequence' already exists — skipping changeset 001-create-sequence-reaction"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-reaction — halting migration">
+            <not><sequenceExists sequenceName="reaction_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="reaction_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
 
-        <!-- Address: @SequenceGenerator(sequenceName="address_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-address" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'address_sequence' already exists — skipping changeset 001-create-sequence-address"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-address — halting migration">
+            <not><sequenceExists sequenceName="address_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="address_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
 
-        <!-- Comment: @SequenceGenerator(sequenceName="comment_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-comment" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'comment_sequence' already exists — skipping changeset 001-create-sequence-comment"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-comment — halting migration">
+            <not><sequenceExists sequenceName="comment_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="comment_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
 
-        <!-- Profile: @SequenceGenerator(sequenceName="profile_sequence", allocationSize=50) -->
+    <changeSet id="001-create-sequence-profile" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'profile_sequence' already exists — skipping changeset 001-create-sequence-profile"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-sequence-profile — halting migration">
+            <not><sequenceExists sequenceName="profile_sequence" schemaName="public"/></not>
+        </preConditions>
         <createSequence sequenceName="profile_sequence" startValue="1" incrementBy="50"/>
     </changeSet>
 

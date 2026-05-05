@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="003-create-address-table" author="main-service">
+    <changeSet id="003-create-address-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'address' already exists — skipping changeset 003-create-address-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 003-create-address-table — halting migration">
+            <not><tableExists tableName="address" schemaName="public"/></not>
+        </preConditions>
         <createTable tableName="address">
             <column name="address_id" type="BIGINT" defaultValueSequenceNext="address_sequence">
                 <constraints primaryKey="true" primaryKeyName="PK_address" nullable="false"/>

@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="010-create-profiles-table" author="main-service">
+    <changeSet id="010-create-profiles-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'profiles' already exists — skipping changeset 010-create-profiles-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 010-create-profiles-table — halting migration">
+            <not><tableExists tableName="profiles" schemaName="public"/></not>
+        </preConditions>
         <createTable tableName="profiles">
             <column name="profile_id" type="BIGINT" defaultValueSequenceNext="profile_sequence">
                 <constraints primaryKey="true" primaryKeyName="PK_profiles" nullable="false"/>
