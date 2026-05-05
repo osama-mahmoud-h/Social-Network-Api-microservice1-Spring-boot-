@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="003-create-address-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'address' already exists — skipping changeset 003-create-address-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 003-create-address-table — halting migration">
+            <not><tableExists tableName="address" schemaName="public"/></not>
+        </preConditions>
+        <createTable tableName="address">
+            <column name="address_id" type="BIGINT" defaultValueSequenceNext="address_sequence">
+                <constraints primaryKey="true" primaryKeyName="PK_address" nullable="false"/>
+            </column>
+            <column name="street" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(255)"/>
+            <column name="state" type="VARCHAR(255)"/>
+            <column name="country" type="VARCHAR(255)"/>
+            <column name="zip_code" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
