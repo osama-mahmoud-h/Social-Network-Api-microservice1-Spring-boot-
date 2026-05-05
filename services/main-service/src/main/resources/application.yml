@@ -28,10 +28,13 @@ spring:
     # ======================= Hibernate =======================
     # Hibernate ddl auto (create, create-drop, validate, update)
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     #- avoid lazy initialization error.
     open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
   # ======================= File Limit =======================
   servlet:
     multipart:

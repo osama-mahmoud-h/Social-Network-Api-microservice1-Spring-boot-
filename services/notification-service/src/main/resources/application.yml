@@ -21,7 +21,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
@@ -31,6 +31,9 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
 
   #===================== Kafka Configuration ==========================
   # Use port 29092 for local development (outside Docker)

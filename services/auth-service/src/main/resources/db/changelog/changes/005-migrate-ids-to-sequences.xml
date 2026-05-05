@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005-create-sequence-users" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'users_sequence' already exists — skipping"
+                       onErrorMessage="Precondition check failed unexpectedly for 005-create-sequence-users — halting migration">
+            <not><sequenceExists sequenceName="users_sequence" schemaName="public"/></not>
+        </preConditions>
+        <createSequence sequenceName="users_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="005-drop-identity-users" author="osama" dbms="postgresql">
+        <sql>ALTER TABLE users ALTER COLUMN user_id DROP IDENTITY IF EXISTS</sql>
+    </changeSet>
+
+    <changeSet id="005-seed-sequence-users" author="osama" dbms="postgresql">
+        <sql>SELECT setval('users_sequence', GREATEST(COALESCE((SELECT MAX(user_id) FROM users), 0) + 500, 1))</sql>
+    </changeSet>
+
+    <changeSet id="005-create-sequence-tokens" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'tokens_sequence' already exists — skipping"
+                       onErrorMessage="Precondition check failed unexpectedly for 005-create-sequence-tokens — halting migration">
+            <not><sequenceExists sequenceName="tokens_sequence" schemaName="public"/></not>
+        </preConditions>
+        <createSequence sequenceName="tokens_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="005-drop-identity-tokens" author="osama" dbms="postgresql">
+        <sql>ALTER TABLE tokens ALTER COLUMN token_id DROP IDENTITY IF EXISTS</sql>
+    </changeSet>
+
+    <changeSet id="005-seed-sequence-tokens" author="osama" dbms="postgresql">
+        <sql>SELECT setval('tokens_sequence', GREATEST(COALESCE((SELECT MAX(token_id) FROM tokens), 0) + 500, 1))</sql>
+    </changeSet>
+
+    <changeSet id="005-create-sequence-otps" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'otps_sequence' already exists — skipping"
+                       onErrorMessage="Precondition check failed unexpectedly for 005-create-sequence-otps — halting migration">
+            <not><sequenceExists sequenceName="otps_sequence" schemaName="public"/></not>
+        </preConditions>
+        <createSequence sequenceName="otps_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="005-drop-identity-otps" author="osama" dbms="postgresql">
+        <sql>ALTER TABLE otps ALTER COLUMN otp_id DROP IDENTITY IF EXISTS</sql>
+    </changeSet>
+
+    <changeSet id="005-seed-sequence-otps" author="osama" dbms="postgresql">
+        <sql>SELECT setval('otps_sequence', GREATEST(COALESCE((SELECT MAX(otp_id) FROM otps), 0) + 500, 1))</sql>
+    </changeSet>
+
+</databaseChangeLog>

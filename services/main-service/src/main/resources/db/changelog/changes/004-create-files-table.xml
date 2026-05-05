@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- @Entity(name="files") — table name derived from entity name -->
+    <changeSet id="004-create-files-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'files' already exists — skipping changeset 004-create-files-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 004-create-files-table — halting migration">
+            <not><tableExists tableName="files" schemaName="public"/></not>
+        </preConditions>
+        <createTable tableName="files">
+            <column name="file_id" type="BIGINT" defaultValueSequenceNext="file_sequence">
+                <constraints primaryKey="true" primaryKeyName="PK_files" nullable="false"/>
+            </column>
+            <column name="file_name" type="VARCHAR(255)"/>
+            <column name="file_url" type="VARCHAR(128)"/>
+            <column name="file_type" type="VARCHAR(128)"/>
+            <column name="file_size_in_bytes" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="file_extension" type="VARCHAR(64)"/>
+            <column name="file_description" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

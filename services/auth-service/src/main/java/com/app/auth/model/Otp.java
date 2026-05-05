@@ -21,7 +21,8 @@ import java.time.Instant;
 public class Otp {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "otps_sequence")
+    @SequenceGenerator(name = "otps_sequence", sequenceName = "otps_sequence", allocationSize = 50)
     @Column(name = "otp_id")
     private Long id;
 

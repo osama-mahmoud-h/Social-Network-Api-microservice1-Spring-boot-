@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="002-create-sequence-notifications" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Sequence 'notifications_sequence' already exists — skipping"
+                       onErrorMessage="Precondition check failed unexpectedly for 002-create-sequence-notifications — halting migration">
+            <not><sequenceExists sequenceName="notifications_sequence" schemaName="public"/></not>
+        </preConditions>
+        <createSequence sequenceName="notifications_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="002-drop-identity-notifications" author="osama" dbms="postgresql">
+        <sql>ALTER TABLE notifications ALTER COLUMN id DROP IDENTITY IF EXISTS</sql>
+    </changeSet>
+
+    <changeSet id="002-seed-sequence-notifications" author="osama" dbms="postgresql">
+        <sql>SELECT setval('notifications_sequence', GREATEST(COALESCE((SELECT MAX(id) FROM notifications), 0) + 500, 1))</sql>
+    </changeSet>
+
+</databaseChangeLog>

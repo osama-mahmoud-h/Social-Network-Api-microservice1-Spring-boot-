@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-notifications-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'notifications' already exists — skipping changeset 001-create-notifications-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 001-create-notifications-table — halting migration">
+            <not><tableExists tableName="notifications" schemaName="public"/></not>
+        </preConditions>
+        <createTable tableName="notifications">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="PK_notifications" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender_id" type="BIGINT"/>
+            <column name="receiver_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="read_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reference_id" type="BIGINT"/>
+            <column name="reference_type" type="VARCHAR(50)"/>
+        </createTable>
+
+        <createIndex indexName="idx_receiver_id" tableName="notifications">
+            <column name="receiver_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_receiver_read" tableName="notifications">
+            <column name="receiver_id"/>
+            <column name="is_read"/>
+        </createIndex>
+
+        <createIndex indexName="idx_created_at" tableName="notifications">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

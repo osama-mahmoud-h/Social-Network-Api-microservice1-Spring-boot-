@@ -17,7 +17,8 @@ import jakarta.persistence.*;
 @Builder
 public class Profile {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_sequence")
+    @SequenceGenerator(name = "profile_sequence", sequenceName = "profile_sequence", allocationSize = 50)
     private Long profileId;
 
     private String aboutUser;
