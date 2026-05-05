@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- @Table(name="reactions"), @Entity(name="reactions") -->
+    <changeSet id="008-create-reactions-table" author="main-service">
+        <createTable tableName="reactions">
+            <column name="reaction_id" type="BIGINT" defaultValueSequenceNext="reaction_sequence">
+                <constraints primaryKey="true" primaryKeyName="PK_reactions" nullable="false"/>
+            </column>
+            <column name="reaction_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reaction_target_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="reactions"
+            baseColumnNames="author_id"
+            constraintName="FK_reactions_author_id"
+            referencedTableName="user_profiles"
+            referencedColumnNames="user_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

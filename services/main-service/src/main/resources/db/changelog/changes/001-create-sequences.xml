@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-sequences" author="main-service">
+        <!-- Post: @SequenceGenerator(sequenceName="post_sequence", allocationSize=50) -->
+        <createSequence sequenceName="post_sequence" startValue="1" incrementBy="50"/>
+
+        <!-- File: @SequenceGenerator(sequenceName="file_sequence", allocationSize=50) -->
+        <createSequence sequenceName="file_sequence" startValue="1" incrementBy="50"/>
+
+        <!-- UserReaction: @SequenceGenerator(sequenceName="reaction_sequence", allocationSize=50) -->
+        <createSequence sequenceName="reaction_sequence" startValue="1" incrementBy="50"/>
+
+        <!-- Address: @SequenceGenerator(sequenceName="address_sequence", allocationSize=50) -->
+        <createSequence sequenceName="address_sequence" startValue="1" incrementBy="50"/>
+
+        <!-- Comment: @SequenceGenerator(sequenceName="comment_sequence", allocationSize=50) -->
+        <createSequence sequenceName="comment_sequence" startValue="1" incrementBy="50"/>
+
+        <!-- Profile: @SequenceGenerator(sequenceName="profile_sequence", allocationSize=50) -->
+        <createSequence sequenceName="profile_sequence" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+</databaseChangeLog>

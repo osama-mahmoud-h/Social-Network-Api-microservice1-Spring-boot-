@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="010-create-profiles-table" author="main-service">
+        <createTable tableName="profiles">
+            <column name="profile_id" type="BIGINT" defaultValueSequenceNext="profile_sequence">
+                <constraints primaryKey="true" primaryKeyName="PK_profiles" nullable="false"/>
+            </column>
+            <column name="about_user" type="VARCHAR(255)"/>
+            <column name="bio" type="VARCHAR(255)"/>
+            <column name="image_url" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="profiles"
+            baseColumnNames="user_id"
+            constraintName="FK_profiles_user_id"
+            referencedTableName="user_profiles"
+            referencedColumnNames="user_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="profiles"
+            baseColumnNames="address_id"
+            constraintName="FK_profiles_address_id"
+            referencedTableName="address"
+            referencedColumnNames="address_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -18,7 +18,8 @@ import java.util.Set;
 @DynamicUpdate
 public class Comment {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
+    @SequenceGenerator(name = "comment_sequence", sequenceName = "comment_sequence", allocationSize = 50)
     @Column(name = "comment_id")
     private Long commentId;
 

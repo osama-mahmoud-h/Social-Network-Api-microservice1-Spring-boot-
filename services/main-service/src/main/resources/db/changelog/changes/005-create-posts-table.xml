@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005-create-posts-table" author="main-service">
+        <createTable tableName="posts">
+            <column name="post_id" type="BIGINT" defaultValueSequenceNext="post_sequence">
+                <constraints primaryKey="true" primaryKeyName="PK_posts" nullable="false"/>
+            </column>
+            <column name="content" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publicity" type="VARCHAR(50)" defaultValue="PUBLIC">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="posts"
+            baseColumnNames="author_id"
+            constraintName="FK_posts_author_id"
+            referencedTableName="user_profiles"
+            referencedColumnNames="user_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

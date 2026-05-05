@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_sequence")
+    @SequenceGenerator(name = "users_sequence", sequenceName = "users_sequence", allocationSize = 50)
     @Column(name = "user_id")
     private Long userId;
 

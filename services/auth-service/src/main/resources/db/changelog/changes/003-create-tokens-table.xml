@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="003-create-tokens-table" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Table 'tokens' already exists — skipping changeset 003-create-tokens-table"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 003-create-tokens-table — halting migration">
+            <not><tableExists tableName="tokens" schemaName="public"/></not>
+        </preConditions>
+        <createTable tableName="tokens">
+            <column name="token_id" type="BIGINT" autoIncrement="true" >
+                <constraints primaryKey="true" primaryKeyName="PK_tokens" nullable="false"/>
+            </column>
+            <column name="token" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_type" type="VARCHAR(50)"/>
+            <column name="revoked" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="expired" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_name" type="VARCHAR(255)"/>
+            <column name="device_type" type="VARCHAR(50)"/>
+            <column name="ip_address" type="VARCHAR(45)"/>
+            <column name="user_agent" type="VARCHAR(500)"/>
+            <column name="last_used_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="tokens"
+            baseColumnNames="user_id"
+            constraintName="FK_tokens_user_id"
+            referencedTableName="users"
+            referencedColumnNames="user_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

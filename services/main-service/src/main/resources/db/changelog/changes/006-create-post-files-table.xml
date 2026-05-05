@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ManyToMany join table between posts and files -->
+    <changeSet id="006-create-post-files-table" author="main-service">
+        <createTable tableName="post_files">
+            <column name="post_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="post_files"
+            baseColumnNames="post_id"
+            constraintName="FK_post_files_post_id"
+            referencedTableName="posts"
+            referencedColumnNames="post_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="post_files"
+            baseColumnNames="file_id"
+            constraintName="FK_post_files_file_id"
+            referencedTableName="files"
+            referencedColumnNames="file_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
