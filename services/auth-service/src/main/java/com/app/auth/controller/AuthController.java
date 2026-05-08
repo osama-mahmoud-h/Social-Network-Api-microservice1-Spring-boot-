@@ -9,11 +9,6 @@ import com.app.auth.service.AuthService;
 import com.app.auth.service.DeviceService;
 import com.app.auth.service.OtpService;
 import com.app.auth.service.PasswordService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,17 +43,7 @@ public class AuthController implements IAuthApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // TODO: move @Operation + @ApiResponses from remaining methods to IAuthApi
-
     @Override
-    @Operation(
-            summary = "Verify registration OTP",
-            description = "Verifies the OTP sent during registration and completes the registration process, returning JWT tokens"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Email verified successfully, tokens returned"),
-            @ApiResponse(responseCode = "400", description = "Invalid or expired OTP")
-    })
     @PostMapping("/verify-registration")
     public ResponseEntity<MyApiResponse<AuthResponse>> verifyRegistration(
             @Valid @RequestBody VerifyRegistrationRequest request,
@@ -71,14 +56,6 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "User login",
-            description = "Authenticates a user with email and password and returns JWT tokens"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully authenticated"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    })
     @PostMapping("/login")
     public ResponseEntity<MyApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request,
@@ -93,30 +70,15 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "Validate JWT token",
-            description = "Validates a JWT token and returns user information if valid"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Token validation result returned")
-    })
     @PostMapping("/validate")
     public ResponseEntity<MyApiResponse<TokenValidationResponse>> validateToken(
-            @Parameter(description = "JWT token to validate") @RequestParam String token) {
+            @RequestParam String token) {
         TokenValidationResponse validationResponse = authService.validateToken(token);
         MyApiResponse<TokenValidationResponse> response = MyApiResponse.success("Token validated", validationResponse);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @Operation(
-            summary = "Validate JWT token from Authorization header",
-            description = "Validates a JWT token from the Authorization header"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Token validation result returned")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/validate-header")
     public ResponseEntity<MyApiResponse<TokenValidationResponse>> validateTokenFromHeader(HttpServletRequest request) {
         String token = extractTokenFromHeader(request);
@@ -131,14 +93,6 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "User logout",
-            description = "Logs out the current user by revoking their access token"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully logged out")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ResponseEntity<MyApiResponse<Void>> logout(HttpServletRequest request) {
         String token = extractTokenFromHeader(request);
@@ -150,34 +104,18 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "Logout from all devices",
-            description = "Revokes all tokens for a specific user, logging them out from all devices"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully logged out from all devices")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout-all")
     public ResponseEntity<MyApiResponse<Void>> logoutAllDevices(
-            @Parameter(description = "User ID to logout from all devices") @RequestParam Long userId) {
+            @RequestParam Long userId) {
         authService.logoutAllDevices(userId);
         MyApiResponse<Void> response = MyApiResponse.success("Logged out from all devices successfully");
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @Operation(
-            summary = "Get user device sessions",
-            description = "Returns a list of all active device sessions for the authenticated user"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Device sessions retrieved successfully")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/devices")
     public ResponseEntity<MyApiResponse<List<DeviceSessionResponse>>> getUserDevices(
-            @Parameter(description = "User ID") @RequestParam Long userId,
+            @RequestParam Long userId,
             HttpServletRequest request) {
         String currentToken = extractTokenFromHeader(request);
         List<DeviceSessionResponse> devices = deviceService.getUserDeviceSessions(userId, currentToken);
@@ -187,37 +125,20 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "Logout from specific device",
-            description = "Revokes a specific device session by token ID"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully logged out from device")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout-device")
     public ResponseEntity<MyApiResponse<Void>> logoutDevice(
             @Valid @RequestBody LogoutDeviceRequest request,
-            @Parameter(description = "User ID") @RequestParam Long userId) {
+            @RequestParam Long userId) {
         deviceService.logoutDevice(request, userId);
         MyApiResponse<Void> response = MyApiResponse.success("Device logged out successfully");
         return ResponseEntity.ok(response);
     }
 
     @Override
-    @Operation(
-            summary = "Change password",
-            description = "Changes the user's password and invalidates all existing sessions"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid password or password requirements not met")
-    })
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/change-password")
     public ResponseEntity<MyApiResponse<ChangePasswordResponse>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
-            @Parameter(description = "User ID") @RequestParam Long userId) {
+            @RequestParam Long userId) {
         ChangePasswordResponse changePasswordResponse = passwordService.changePassword(request, userId);
         MyApiResponse<ChangePasswordResponse> response = MyApiResponse.success(
                 "Password change processed", changePasswordResponse);
@@ -225,14 +146,6 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "Forgot password",
-            description = "Sends a password reset OTP to the user's email address"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset OTP sent successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
     @PostMapping("/forgot-password")
     public ResponseEntity<MyApiResponse<ForgotPasswordResponse>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
@@ -243,14 +156,6 @@ public class AuthController implements IAuthApi {
     }
 
     @Override
-    @Operation(
-            summary = "Reset password",
-            description = "Resets the user's password using the OTP sent to their email"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid OTP or password requirements not met")
-    })
     @PostMapping("/reset-password")
     public ResponseEntity<MyApiResponse<ResetPasswordResponse>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {

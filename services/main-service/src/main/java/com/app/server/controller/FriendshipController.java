@@ -1,18 +1,13 @@
 package com.app.server.controller;
 
 
+import com.app.server.controller.swagger.IFriendshipApi;
 import com.app.server.dto.response.AppUserResponseDto;
-import com.app.shared.security.dto.MyApiResponse;
 import com.app.server.model.UserProfile;
 import com.app.server.repository.UserProfileRepository;
 import com.app.server.service.FriendshipService;
+import com.app.shared.security.dto.MyApiResponse;
 import com.app.shared.security.utils.SecurityUtils;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,11 +18,9 @@ import java.util.Set;
 
 @Slf4j
 @RestController
-@Tag(name = "Friendship", description = "APIs for managing friendships and friend requests")
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/friendship")
-@SecurityRequirement(name = "jwtAuth")
-public class FriendshipController {
+public class FriendshipController implements IFriendshipApi {
 
     private final FriendshipService friendshipService;
     private final UserProfileRepository userProfileRepository;
@@ -38,95 +31,67 @@ public class FriendshipController {
                 .orElseThrow(() -> new RuntimeException("User profile not found for userId: " + userId));
     }
 
-    @Operation(summary = "Send friend request", description = "Send a friend request to another user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend request sent successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @PostMapping("/add-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> addFriend(
-            @Parameter(description = "User ID to send friend request to") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isAdded = friendshipService.addFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success("Friend request sent", isAdded));
     }
 
-    @Operation(summary = "Remove friend", description = "Remove a friend from your friend list")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend removed successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @DeleteMapping("/remove-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> removeFriend(
-            @Parameter(description = "Friend ID to remove") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isRemoved = friendshipService.removeFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend removed",isRemoved));
     }
 
-    @Operation(summary = "Accept friend request", description = "Accept a pending friend request")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend request accepted successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @PutMapping("/accept-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> acceptFriend(
-            @Parameter(description = "User ID whose friend request to accept") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isAccepted = friendshipService.acceptFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend request accepted", isAccepted));
     }
 
-    @Operation(summary = "Cancel friend request", description = "Cancel a sent friend request")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend request cancelled successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @DeleteMapping("/cancel-friend-request/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> cancelFriendRequest(
-            @Parameter(description = "User ID to cancel friend request for") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isCancelled = friendshipService.cancelFriendRequest(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success("Friend request cancelled",isCancelled));
     }
 
-    @Operation(summary = "Block friend", description = "Block a user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend blocked successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @PutMapping("/block-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> blockFriend(
-            @Parameter(description = "User ID to block") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isBlocked = friendshipService.blockFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend blocked",isBlocked));
     }
 
-    @Operation(summary = "Unblock friend", description = "Unblock a previously blocked user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend unblocked successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @PutMapping("/unblock-friend/{friend_id}")
     public ResponseEntity<MyApiResponse<Boolean>> unblockFriend(
-            @Parameter(description = "User ID to unblock") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         boolean isUnblocked = friendshipService.unblockFriend(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Friend unblocked",isUnblocked));
     }
 
-    @Operation(summary = "Get friends", description = "Retrieve list of all friends")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friends retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/get-friends")
     public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriends() {
         UserProfile currentUser = getCurrentUserProfile();
@@ -135,11 +100,7 @@ public class FriendshipController {
         return ResponseEntity.ok(MyApiResponse.success( "Friends retrieved",friends));
     }
 
-    @Operation(summary = "Get friend requests", description = "Retrieve list of pending friend requests")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friend requests retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/get-friend-requests")
     public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getFriendRequests() {
         UserProfile currentUser = getCurrentUserProfile();
@@ -147,39 +108,27 @@ public class FriendshipController {
         return ResponseEntity.ok(MyApiResponse.success( "Friend requests retrieved",friendRequests));
     }
 
-    @Operation(summary = "Get mutual friends count", description = "Get count of mutual friends with another user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Mutual friends count retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/get-mutual-friends-count/{friend_id}")
     public ResponseEntity<MyApiResponse<Integer>> getMutualFriendsCount(
-            @Parameter(description = "User ID to check mutual friends with") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         int mutualFriendsCount = friendshipService.getMutualFriendsCount(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Mutual friends count retrieved",mutualFriendsCount));
     }
 
-    @Operation(summary = "Get mutual friends", description = "Retrieve list of mutual friends with another user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Mutual friends retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/get-mutual-friends/{friend_id}")
     public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> getMutualFriends(
-            @Parameter(description = "User ID to get mutual friends with") @PathVariable("friend_id") Long friendId
+            @PathVariable("friend_id") Long friendId
     ) {
         UserProfile currentUser = getCurrentUserProfile();
         Set<AppUserResponseDto> mutualFriends = friendshipService.getMutualFriends(currentUser, friendId);
         return ResponseEntity.ok(MyApiResponse.success( "Mutual friends retrieved",mutualFriends));
     }
 
-    @Operation(summary = "Suggest friends", description = "Get friend suggestions based on mutual connections")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Suggested friends retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/suggest-friends")
     public ResponseEntity<MyApiResponse<Set<AppUserResponseDto>>> suggestFriends(
     ) {
@@ -188,15 +137,11 @@ public class FriendshipController {
         return ResponseEntity.ok(MyApiResponse.success("Suggested friends retrieved", suggestedFriends));
     }
 
-    @Operation(summary = "Get friends paginated", description = "Retrieve paginated list of friends for chat")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Friends retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+    @Override
     @GetMapping("/get-friends-paginated")
     public ResponseEntity<MyApiResponse<Page<AppUserResponseDto>>> getFriendsPaginated(
-            @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         log.info("Fetching paginated friends list: userId={} page={}, size={}", currentUserId, page, size);
