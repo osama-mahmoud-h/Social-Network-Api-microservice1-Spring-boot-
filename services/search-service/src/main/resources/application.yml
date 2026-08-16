@@ -16,6 +16,10 @@ spring:
   #=========================== Kafka Configurations ===========================
   kafka:
     bootstrap-servers: localhost:29092
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
     consumer:
       group-id: search-service-group
       auto-offset-reset: earliest
@@ -31,15 +35,20 @@ spring:
             trusted:
               packages: '*'
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
 # In application.properties
 logging:
 #  config: classpath:logback-spring-prod.xml
   level:
     org:
       springframework:
-        kafka: DEBUG
+        kafka: WARN
       apache:
-        kafka: INFO
+        kafka: WARN
 
 # Eureka Configuration - DISABLED by default for local development
 eureka:
@@ -80,10 +89,6 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
 
-# Activate ELK logging in Docker
-logging:
-  config: classpath:logback-spring-prod.xml
-
 eureka:
   client:
     enabled: true
@@ -99,3 +104,16 @@ logstash:
   port: 5000
 
 
+
+---
+# ELK opt-in profile.
+# Activate alongside any other profile to ship logs to Logstash, e.g.
+#   from IntelliJ:  -Dspring.profiles.active=dev,elk
+# Defined as a separate profile so local runs stay quiet by default.
+spring:
+  config:
+    activate:
+      on-profile: elk
+logstash:
+  host: ${LOGSTASH_HOST:localhost}
+  port: ${LOGSTASH_PORT:5000}

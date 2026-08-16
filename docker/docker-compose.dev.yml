@@ -1,0 +1,100 @@
+# Local-dev override.
+# Usage:
+#   docker compose -f docker/docker-compose-all.yml -f docker/docker-compose.dev.yml --env-file .env.dev up
+#
+# Activates Spring `docker` profile in each service (verbose logs, CONSOLE+LOGSTASH+FILE
+# appenders enabled by logback-spring-prod.xml's <springProfile name="docker"> block).
+# Resource limits are lowered so the full stack fits on a developer laptop.
+
+services:
+  # ===== Infra: trimmed for laptop =====
+  elasticsearch:
+    environment:
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    deploy:
+      resources:
+        limits: { cpus: "0.4", memory: "512M" }
+        reservations: { cpus: "0.1", memory: "256M" }
+
+  logstash:
+    environment:
+      - LS_JAVA_OPTS=-Xms96m -Xmx128m
+      - LOG_ENVIRONMENT=development
+    deploy:
+      resources:
+        limits: { cpus: "0.2", memory: "320M" }
+        reservations: { cpus: "0.1", memory: "256M" }
+
+  kibana:
+    environment:
+      - NODE_OPTIONS="--max-old-space-size=512"
+    deploy:
+      resources:
+        limits: { cpus: "0.2", memory: "640M" }
+        reservations: { cpus: "0.1", memory: "384M" }
+
+  kafka:
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms192m -Xmx256m"
+    deploy:
+      resources:
+        limits: { cpus: "0.4", memory: "384M" }
+
+  # ===== App services: dev profile + lower memory =====
+  discovery-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx128m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.2", memory: "192M" }
+
+  auth-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_COM_APP_AUTH=DEBUG
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: "256M" }
+
+  gateway-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: "256M" }
+
+  main-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.4", memory: "320M" }
+
+  search-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: "256M" }
+
+  notification-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx128m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.2", memory: "192M" }
+
+  chat-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: "256M" }

@@ -143,3 +143,15 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: api-gateway
+---
+# ELK opt-in profile.
+# Activate alongside any other profile to ship logs to Logstash, e.g.
+#   from IntelliJ:  -Dspring.profiles.active=dev,elk
+# Defined as a separate profile so local runs stay quiet by default.
+spring:
+  config:
+    activate:
+      on-profile: elk
+logstash:
+  host: ${LOGSTASH_HOST:localhost}
+  port: ${LOGSTASH_PORT:5000}

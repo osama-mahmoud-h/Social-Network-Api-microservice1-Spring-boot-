@@ -40,8 +40,13 @@ logs/
 
 ### Environment files at any level###
 .env
+.env.dev
+.env.prod
 **/.env
 !**/.env.example
+!.env.dev.example
+!.env.prod.example
+!.env.examples
 
 
 ### Uploads ###
