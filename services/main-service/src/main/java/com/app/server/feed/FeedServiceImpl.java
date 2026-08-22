@@ -2,7 +2,7 @@ package com.app.server.feed;
 
 import com.app.server.dto.response.FeedResponseDto;
 import com.app.server.dto.response.PostResponseDto;
-import com.app.server.enums.FriendshipActionType;
+import com.app.shared.events.type.FriendshipActionType;
 import com.app.server.enums.PostPublicity;
 import com.app.server.mapper.PostMapper;
 import com.app.server.projection.PostDetailProjection;

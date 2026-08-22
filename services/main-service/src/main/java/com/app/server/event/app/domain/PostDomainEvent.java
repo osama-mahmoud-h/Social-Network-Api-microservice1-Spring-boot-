@@ -1,6 +1,6 @@
 package com.app.server.event.app.domain;
 
-import com.app.server.enums.PostActionType;
+import com.app.shared.events.type.PostActionType;
 import com.app.server.model.Post;
 import lombok.Getter;
 

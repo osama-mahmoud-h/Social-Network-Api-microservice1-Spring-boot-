@@ -1,18 +1,14 @@
 package com.app.server.mapper;
 
 
-import com.app.server.dto.notification.comment.CommentEventDto;
-import com.app.server.enums.CommentActionType;
-import com.app.server.dto.request.comment.AddNewCommentRequestDto;
-import com.app.server.dto.request.comment.UpdateCommentRequestDto;
+import com.app.shared.events.AuthorData;
+import com.app.shared.events.CommentEventDto;
+import com.app.shared.events.type.CommentActionType;
 import com.app.server.dto.response.comment.CommentResponseDto;
-import com.app.server.model.Post;
-import com.app.server.model.UserProfile;
 import com.app.server.model.Comment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.Collections;
 
 @Service
@@ -20,29 +16,13 @@ import java.util.Collections;
 public class CommentMapper {
     private final UserMapper userMapper;
 
-    public Comment mapAddNewCommentRequestDtoToComment(UserProfile author, Post post, AddNewCommentRequestDto addNewCommentRequestDto) {
-        return Comment.builder()
-                .post(post)
-                .author(author)
-                .parentComment(null)
-                .createdAt(Instant.now())
-                .updatedAt(null)
-                .content(addNewCommentRequestDto.getContent())
-                .build();
-    }
-
-    public Comment mapUpdateCommentRequestDtoToComment(Comment comment, UpdateCommentRequestDto updateCommentRequestDto) {
-       comment.setUpdatedAt(Instant.now());
-       if(updateCommentRequestDto.getContent() != null) {
-           comment.setContent(updateCommentRequestDto.getContent());
-       }
-       return comment;
-    }
+    // Creation and editing now live on the Comment aggregate (Comment.writeOn / replyTo / edit).
+    // What remains here is one-directional: domain object out to a DTO or a published event.
 
     public CommentEventDto toCommentEventDto(Comment comment, CommentActionType actionType) {
-        CommentEventDto.AuthorData authorData = null;
+        AuthorData authorData = null;
         if (comment.getAuthor() != null) {
-            authorData = CommentEventDto.AuthorData.builder()
+            authorData = AuthorData.builder()
                     .userId(comment.getAuthor().getUserId())
                     .firstName(comment.getAuthor().getFirstName())
                     .lastName(comment.getAuthor().getLastName())

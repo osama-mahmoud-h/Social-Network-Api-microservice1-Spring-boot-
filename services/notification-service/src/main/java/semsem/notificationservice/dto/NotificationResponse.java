@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 
 import java.time.LocalDateTime;
 

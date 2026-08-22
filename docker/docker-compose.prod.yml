@@ -1,0 +1,73 @@
+# Production override.
+# Usage:
+#   docker compose -f docker/docker-compose-all.yml -f docker/docker-compose.prod.yml --env-file .env.prod up -d
+#
+# Activates Spring `prod` profile (no CONSOLE appender, no DEBUG, only LOGSTASH+FILE).
+# Requires ELASTIC_PASSWORD set in .env.prod (do NOT commit it).
+# Resource limits are higher than dev.
+
+services:
+  elasticsearch:
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set for prod}
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: "2048M" }
+        reservations: { cpus: "0.5", memory: "1024M" }
+
+  logstash:
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx384m
+      - LOG_ENVIRONMENT=production
+      - ELASTIC_USERNAME=${ELASTIC_USERNAME:?required}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?required}
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: "512M" }
+
+  kibana:
+    environment:
+      - ELASTICSEARCH_USERNAME=${ELASTIC_USERNAME:?required}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:?required}
+      - xpack.security.enabled=true
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: "1024M" }
+
+  # App services: strict prod profile
+  discovery-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  auth-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  gateway-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  main-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms384m -Xmx768m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  search-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  notification-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+  chat-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0

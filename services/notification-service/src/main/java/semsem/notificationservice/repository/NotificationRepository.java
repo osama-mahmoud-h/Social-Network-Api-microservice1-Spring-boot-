@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.model.Notification;
 
 import java.time.LocalDateTime;

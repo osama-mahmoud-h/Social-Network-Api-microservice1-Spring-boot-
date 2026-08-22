@@ -1,5 +1,6 @@
 package semsem.searchservice.listeners;
 
+import com.app.shared.events.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -20,7 +21,7 @@ public class KafkaConsumerImpl implements KafkaConsumer{
     private final Map<String, PostEventHandler> postHandlerMap;
     private final Map<String, CommentEventHandler> commentHandlerMap;
 
-    @KafkaListener(topics = "post-events", groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = KafkaTopics.POST_EVENTS, groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void listenPostEvents(ConsumerRecord<String, Object> record) {
 
         log.info("Post event received: {}", record.value());
@@ -55,7 +56,7 @@ public class KafkaConsumerImpl implements KafkaConsumer{
         }
     }
 
-    @KafkaListener(topics = "comment-events", groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = KafkaTopics.COMMENT_EVENTS, groupId = "search-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void listenCommentEvents(ConsumerRecord<String, Object> record) {
         log.info("Comment event received: {}", record.value());
         Map<String,Object> eventDto = (Map<String, Object>) record.value();

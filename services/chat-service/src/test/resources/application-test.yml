@@ -1,0 +1,16 @@
+# Test profile: overrides the main application.yml rather than replacing it, so
+# service URLs, Snowflake and Zookeeper settings keep their declared defaults.
+spring:
+  config:
+    activate:
+      on-profile: test
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logstash:
+  host: localhost
+  port: 5000

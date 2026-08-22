@@ -166,11 +166,11 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     @Query(value = """
            WITH friend_ids AS (
                SELECT CASE
-                   WHEN user_id1 = :userId THEN user_id2
-                   WHEN user_id2 = :userId THEN user_id1
+                   WHEN requester_id = :userId THEN addressee_id
+                   WHEN addressee_id = :userId THEN requester_id
                END AS friend_id
                FROM friendships
-               WHERE (user_id1 = :userId OR user_id2 = :userId)
+               WHERE (requester_id = :userId OR addressee_id = :userId)
                AND status = 'ACCEPTED'
            ),
            eligible_posts AS (

@@ -11,6 +11,25 @@ spring:
     show-sql: true
   liquibase:
     enabled: false
+  # No broker runs during tests; this only satisfies the @Value placeholder in KafkaConfig.
+  # KafkaAdmin logs and moves on when the broker is unreachable, so the context still loads.
+  kafka:
+    bootstrap-servers: localhost:29092
+
+# No registry during tests; without this the context spends ~25s retrying Eureka.
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# No MinIO runs during tests either; these only satisfy the placeholders in MinioConfig.
+minio:
+  endpoint: http://localhost:9000
+  access-key: testAccessKey
+  secret-key: testSecretKey
+  bucket-name: test-bucket
+  auto-create-bucket: false
 
 # File upload directory for testing
 file:

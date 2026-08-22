@@ -1,6 +1,6 @@
 package com.app.server.event.app.domain;
 
-import com.app.server.enums.ReactionActionType;
+import com.app.shared.events.type.ReactionActionType;
 import com.app.server.enums.ReactionTargetType;
 import com.app.server.enums.ReactionType;
 import lombok.Getter;

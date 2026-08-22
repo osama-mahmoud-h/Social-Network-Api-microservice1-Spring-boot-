@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import semsem.notificationservice.dto.NotificationEvent;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.NotificationEvent;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.service.NotificationService;
 
 @Service

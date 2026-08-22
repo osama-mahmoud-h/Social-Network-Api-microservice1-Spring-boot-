@@ -5,7 +5,7 @@ import com.app.server.dto.request.comment.GetAllCommentRepliesRequestDto;
 import com.app.server.dto.request.comment.GetAllCommentsRequestDto;
 import com.app.server.dto.request.comment.UpdateCommentRequestDto;
 import com.app.server.dto.response.comment.CommentResponseDto;
-import com.app.server.enums.CommentActionType;
+import com.app.shared.events.type.CommentActionType;
 import com.app.server.event.app.domain.CommentDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.CommentMapper;
@@ -21,8 +21,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,38 +35,42 @@ public class CommentServiceImp implements CommentService {
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    // Each mutation is: load the aggregate → call the transition → save. Who may edit or delete a
+    // comment, and what counts as valid content, live in Comment rather than in a query.
+
     @Override
+    @Transactional
     public boolean addNewComment(UserProfile currentUser, AddNewCommentRequestDto commentDto) {
         Post post = postRepository.findById(commentDto.getPostId())
                 .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
 
-        Comment newComment = commentMapper.mapAddNewCommentRequestDtoToComment(currentUser, post, commentDto);
+        Comment newComment = Comment.writeOn(post, currentUser, commentDto.getContent());
         commentRepository.save(newComment);
         this.sendNewCommentNotification(newComment);
         return true;
     }
 
     @Override
+    @Transactional
     public boolean deleteComment(UserProfile currentUser, Long commentId) {
         Comment comment = this.getCommentById(commentId);
-        int rowsAffected = commentRepository.deleteByIdAndAuthorId(currentUser.getUserId(), commentId);
-        if(rowsAffected == 0){
-            throw new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND);
-        }
+
+        comment.deleteBy(currentUser.getUserId());
+        commentRepository.delete(comment);
+
         this.sendDeleteCommentNotification(comment);
         return true;
     }
 
     @Override
+    @Transactional
     public boolean updateComment(UserProfile userProfile, UpdateCommentRequestDto requestDto){
-        Optional<Comment> comment = commentRepository.findByIdAndAuthorId(userProfile.getUserId(), requestDto.getCommentId());
-        if(comment.isEmpty()){
-            throw new CustomRuntimeException("Comment not found", HttpStatus.NOT_FOUND);
-        }
-        Comment mappedComment = commentMapper.mapUpdateCommentRequestDtoToComment(comment.get(), requestDto);
-        commentRepository.save(mappedComment);
+        Comment comment = this.getCommentById(requestDto.getCommentId());
 
-        this.sendUpdateCommentNotification(mappedComment);
+        comment.edit(userProfile.getUserId(), requestDto.getContent());
+        commentRepository.save(comment);
+
+        this.sendUpdateCommentNotification(comment);
         return true;
     }
 
@@ -80,19 +84,14 @@ public class CommentServiceImp implements CommentService {
     }
 
     @Override
+    @Transactional
     public boolean replayOnComment(UserProfile userProfile, AddNewCommentRequestDto addNewCommentRequestDto, Long commentId) {
         Comment parentComment = this.getCommentById(commentId);
-        Post post = parentComment.getPost();
 
-        if(parentComment.getParentComment() != null){
-            throw new CustomRuntimeException("Cannot replay on a replay", HttpStatus.BAD_REQUEST);
-        }
+        Comment reply = Comment.replyTo(parentComment, userProfile, addNewCommentRequestDto.getContent());
+        commentRepository.save(reply);
 
-        Comment replyToComment = commentMapper.mapAddNewCommentRequestDtoToComment(userProfile,post, addNewCommentRequestDto);
-        replyToComment.setParentComment(parentComment);
-        commentRepository.save(replyToComment);
-
-        this.sendReplyCommentNotification(replyToComment);
+        this.sendReplyCommentNotification(reply);
         return true;
     }
 

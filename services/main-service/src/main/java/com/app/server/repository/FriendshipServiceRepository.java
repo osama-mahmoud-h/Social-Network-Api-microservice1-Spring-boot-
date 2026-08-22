@@ -5,11 +5,9 @@ import com.app.server.model.Friendship;
 import com.app.server.model.UserProfile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,17 +18,12 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     @Query("""
         SELECT f
         FROM Friendship f
-        WHERE (f.user1.userId = :userId AND f.user2.userId = :friendId)
+        WHERE (f.requester.userId = :userId AND f.addressee.userId = :friendId)
         OR
-        (f.user1.userId = :friendId AND f.user2.userId = :userId)
+        (f.requester.userId = :friendId AND f.addressee.userId = :userId)
         """)
     Optional<Friendship> findFriendshipByTwoUsers(@Param("userId") Long userId,@Param("friendId") Long friendId);
 
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE Friendship f SET f.status = :status WHERE f.friendshipId = :id")
-    void updateFriendshipStatusById(@Param("id") Long id,  @Param("status") FriendshipStatus status);
 
 
     @Query(value = """
@@ -39,43 +32,43 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
                   NULL as profilePictureUrl
            FROM user_profiles u
            JOIN friendships f ON
-             (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
-             (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+             (f.requester_id = :userId AND f.addressee_id = u.user_id) OR
+             (f.addressee_id = :userId AND f.requester_id = u.user_id)
            WHERE f.status = :status
            """,
             countQuery = """
             SELECT COUNT(*) FROM user_profiles u
             JOIN friendships f ON
-              (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
-              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+              (f.requester_id = :userId AND f.addressee_id = u.user_id) OR
+              (f.addressee_id = :userId AND f.requester_id = u.user_id)
             WHERE f.status = :status
            """, nativeQuery = true)
     List<com.app.server.projection.UserSuggestionProjection> findFriendsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
     @Query(value = "SELECT u.* FROM user_profiles u " +
             "JOIN friendships f ON " +
-            "  (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR " +
-            "  (f.user_id2 = :userId AND f.user_id1 = u.user_id) " +
+            "  (f.requester_id = :userId AND f.addressee_id = u.user_id) OR " +
+            "  (f.addressee_id = :userId AND f.requester_id = u.user_id) " +
             "WHERE f.status = 'ACCEPTED'",
             countQuery = "SELECT COUNT(*) FROM friendships f " +
-                    "WHERE (f.user_id1 = :userId OR f.user_id2 = :userId) " +
+                    "WHERE (f.requester_id = :userId OR f.addressee_id = :userId) " +
                     "AND f.status = 'ACCEPTED'",
             nativeQuery = true)
     List<UserProfile> findFriendsPaginated(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT CASE WHEN f.user1.userId = :userId THEN f.user2 ELSE f.user1 END " +
+    @Query("SELECT CASE WHEN f.requester.userId = :userId THEN f.addressee ELSE f.requester END " +
             "FROM Friendship f " +
-            "WHERE (f.user1.userId = :userId OR f.user2.userId = :userId) " +
+            "WHERE (f.requester.userId = :userId OR f.addressee.userId = :userId) " +
             "AND f.status = 'ACCEPTED' " +
             "AND (:searchTerm IS NULL OR " +
-            "   (CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END) " +
+            "   (CASE WHEN f.requester.userId = :userId THEN f.addressee.firstName ELSE f.requester.firstName END) " +
             "   LIKE %:searchTerm%) " +
             "ORDER BY " +
             "CASE WHEN :sortDir = 'asc' THEN " +
-            "   CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END " +
+            "   CASE WHEN f.requester.userId = :userId THEN f.addressee.firstName ELSE f.requester.firstName END " +
             "END ASC, " +
             "CASE WHEN :sortDir = 'desc' THEN " +
-            "   CASE WHEN f.user1.userId = :userId THEN f.user2.firstName ELSE f.user1.firstName END " +
+            "   CASE WHEN f.requester.userId = :userId THEN f.addressee.firstName ELSE f.requester.firstName END " +
             "END DESC")
     List<UserProfile> findFriendsWithFilter(
             @Param("userId") Long userId,
@@ -83,30 +76,30 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
             @Param("sortDir") String sortDirection);
 
     @Query(value = "SELECT COUNT(*) FROM (" +
-            "    SELECT user_id2 AS friend_id FROM friendships " +
-            "    WHERE user_id1 = :userId1 AND status = 'ACCEPTED' " +
+            "    SELECT addressee_id AS friend_id FROM friendships " +
+            "    WHERE requester_id = :userId1 AND status = 'ACCEPTED' " +
             "    UNION ALL " +
-            "    SELECT user_id1 AS friend_id FROM friendships " +
-            "    WHERE user_id2 = :userId1 AND status = 'ACCEPTED'" +
+            "    SELECT requester_id AS friend_id FROM friendships " +
+            "    WHERE addressee_id = :userId1 AND status = 'ACCEPTED'" +
             ") AS user1_friends " +
             "JOIN (" +
-            "    SELECT user_id2 AS friend_id FROM friendships " +
-            "    WHERE user_id1 = :userId2 AND status = 'ACCEPTED' " +
+            "    SELECT addressee_id AS friend_id FROM friendships " +
+            "    WHERE requester_id = :userId2 AND status = 'ACCEPTED' " +
             "    UNION ALL " +
-            "    SELECT user_id1 AS friend_id FROM friendships " +
-            "    WHERE user_id2 = :userId2 AND status = 'ACCEPTED'" +
+            "    SELECT requester_id AS friend_id FROM friendships " +
+            "    WHERE addressee_id = :userId2 AND status = 'ACCEPTED'" +
             ") AS user2_friends ON user1_friends.friend_id = user2_friends.friend_id",
             nativeQuery = true)
     int getCountOfMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
     @Query("SELECT u FROM UserProfile u WHERE u.userId IN (" +
-            "    SELECT CASE WHEN f1.user1.userId = :userId1 THEN f1.user2.userId ELSE f1.user1.userId END " +
+            "    SELECT CASE WHEN f1.requester.userId = :userId1 THEN f1.addressee.userId ELSE f1.requester.userId END " +
             "    FROM Friendship f1 " +
-            "    WHERE (f1.user1.userId = :userId1 OR f1.user2.userId = :userId1) AND f1.status = 'ACCEPTED'" +
+            "    WHERE (f1.requester.userId = :userId1 OR f1.addressee.userId = :userId1) AND f1.status = 'ACCEPTED'" +
             ") AND u.userId IN (" +
-            "    SELECT CASE WHEN f2.user1.userId = :userId2 THEN f2.user2.userId ELSE f2.user1.userId END " +
+            "    SELECT CASE WHEN f2.requester.userId = :userId2 THEN f2.addressee.userId ELSE f2.requester.userId END " +
             "    FROM Friendship f2 " +
-            "    WHERE (f2.user1.userId = :userId2 OR f2.user2.userId = :userId2) AND f2.status = 'ACCEPTED'" +
+            "    WHERE (f2.requester.userId = :userId2 OR f2.addressee.userId = :userId2) AND f2.status = 'ACCEPTED'" +
             ")")
     List<UserProfile> findMutualFriends(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
@@ -115,11 +108,11 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     -- Get all direct friends
     direct_friends AS (
         SELECT CASE
-            WHEN user_id1 = :userId THEN user_id2
-            WHEN user_id2 = :userId THEN user_id1
+            WHEN requester_id = :userId THEN addressee_id
+            WHEN addressee_id = :userId THEN requester_id
         END AS friend_id
         FROM friendships
-        WHERE (user_id1 = :userId OR user_id2 = :userId)
+        WHERE (requester_id = :userId OR addressee_id = :userId)
         AND status = 'ACCEPTED'
     ),
 
@@ -127,16 +120,16 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     friends_of_friends AS (
         SELECT DISTINCT
             CASE
-                WHEN f.user_id1 IN (SELECT friend_id FROM direct_friends) THEN f.user_id2
-                WHEN f.user_id2 IN (SELECT friend_id FROM direct_friends) THEN f.user_id1
+                WHEN f.requester_id IN (SELECT friend_id FROM direct_friends) THEN f.addressee_id
+                WHEN f.addressee_id IN (SELECT friend_id FROM direct_friends) THEN f.requester_id
             END AS potential_friend_id
         FROM friendships f
-        WHERE (f.user_id1 IN (SELECT friend_id FROM direct_friends) OR
-              f.user_id2 IN (SELECT friend_id FROM direct_friends))
+        WHERE (f.requester_id IN (SELECT friend_id FROM direct_friends) OR
+              f.addressee_id IN (SELECT friend_id FROM direct_friends))
         AND f.status = 'ACCEPTED'
         AND CASE
-            WHEN f.user_id1 IN (SELECT friend_id FROM direct_friends) THEN f.user_id2
-            WHEN f.user_id2 IN (SELECT friend_id FROM direct_friends) THEN f.user_id1
+            WHEN f.requester_id IN (SELECT friend_id FROM direct_friends) THEN f.addressee_id
+            WHEN f.addressee_id IN (SELECT friend_id FROM direct_friends) THEN f.requester_id
         END != :userId
     )
 
@@ -148,8 +141,8 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
     JOIN friends_of_friends fof ON u.user_id = fof.potential_friend_id
     WHERE NOT EXISTS (
         SELECT 1 FROM friendships f
-        WHERE (f.user_id1 = :userId AND f.user_id2 = u.user_id) OR
-              (f.user_id2 = :userId AND f.user_id1 = u.user_id)
+        WHERE (f.requester_id = :userId AND f.addressee_id = u.user_id) OR
+              (f.addressee_id = :userId AND f.requester_id = u.user_id)
     )
     LIMIT 10
     """, nativeQuery = true)
@@ -164,11 +157,11 @@ public interface FriendshipServiceRepository extends JpaRepository<Friendship, L
      */
     @Query(value = """
         SELECT CASE
-            WHEN user_id1 = :userId THEN user_id2
-            WHEN user_id2 = :userId THEN user_id1
+            WHEN requester_id = :userId THEN addressee_id
+            WHEN addressee_id = :userId THEN requester_id
         END AS friend_id
         FROM friendships
-        WHERE (user_id1 = :userId OR user_id2 = :userId)
+        WHERE (requester_id = :userId OR addressee_id = :userId)
         AND status = 'ACCEPTED'
         """, nativeQuery = true)
     List<Long> findAcceptedFriendIds(@Param("userId") Long userId);

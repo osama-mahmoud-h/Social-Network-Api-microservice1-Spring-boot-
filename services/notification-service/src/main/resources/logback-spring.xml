@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+    <shutdownHook class="ch.qos.logback.core.hook.DefaultShutdownHook"/>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="unknown"/>
+    <springProperty name="LOGSTASH_HOST" source="logstash.host" defaultValue="localhost"/>
+    <springProperty name="LOGSTASH_PORT" source="logstash.port" defaultValue="5000"/>
+    <springProperty name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
+
+    <!-- LOGSTASH appender is only defined under one of these profiles. With none of
+         them active, the appender bean doesn't exist and the app never opens a
+         TCP socket to Logstash. -->
+    <springProfile name="elk | docker | prod">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+            <ringBufferSize>16384</ringBufferSize>
+            <keepAliveDuration>5 minutes</keepAliveDuration>
+            <reconnectionDelay>10 seconds</reconnectionDelay>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"spring_app_name":"${springAppName}"}</customFields>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <fieldNames>
+                    <message>message</message>
+                    <stackTrace>stack_trace</stackTrace>
+                </fieldNames>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- FILE appender — only defined under docker / prod so local dev runs don't
+         spam ./logs on the developer's machine. -->
+    <springProfile name="docker | prod">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${springAppName}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/${springAppName}-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>7</maxHistory>
+                <totalSizeCap>2GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{userId:-}] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <logger name="org.hibernate.SQL" level="WARN" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN" />
+    <logger name="org.springframework.web" level="INFO" />
+    <logger name="com.zaxxer.hikari" level="WARN" />
+
+    <!-- ============== Root logger per profile ============== -->
+
+    <!-- IntelliJ / local default: console only -->
+    <springProfile name="dev &amp; !elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
+    <!-- IntelliJ + ELK opt-in: console + Logstash (great for testing the pipeline locally) -->
+    <springProfile name="dev &amp; elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOGSTASH" />
+        </root>
+    </springProfile>
+
+    <!-- Docker compose dev: console + Logstash + file, app code at DEBUG -->
+    <springProfile name="docker">
+        <logger name="com.app" level="DEBUG" />
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOGSTASH" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <!-- Production: Logstash + file only, INFO -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="LOGSTASH" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <!-- No matched profile: console only (safe fallback) -->
+    <springProfile name="!dev &amp; !docker &amp; !prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+</configuration>

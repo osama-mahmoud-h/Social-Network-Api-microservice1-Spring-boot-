@@ -17,11 +17,9 @@ import java.util.*;
 
 @Entity
 @Table(name = "posts")
-@Setter
 @Getter
-@Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DynamicUpdate
 public class Post implements Serializable {
     @Id
@@ -36,7 +34,6 @@ public class Post implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @ColumnDefault("'PUBLIC'")
-    @Builder.Default
     private PostPublicity publicity = PostPublicity.PUBLIC;
 
     @Column(nullable = false, updatable = false)
@@ -62,14 +59,40 @@ public class Post implements Serializable {
     )
     private Set<File> files;
 
-    //@OneToMany(fetch = FetchType.LAZY,  orphanRemoval = true, cascade = CascadeType.ALL)
-    @Transient
-    private Set<UserReaction> userReactions;
+    public static Post publish(UserProfile author, String content, PostPublicity publicity, Set<File> files) {
+        Post post = new Post();
+        post.author = author;
+        post.content = content;
+        post.publicity = publicity != null ? publicity : PostPublicity.PUBLIC;
+        post.files = files != null ? files : new HashSet<>();
+        post.createdAt = Instant.now();
+        return post;
+    }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true, cascade = CascadeType.ALL)
-    private Set<Comment> comments;
+    public void edit(Long actorId, String newContent, PostPublicity newPublicity) {
+        if (!this.author.getUserId().equals(actorId)) {
+            throw new com.app.server.exception.CustomRuntimeException("Unauthorized to update this post", org.springframework.http.HttpStatus.FORBIDDEN);
+        }
+        if (newContent != null && !newContent.trim().isEmpty()) {
+            this.content = newContent;
+        }
+        if (newPublicity != null) {
+            this.publicity = newPublicity;
+        }
+        this.updatedAt = Instant.now();
+    }
 
-    @Transient
-    private Integer commentsCount;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Post)) return false;
+        Post post = (Post) o;
+        return postId != null && postId.equals(post.getPostId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 
 }

@@ -1,13 +1,12 @@
 package com.app.server.service.notification;
 
-import com.app.server.dto.notification.NotificationEvent;
-import com.app.server.enums.KafkaTopics;
+import com.app.shared.events.IntegrationEvent;
+import com.app.shared.events.KafkaTopics;
+import com.app.shared.events.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.io.Serializable;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public class KafkaEventProducerImpl implements KafkaEventProducer {
     @Override
     public void sendNotification(NotificationEvent notificationEvent) {
         try {
-            kafkaTemplate.send(KafkaTopics.NOTIFICATION_EVENTS.getValue(), notificationEvent);
+            kafkaTemplate.send(KafkaTopics.NOTIFICATION_EVENTS, notificationEvent);
             log.info("Notification event sent: type={}, senderId={}, receiverId={}",
                      notificationEvent.getType(), notificationEvent.getSenderId(), notificationEvent.getReceiverId());
         } catch (Exception e) {
@@ -29,12 +28,12 @@ public class KafkaEventProducerImpl implements KafkaEventProducer {
     }
 
     @Override
-    public void sendEventDto(Serializable eventDto, KafkaTopics topic) {
+    public void sendEventDto(IntegrationEvent eventDto, String topic) {
         try {
-            kafkaTemplate.send(topic.getValue().toLowerCase(), eventDto);
-            log.info("Event DTO sent to topic '{}': {}", topic.getValue(), eventDto.getClass().getSimpleName());
+            kafkaTemplate.send(topic, eventDto);
+            log.info("Event DTO sent to topic '{}': {}", topic, eventDto.getClass().getSimpleName());
         } catch (Exception e) {
-            log.error("Failed to send event DTO to topic '{}': {}", topic.getValue(), e.getMessage(), e);
+            log.error("Failed to send event DTO to topic '{}': {}", topic, e.getMessage(), e);
             throw e;
         }
     }

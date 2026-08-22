@@ -35,6 +35,8 @@ spring:
   # Kafka Configuration
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    template:
+      observation-enabled: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -55,9 +57,15 @@ spring:
         spring.json.trusted.packages: "semsem.chatservice.*"
         spring.json.add.type.headers: false
     listener:
+      observation-enabled: true
       # MANUAL_IMMEDIATE: commit offset immediately after consumer calls acknowledgment
       # If processing fails before ack(), offset is not committed → message reprocessed
       ack-mode: MANUAL_IMMEDIATE
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
 
 server:
   port: 8086
@@ -112,10 +120,6 @@ spring:
     activate:
       on-profile: docker
 
-# Activate ELK logging in Docker (note: file is named logback-spring-pro.xml)
-logging:
-  config: classpath:logback-spring-pro.xml
-
 eureka:
   client:
     enabled: true
@@ -129,3 +133,16 @@ eureka:
 logstash:
   host: logstash
   port: 5000
+
+---
+# ELK opt-in profile.
+# Activate alongside any other profile to ship logs to Logstash, e.g.
+#   from IntelliJ:  -Dspring.profiles.active=dev,elk
+# Defined as a separate profile so local runs stay quiet by default.
+spring:
+  config:
+    activate:
+      on-profile: elk
+logstash:
+  host: ${LOGSTASH_HOST:localhost}
+  port: ${LOGSTASH_PORT:5000}

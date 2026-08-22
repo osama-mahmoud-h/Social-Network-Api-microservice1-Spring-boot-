@@ -54,6 +54,13 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+        <!-- Published language: the Kafka event contracts this service consumes -->
+        <dependency>
+            <groupId>com.app.shared</groupId>
+            <artifactId>events-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- OpenFeign for service communication -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -70,6 +77,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- In-memory datastore so tests need no running PostgreSQL -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

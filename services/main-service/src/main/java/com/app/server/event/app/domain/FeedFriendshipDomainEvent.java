@@ -1,6 +1,6 @@
 package com.app.server.event.app.domain;
 
-import com.app.server.enums.FriendshipActionType;
+import com.app.shared.events.type.FriendshipActionType;
 import lombok.Getter;
 
 @Getter

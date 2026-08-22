@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import semsem.notificationservice.dto.CommentEventDto;
-import semsem.notificationservice.dto.NotificationEvent;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.CommentEventDto;
+import com.app.shared.events.NotificationEvent;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.service.NotificationService;
 
 /**
@@ -29,16 +29,16 @@ public class CommentEventHandler {
                  event.getActionType(), event.getCommentId());
 
         switch (event.getActionType()) {
-            case "CREATE":
+            case CREATE:
                 handleCommentCreation(event);
                 break;
-            case "REPLY":
+            case REPLY:
                 handleCommentReply(event);
                 break;
-            case "UPDATE":
+            case UPDATE:
                 handleCommentUpdate(event);
                 break;
-            case "DELETE":
+            case DELETE:
                 handleCommentDeletion(event);
                 break;
             default:

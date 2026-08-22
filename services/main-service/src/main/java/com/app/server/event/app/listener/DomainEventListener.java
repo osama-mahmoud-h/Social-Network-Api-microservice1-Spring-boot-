@@ -1,11 +1,11 @@
 package com.app.server.event.app.listener;
 
-import com.app.server.dto.notification.NotificationEvent;
-import com.app.server.dto.notification.comment.CommentEventDto;
-import com.app.server.dto.notification.friendship.FriendshipEventDto;
-import com.app.server.dto.notification.post.PostEventDto;
-import com.app.server.dto.notification.reaction.ReactionEventDto;
-import com.app.server.enums.KafkaTopics;
+import com.app.shared.events.NotificationEvent;
+import com.app.shared.events.CommentEventDto;
+import com.app.shared.events.FriendshipEventDto;
+import com.app.shared.events.PostEventDto;
+import com.app.shared.events.ReactionEventDto;
+import com.app.shared.events.KafkaTopics;
 import com.app.server.event.app.domain.CommentDomainEvent;
 import com.app.server.event.app.domain.FeedFriendshipDomainEvent;
 import com.app.server.event.app.domain.FriendshipDomainEvent;
@@ -61,8 +61,11 @@ public class DomainEventListener {
 
         ReactionEventDto reactionEventDto = ReactionEventDto.builder()
                 .actionType(event.getActionType())
-                .reactionType(event.getReactionType())
-                .targetType(event.getTargetType())
+                // These two stay Strings on the wire: their enum forms are persisted in this
+                // service's own tables, and pinning a DB-persisted enum to the published
+                // contract would make every vocabulary change a migration for every consumer.
+                .reactionType(event.getReactionType() != null ? event.getReactionType().name() : null)
+                .targetType(event.getTargetType() != null ? event.getTargetType().name() : null)
                 .targetId(event.getTargetId())
                 .postId(event.getPostId())
                 .reactorUserId(event.getReactorUserId())

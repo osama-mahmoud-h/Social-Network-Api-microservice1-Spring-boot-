@@ -76,6 +76,13 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
+		<!-- Published language: the Kafka event contracts this service produces -->
+		<dependency>
+			<groupId>com.app.shared</groupId>
+			<artifactId>events-lib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- OpenFeign for service communication -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -145,8 +152,17 @@
 			<artifactId>okhttp</artifactId>
 			<version>4.12.0</version>
 		</dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
 
-		<!-- Testcontainers for MinIO integration testing -->
+        <!-- Testcontainers for MinIO integration testing -->
 <!--		<dependency>-->
 <!--			<groupId>org.testcontainers</groupId>-->
 <!--			<artifactId>testcontainers</artifactId>-->

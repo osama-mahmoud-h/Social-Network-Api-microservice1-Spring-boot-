@@ -141,10 +141,11 @@ services:
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=123456
-      - ES_JAVA_OPTS=-Xms384m -Xmx512m
-      - xpack.security.enabled=false
+      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      # Heap sized ~50% of container memory; rest is Lucene off-heap.
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}
+      - xpack.security.enabled=${ES_XPACK_SECURITY:-false}
       - xpack.security.http.ssl.enabled=false
       - bootstrap.memory_lock=false
     ports:
@@ -158,10 +159,10 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "640M"
+          memory: "1024M"
         reservations:
           cpus: "0.25"
-          memory: "384M"
+          memory: "512M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -174,6 +175,9 @@ services:
     container_name: logstash
     environment:
       - LS_JAVA_OPTS=-Xms128m -Xmx192m
+      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - LOG_ENVIRONMENT=${LOG_ENVIRONMENT:-development}
     volumes:
       - ./elk-stack-docker/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
       - logstash-data:/usr/share/logstash/data
@@ -190,10 +194,10 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "256M"
+          memory: "320M"
         reservations:
           cpus: "0.1"
-          memory: "192M"
+          memory: "256M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
       interval: 30s
@@ -433,7 +437,7 @@ services:
     ports:
       - "8761:8761"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     volumes:
       - maven-discovery-service:/root/.m2  # Isolated Maven cache for discovery-service
@@ -441,8 +445,6 @@ services:
       - social_service_dev_network
     depends_on:
       elasticsearch:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     deploy:
       resources:
@@ -476,7 +478,7 @@ services:
     env_file:
       - ../services/auth-service/.env
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth_db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=osama
@@ -488,8 +490,6 @@ services:
       auth-db:
         condition: service_healthy
       discovery-service:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -523,7 +523,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     volumes:
@@ -532,8 +532,6 @@ services:
       discovery-service:
         condition: service_healthy
       auth-service:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -563,7 +561,7 @@ services:
     env_file:
       - ../services/main-service/.env
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/social_db
       - SPRING_DATASOURCE_USERNAME=osama
@@ -581,8 +579,6 @@ services:
       discovery-service:
         condition: service_healthy
       auth-service:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -614,7 +610,7 @@ services:
     env_file:
       - ../services/search-service/.env
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
       - SPRING_ELASTICSEARCH_USERNAME=elastic
@@ -629,8 +625,6 @@ services:
       kafka:
         condition: service_healthy
       discovery-service:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -666,7 +660,7 @@ services:
     env_file:
       - ../services/notification-service/.env
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=osama
@@ -683,8 +677,6 @@ services:
       auth-service:
         condition: service_healthy
       notification-db:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network
@@ -712,7 +704,7 @@ services:
     ports:
       - "8086:8086"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - EUREKA_CLIENT_ENABLED=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -738,8 +730,6 @@ services:
       discovery-service:
         condition: service_healthy
       auth-service:
-        condition: service_healthy
-      logstash:
         condition: service_healthy
     networks:
       - social_service_dev_network

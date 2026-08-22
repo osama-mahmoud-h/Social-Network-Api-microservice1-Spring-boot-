@@ -44,6 +44,24 @@
 <!--            <version>0.0.1-SNAPSHOT</version>-->
 <!--        </dependency>-->
 
+        <!-- Published language: the Kafka event contracts this service consumes -->
+        <dependency>
+            <groupId>com.app.shared</groupId>
+            <artifactId>events-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Actuator + Micrometer Tracing: required for traceId/spanId in MDC
+             and W3C traceparent propagation across HTTP / Feign / Kafka. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+
         <!-- OpenFeign for service communication -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
