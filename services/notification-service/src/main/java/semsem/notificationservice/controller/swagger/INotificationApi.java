@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import semsem.notificationservice.dto.NotificationPageResponse;
 import semsem.notificationservice.dto.NotificationResponse;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 
 @Tag(name = "Notification Management", description = "APIs for managing user notifications")
 @SecurityRequirement(name = "jwtAuth")

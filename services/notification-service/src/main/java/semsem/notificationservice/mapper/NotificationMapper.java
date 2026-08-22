@@ -1,6 +1,6 @@
 package semsem.notificationservice.mapper;
 
-import semsem.notificationservice.dto.NotificationEvent;
+import com.app.shared.events.NotificationEvent;
 import semsem.notificationservice.dto.NotificationResponse;
 import semsem.notificationservice.model.Notification;
 

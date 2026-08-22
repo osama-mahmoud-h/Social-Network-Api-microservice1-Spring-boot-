@@ -18,6 +18,7 @@
         <module>services/discovery-service</module>
         <module>services/gateway-service</module>
         <module>shared/security-lib</module>
+        <module>shared/events-lib</module>
         <module>shared/observability-lib</module>
     </modules>
 

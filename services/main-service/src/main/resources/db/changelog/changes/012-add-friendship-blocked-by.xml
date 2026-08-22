@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      BLOCKED recorded that a friendship was blocked but not by whom, so "only the blocker may
+      unblock" could not be expressed and the blocked party could lift their own block. Nullable
+      on purpose: rows blocked before this column existed carry no blocker, and Friendship.unblock
+      lets either participant lift those rather than leaving them stuck.
+    -->
+    <changeSet id="012-add-friendship-blocked-by" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Column 'blocked_by' already exists on 'friendships' — skipping changeset 012-add-friendship-blocked-by"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 012-add-friendship-blocked-by — halting migration">
+            <not><columnExists tableName="friendships" columnName="blocked_by"/></not>
+        </preConditions>
+
+        <addColumn tableName="friendships">
+            <column name="blocked_by" type="BIGINT"/>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="friendships" columnName="blocked_by"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-add-friendship-blocked-by-fk" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Foreign key 'FK_friendships_blocked_by' already exists — skipping changeset 012-add-friendship-blocked-by-fk"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 012-add-friendship-blocked-by-fk — halting migration">
+            <and>
+                <columnExists tableName="friendships" columnName="blocked_by"/>
+                <not>
+                    <foreignKeyConstraintExists foreignKeyName="FK_friendships_blocked_by"
+                                                foreignKeyTableName="friendships"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addForeignKeyConstraint
+            baseTableName="friendships"
+            baseColumnNames="blocked_by"
+            constraintName="FK_friendships_blocked_by"
+            referencedTableName="user_profiles"
+            referencedColumnNames="user_id"
+            onDelete="SET NULL"/>
+
+        <rollback>
+            <dropForeignKeyConstraint baseTableName="friendships"
+                                      constraintName="FK_friendships_blocked_by"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

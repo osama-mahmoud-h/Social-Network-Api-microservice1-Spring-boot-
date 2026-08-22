@@ -1,6 +1,6 @@
 package com.app.server.event.app.domain;
 
-import com.app.server.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 import lombok.Getter;
 
 /**

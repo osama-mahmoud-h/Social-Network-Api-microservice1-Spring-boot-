@@ -1,6 +1,6 @@
 package com.app.server.event.app.domain;
 
-import com.app.server.enums.CommentActionType;
+import com.app.shared.events.type.CommentActionType;
 import com.app.server.model.Comment;
 import lombok.Getter;
 

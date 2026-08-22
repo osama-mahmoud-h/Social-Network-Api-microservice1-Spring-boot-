@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import semsem.notificationservice.controller.swagger.INotificationApi;
 import semsem.notificationservice.dto.NotificationPageResponse;
 import semsem.notificationservice.dto.NotificationResponse;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.service.NotificationService;
 
 @RestController

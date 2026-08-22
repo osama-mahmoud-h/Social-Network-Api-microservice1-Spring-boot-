@@ -3,7 +3,7 @@ package com.app.server.service.impl;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.request.post.GetRecentPostsRequestDto;
 import com.app.server.dto.request.post.UpdatePostRequestDto;
-import com.app.server.enums.PostActionType;
+import com.app.shared.events.type.PostActionType;
 import com.app.server.event.app.domain.PostDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
 import com.app.server.mapper.FileMapper;
@@ -43,7 +43,6 @@ public class PostServiceImp implements PostService {
     @Override
     @Transactional
     public Post savePost(Long currentUser, CreatePostRequestDto createPostRequestDto){
-        Post newPost = this.postMapper.mapCreatePostRequestDtoToPost(createPostRequestDto);
         UserProfile author = userProfileRepository.getAppUsersByUserId(currentUser)
                 .orElseThrow(() -> new CustomRuntimeException("User not found", HttpStatus.NOT_FOUND));
 
@@ -51,8 +50,7 @@ public class PostServiceImp implements PostService {
 
         List<File> savedFiles = this.fileRepository.saveAll(uploadedFiles);
 
-        newPost.setFiles(new HashSet<>(savedFiles));
-        newPost.setAuthor(author);
+        Post newPost = Post.publish(author, createPostRequestDto.getContent(), createPostRequestDto.getPublicity(), new HashSet<>(savedFiles));
 
         this.postRepository.save(newPost);
         this.sendNewPostNotification(newPost);
@@ -70,6 +68,7 @@ public class PostServiceImp implements PostService {
 
 
     @Override
+    @Transactional
     public boolean deletePost(Long userId, Long postId){
         Post post = this.postRepository.findById(postId).
                 orElseThrow(() -> new CustomRuntimeException("Post not found",HttpStatus.NOT_FOUND));
@@ -85,22 +84,12 @@ public class PostServiceImp implements PostService {
 
 
     @Override
+    @Transactional
     public boolean updatePost(Long userId, UpdatePostRequestDto requestDto) {
         Post post = this.postRepository.findById(requestDto.getPostId())
                 .orElseThrow(() -> new CustomRuntimeException("Post not found", HttpStatus.NOT_FOUND));
 
-        // Verify the user is the author
-        if (!post.getAuthor().getUserId().equals(userId)) {
-            throw new CustomRuntimeException("Unauthorized to update this post", HttpStatus.FORBIDDEN);
-        }
-
-        // Update content
-        post.setContent(requestDto.getContent());
-
-        // Update publicity if provided
-        if (requestDto.getPublicity() != null) {
-            post.setPublicity(requestDto.getPublicity());
-        }
+        post.edit(userId, requestDto.getContent(), requestDto.getPublicity());
 
         this.postRepository.save(post);
         this.sendPostUpdateNotification(post);

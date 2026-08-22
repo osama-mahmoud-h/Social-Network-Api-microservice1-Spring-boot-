@@ -1,6 +1,6 @@
 package com.app.server.feed.consumer;
 
-import com.app.server.dto.notification.friendship.FriendshipEventDto;
+import com.app.shared.events.FriendshipEventDto;
 import com.app.server.feed.FeedService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

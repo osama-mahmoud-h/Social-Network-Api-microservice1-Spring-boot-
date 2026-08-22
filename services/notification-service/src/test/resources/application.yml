@@ -1,0 +1,30 @@
+# Test profile: no external infrastructure runs during the build.
+spring:
+  # H2 stands in for PostgreSQL; Liquibase is off so the deployed changelogs
+  # stay untouched and the schema comes from Hibernate instead.
+  datasource:
+    url: jdbc:h2:mem:notifications_test;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  liquibase:
+    enabled: false
+  # No broker runs during tests; the listeners log and retry without failing startup.
+  kafka:
+    bootstrap-servers: localhost:29092
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logstash:
+  host: localhost
+  port: 5000

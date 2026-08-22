@@ -1,0 +1,18 @@
+# Test profile: no external infrastructure runs during the build.
+spring:
+  # The URI is never contacted — the repository beans are mocked in the test —
+  # but the ElasticsearchClient bean still needs a syntactically valid target.
+  elasticsearch:
+    uris: http://localhost:9200
+  kafka:
+    bootstrap-servers: localhost:29092
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logstash:
+  host: localhost
+  port: 5000

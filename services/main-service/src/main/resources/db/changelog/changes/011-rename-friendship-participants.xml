@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      user_id1/user_id2 encoded the request direction by naming convention only: the sender
+      happened to be user_id1. Naming the columns after the roles makes the direction part of
+      the schema instead of a convention nobody could see.
+
+      Renaming preserves the data, the unique constraint and both foreign keys; only the column
+      names change. The FK constraint names stay as they were — renaming them would gain nothing
+      and Hibernate validates columns, not constraint names.
+    -->
+    <changeSet id="011-rename-friendship-participants" author="osama">
+        <preConditions onFail="MARK_RAN" onError="HALT"
+                       onFailMessage="Column 'user_id1' not present on 'friendships' — skipping changeset 011-rename-friendship-participants"
+                       onErrorMessage="Precondition check failed unexpectedly for changeset 011-rename-friendship-participants — halting migration">
+            <columnExists tableName="friendships" columnName="user_id1"/>
+        </preConditions>
+
+        <renameColumn tableName="friendships"
+                      oldColumnName="user_id1"
+                      newColumnName="requester_id"
+                      columnDataType="BIGINT"/>
+
+        <renameColumn tableName="friendships"
+                      oldColumnName="user_id2"
+                      newColumnName="addressee_id"
+                      columnDataType="BIGINT"/>
+
+        <rollback>
+            <renameColumn tableName="friendships"
+                          oldColumnName="requester_id"
+                          newColumnName="user_id1"
+                          columnDataType="BIGINT"/>
+            <renameColumn tableName="friendships"
+                          oldColumnName="addressee_id"
+                          newColumnName="user_id2"
+                          columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

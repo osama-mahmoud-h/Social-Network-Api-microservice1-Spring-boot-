@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import semsem.notificationservice.client.MainServiceClient;
-import semsem.notificationservice.dto.NotificationEvent;
-import semsem.notificationservice.dto.PostEventDto;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.NotificationEvent;
+import com.app.shared.events.PostEventDto;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.repository.NotificationRepository;
 import semsem.notificationservice.service.NotificationService;
 
@@ -32,13 +32,13 @@ public class PostEventHandler {
         log.info("Processing post event: action={}, postId={}", event.getActionType(), event.getPostId());
 
         switch (event.getActionType()) {
-            case "CREATE":
+            case CREATE:
                 handlePostCreation(event);
                 break;
-            case "UPDATE":
+            case UPDATE:
                 handlePostUpdate(event);
                 break;
-            case "DELETE":
+            case DELETE:
                 handlePostDeletion(event);
                 break;
             default:

@@ -2,7 +2,6 @@ package semsem.searchservice.handler.post;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import semsem.searchservice.dto.event.EntityEventDto;
 import semsem.searchservice.enums.EntityEventType;
 import semsem.searchservice.mapper.PostIndexMapper;
 import semsem.searchservice.model.PostIndex;

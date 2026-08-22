@@ -2,10 +2,10 @@ package semsem.notificationservice.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import semsem.notificationservice.dto.NotificationEvent;
+import com.app.shared.events.NotificationEvent;
 import semsem.notificationservice.dto.NotificationPageResponse;
 import semsem.notificationservice.dto.NotificationResponse;
-import semsem.notificationservice.enums.NotificationType;
+import com.app.shared.events.type.NotificationType;
 import semsem.notificationservice.model.Notification;
 
 import java.time.LocalDateTime;

@@ -1,11 +1,10 @@
 package com.app.server.service.impl;
 
 import com.app.server.dto.request.reaction.ReactToEntityRequestDto;
-import com.app.server.enums.ReactionActionType;
+import com.app.shared.events.type.ReactionActionType;
 import com.app.server.enums.ReactionTargetType;
 import com.app.server.event.app.domain.ReactionDomainEvent;
 import com.app.server.exception.CustomRuntimeException;
-import com.app.server.mapper.UserReactionMapper;
 import com.app.server.model.Comment;
 import com.app.server.model.UserProfile;
 import com.app.server.model.UserReaction;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 
 @Slf4j
@@ -35,7 +35,6 @@ public class ReactionServiceImpl implements ReactionService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserProfileRepository userProfileRepository;
-    private final UserReactionMapper reactionMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -57,7 +56,7 @@ public class ReactionServiceImpl implements ReactionService {
 
         try {
             ReactionActionType actionTaken = applyReactionChange(existingReaction, request,
-                    () -> userReactionsRepository.save(reactionMapper.mapToUserPostReaction(request, userProfile, postId)));
+                    () -> UserReaction.onPost(userProfile, postId, request.getReactionType()));
 
             log.info("Reaction action [{}] applied for user [{}] on post [{}]", actionTaken, currentUserId, postId);
 
@@ -90,7 +89,7 @@ public class ReactionServiceImpl implements ReactionService {
 
         try {
             ReactionActionType actionTaken = applyReactionChange(existingReaction, request,
-                    () -> userReactionsRepository.save(reactionMapper.mapToUserCommentReaction(request, userProfile, commentId)));
+                    () -> UserReaction.onComment(userProfile, commentId, request.getReactionType()));
 
             log.info("Reaction action [{}] applied for user [{}] on comment [{}]", actionTaken, currentUserId, commentId);
 
@@ -120,22 +119,23 @@ public class ReactionServiceImpl implements ReactionService {
 
     private ReactionActionType applyReactionChange(Optional<UserReaction> existingReaction,
                                                     ReactToEntityRequestDto request,
-                                                    Runnable saveNewReaction) {
+                                                    Supplier<UserReaction> newReaction) {
         if (existingReaction.isEmpty()) {
             log.debug("No existing reaction found — saving new reaction [{}]", request.getReactionType());
-            saveNewReaction.run();
+            userReactionsRepository.save(newReaction.get());
             return ReactionActionType.ADDED;
         }
 
         UserReaction existing = existingReaction.get();
-        if (existing.getReactionType().equals(request.getReactionType())) {
+        if (existing.is(request.getReactionType())) {
             log.debug("Same reaction [{}] — removing it (toggle off)", existing.getReactionType());
             userReactionsRepository.delete(existing);
             return ReactionActionType.REMOVED;
         }
 
         log.debug("Different reaction — updating from [{}] to [{}]", existing.getReactionType(), request.getReactionType());
-        userReactionsRepository.updateReaction(existing.getReactionId(), request.getReactionType());
+        existing.changeTo(request.getReactionType());
+        userReactionsRepository.save(existing);
         return ReactionActionType.ADDED;
     }
 

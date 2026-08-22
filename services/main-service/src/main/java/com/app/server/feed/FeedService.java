@@ -1,7 +1,7 @@
 package com.app.server.feed;
 
 import com.app.server.dto.response.FeedResponseDto;
-import com.app.server.enums.FriendshipActionType;
+import com.app.shared.events.type.FriendshipActionType;
 
 public interface FeedService {
 

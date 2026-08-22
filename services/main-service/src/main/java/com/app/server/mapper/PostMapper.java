@@ -1,8 +1,9 @@
 package com.app.server.mapper;
 
 
-import com.app.server.dto.notification.post.PostEventDto;
-import com.app.server.enums.PostActionType;
+import com.app.shared.events.AuthorData;
+import com.app.shared.events.PostEventDto;
+import com.app.shared.events.type.PostActionType;
 import com.app.server.dto.request.post.CreatePostRequestDto;
 import com.app.server.dto.response.FileResponseDto;
 import com.app.server.dto.response.PostResponseDto;
@@ -31,15 +32,7 @@ public class PostMapper {
     private final UserMapper userMapper;
     private final ObjectMapper objectMapper;
 
-    public Post mapCreatePostRequestDtoToPost(CreatePostRequestDto createPostRequestDto) {
-        return Post.builder()
-                .content(createPostRequestDto.getContent())
-                .publicity(createPostRequestDto.getPublicity())
-                .files(null)
-                .author(null)
-                .createdAt(Instant.now())
-                .build();
-    }
+
 
     public PostResponseDto mapPostToPostResponseDto(Post post) {
         return PostResponseDto.builder()
@@ -105,9 +98,9 @@ public class PostMapper {
     }
 
     public PostEventDto toPostEventDto(Post post, PostActionType actionType) {
-        PostEventDto.AuthorData authorData = null;
+        AuthorData authorData = null;
         if (post.getAuthor() != null) {
-            authorData = PostEventDto.AuthorData.builder()
+            authorData = AuthorData.builder()
                     .userId(post.getAuthor().getUserId())
                     .firstName(post.getAuthor().getFirstName())
                     .lastName(post.getAuthor().getLastName())

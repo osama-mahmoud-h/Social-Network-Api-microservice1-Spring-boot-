@@ -1,11 +1,9 @@
 package com.app.server.service.notification;
 
-import com.app.server.dto.notification.NotificationEvent;
-import com.app.server.enums.KafkaTopics;
+import com.app.shared.events.IntegrationEvent;
+import com.app.shared.events.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.io.Serializable;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +16,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendEventDto(Serializable eventDto, KafkaTopics topic) {
+    public void sendEventDto(IntegrationEvent eventDto, String topic) {
         kafkaProducerService.sendEventDto(eventDto, topic);
     }
 }

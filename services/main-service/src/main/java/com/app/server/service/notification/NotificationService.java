@@ -1,9 +1,7 @@
 package com.app.server.service.notification;
 
-import com.app.server.dto.notification.NotificationEvent;
-import com.app.server.enums.KafkaTopics;
-
-import java.io.Serializable;
+import com.app.shared.events.IntegrationEvent;
+import com.app.shared.events.NotificationEvent;
 
 /**
  * Service interface for sending notifications
@@ -15,7 +13,7 @@ public interface NotificationService {
     void sendNotification(NotificationEvent notificationEvent);
 
     /**
-     * Send an event DTO to a specific topic (type-safe with Serializable constraint)
+     * Send an integration event to a specific topic (see {@link com.app.shared.events.KafkaTopics})
      */
-    void sendEventDto(Serializable eventDto, KafkaTopics topic);
+    void sendEventDto(IntegrationEvent eventDto, String topic);
 }

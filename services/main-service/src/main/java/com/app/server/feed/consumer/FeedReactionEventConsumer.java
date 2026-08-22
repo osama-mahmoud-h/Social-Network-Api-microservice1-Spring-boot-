@@ -1,7 +1,7 @@
 package com.app.server.feed.consumer;
 
-import com.app.server.dto.notification.reaction.ReactionEventDto;
-import com.app.server.enums.ReactionActionType;
+import com.app.shared.events.ReactionEventDto;
+import com.app.shared.events.type.ReactionActionType;
 import com.app.server.feed.FeedService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

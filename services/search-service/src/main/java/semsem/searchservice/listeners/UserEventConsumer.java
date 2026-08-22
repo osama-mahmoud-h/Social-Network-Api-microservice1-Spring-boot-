@@ -1,5 +1,6 @@
 package semsem.searchservice.listeners;
 
+import com.app.shared.events.KafkaTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class UserEventConsumer {
     private final ObjectMapper objectMapper;
     private final AppUserIndexMapper appUserIndexMapper;
 
-    @KafkaListener(topics = "user-events", groupId = "search-service-group", containerFactory = "userEventListenerContainerFactory")
+    @KafkaListener(topics = KafkaTopics.USER_EVENTS, groupId = "search-service-group", containerFactory = "userEventListenerContainerFactory")
     public void consumeUserEvent(String eventJson) throws JsonProcessingException {
         if (eventJson == null || eventJson.isBlank()) {
             log.warn("Received blank user event, skipping");

@@ -1,7 +1,6 @@
 package com.app.server.config;
 
-import com.app.server.dto.notification.NotificationEvent;
-import com.app.server.enums.KafkaTopics;
+import com.app.shared.events.KafkaTopics;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -25,8 +24,8 @@ public class KafkaConfig {
 
     @Bean
     public List<NewTopic> createTopics() {
-        return Arrays.stream(KafkaTopics.values())
-                .map(topic -> TopicBuilder.name(topic.getValue())
+        return KafkaTopics.ALL.stream()
+                .map(topic -> TopicBuilder.name(topic)
                         .partitions(1)
                         .replicas(1)
                         .build())

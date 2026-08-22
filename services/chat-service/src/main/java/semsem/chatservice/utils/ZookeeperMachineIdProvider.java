@@ -7,6 +7,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Assigns a unique machine ID (0–31) to this Chat Service instance
@@ -23,12 +24,14 @@ public class ZookeeperMachineIdProvider implements AutoCloseable {
 
     private final CuratorFramework curator;
     private final String workerBasePath;
+    private final int connectionTimeoutMs;
     private String assignedNodePath;
     private long machineId;
 
     public ZookeeperMachineIdProvider(String connectString, int sessionTimeoutMs,
                                       int connectionTimeoutMs, String workerBasePath) {
         this.workerBasePath = workerBasePath;
+        this.connectionTimeoutMs = connectionTimeoutMs;
         this.curator = CuratorFrameworkFactory.builder()
                 .connectString(connectString)
                 .sessionTimeoutMs(sessionTimeoutMs)
@@ -40,7 +43,12 @@ public class ZookeeperMachineIdProvider implements AutoCloseable {
     public long acquireMachineId(long datacenterId, long fallbackMachineId) {
         try {
             curator.start();
-            curator.blockUntilConnected();
+            // Bounded wait: the no-arg blockUntilConnected() never returns while
+            // Zookeeper is down, so startup would hang instead of falling back.
+            if (!curator.blockUntilConnected(connectionTimeoutMs, TimeUnit.MILLISECONDS)) {
+                throw new IllegalStateException(
+                        "Timed out connecting to Zookeeper after " + connectionTimeoutMs + "ms");
+            }
 
             String dcPath = workerBasePath + "/" + datacenterId;
             ensurePathExists(dcPath);

@@ -44,6 +44,13 @@
 <!--            <version>0.0.1-SNAPSHOT</version>-->
 <!--        </dependency>-->
 
+        <!-- Published language: the Kafka event contracts this service consumes -->
+        <dependency>
+            <groupId>com.app.shared</groupId>
+            <artifactId>events-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- Actuator + Micrometer Tracing: required for traceId/spanId in MDC
              and W3C traceparent propagation across HTTP / Feign / Kafka. -->
         <dependency>
