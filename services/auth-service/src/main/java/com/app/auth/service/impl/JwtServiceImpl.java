@@ -1,8 +1,8 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.enums.UserRole;
-import com.app.auth.model.Token;
-import com.app.auth.model.User;
+import com.app.auth.model.enums.UserRole;
+import com.app.auth.model.entity.Token;
+import com.app.auth.model.entity.User;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.service.JwtService;
 import io.jsonwebtoken.Claims;

@@ -1,7 +1,7 @@
 package com.app.auth.service;
 
-import com.app.auth.model.User;
-import com.app.auth.enums.UserRole;
+import com.app.auth.model.entity.User;
+import com.app.auth.model.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
 

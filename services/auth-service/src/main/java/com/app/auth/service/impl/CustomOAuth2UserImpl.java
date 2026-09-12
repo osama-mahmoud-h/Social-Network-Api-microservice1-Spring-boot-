@@ -1,6 +1,6 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.model.User;
+import com.app.auth.model.entity.User;
 import com.app.auth.service.CustomOAuth2User;
 import lombok.Builder;
 import lombok.Getter;

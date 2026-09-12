@@ -100,7 +100,7 @@ The auth-service implements the **Transactional Outbox Pattern** to guarantee re
 ### Technology Stack
 
 - **Framework**: Spring Boot 3.1.0
-- **Java**: 17
+- **Java**: 21
 - **Database**: PostgreSQL
 - **Cache**: Redis (for OTP storage)
 - **Security**: Spring Security + JWT
@@ -591,7 +591,7 @@ CREATE INDEX idx_outbox_status_created ON outbox_events(status, created_at);
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 21 or higher
 - Maven 3.6+
 - PostgreSQL 13+
 - Redis 6+

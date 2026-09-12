@@ -1,6 +1,6 @@
 package com.app.auth.repository;
 
-import com.app.auth.model.Token;
+import com.app.auth.model.entity.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -1,6 +1,6 @@
 package com.app.auth.strategy;
 
-import com.app.auth.enums.OAuthProvider;
+import com.app.auth.model.enums.OAuthProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,7 @@
 package com.app.auth.service;
 
-import com.app.auth.dto.request.LogoutDeviceRequest;
-import com.app.auth.dto.response.DeviceSessionResponse;
+import com.app.auth.model.dto.request.LogoutDeviceRequest;
+import com.app.auth.model.dto.response.DeviceSessionResponse;
 
 import java.util.List;
 

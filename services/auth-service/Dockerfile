@@ -1,5 +1,5 @@
 # =================== Build stage ===================
-FROM maven:3.8.4-openjdk-17-slim AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Layer 1: Copy only the POM files we actually need (parent + security-lib + this service)
@@ -30,7 +30,7 @@ WORKDIR /app/services/auth-service
 RUN mvn clean package -DskipTests
 
 # =================== Run stage ===================
-FROM amazoncorretto:17-alpine
+FROM amazoncorretto:21-alpine
 WORKDIR /app
 COPY --from=build /app/services/auth-service/target/*.jar auth-service.jar
 EXPOSE 8087

@@ -1,7 +1,7 @@
 package com.app.auth.factory;
 
-import com.app.auth.dto.request.DeviceInfoRequest;
-import com.app.auth.enums.DeviceType;
+import com.app.auth.model.dto.request.DeviceInfoRequest;
+import com.app.auth.model.enums.DeviceType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
