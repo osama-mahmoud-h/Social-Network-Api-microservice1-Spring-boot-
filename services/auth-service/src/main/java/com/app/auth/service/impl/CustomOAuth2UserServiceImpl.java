@@ -1,9 +1,9 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.enums.OAuthProvider;
-import com.app.auth.enums.UserRole;
+import com.app.auth.model.enums.OAuthProvider;
+import com.app.auth.model.enums.UserRole;
 import com.app.auth.mapper.AuthMapper;
-import com.app.auth.model.User;
+import com.app.auth.model.entity.User;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.CustomOAuth2UserService;
 import com.app.auth.strategy.OAuthAttributeExtractor;
@@ -61,9 +61,7 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService implem
     private User updateExistingUser(User user, OAuthProvider provider, String providerId) {
         // Link OAuth provider if not already linked
         if (user.getOauthProvider() == null || user.getOauthProvider() == OAuthProvider.LOCAL) {
-            user.setOauthProvider(provider);
-            user.setOauthProviderId(providerId);
-            user.setEmailVerified(true);
+            user.linkOAuth(provider, providerId);
             return userRepository.save(user);
         }
         return user;

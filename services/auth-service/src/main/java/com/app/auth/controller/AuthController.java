@@ -1,14 +1,15 @@
 package com.app.auth.controller;
 
 import com.app.auth.controller.swagger.IAuthApi;
-import com.app.auth.dto.request.*;
+import com.app.auth.model.dto.request.*;
+import com.app.auth.model.dto.response.*;
 import com.app.shared.security.dto.MyApiResponse;
-import com.app.auth.dto.response.*;
 import com.app.auth.factory.DeviceInfoFactory;
 import com.app.auth.service.AuthService;
 import com.app.auth.service.DeviceService;
 import com.app.auth.service.OtpService;
 import com.app.auth.service.PasswordService;
+import com.app.auth.service.UserRegistrationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,13 @@ public class AuthController implements IAuthApi {
     private final DeviceService deviceService;
     private final OtpService otpService;
     private final PasswordService passwordService;
+    private final UserRegistrationService userRegistrationService;
 
     @Override
     @PostMapping("/register")
     public ResponseEntity<MyApiResponse<RegistrationResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
-        RegistrationResponse registrationResponse = authService.register(request);
+        RegistrationResponse registrationResponse = userRegistrationService.registerUser(request);
         MyApiResponse<RegistrationResponse> response = MyApiResponse.success(
                 "User registered successfully. Please verify your email.", registrationResponse);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

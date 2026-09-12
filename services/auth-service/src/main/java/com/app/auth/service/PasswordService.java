@@ -1,7 +1,7 @@
 package com.app.auth.service;
 
-import com.app.auth.dto.request.ChangePasswordRequest;
-import com.app.auth.dto.response.ChangePasswordResponse;
+import com.app.auth.model.dto.request.ChangePasswordRequest;
+import com.app.auth.model.dto.response.ChangePasswordResponse;
 
 public interface PasswordService {
 

@@ -1,8 +1,8 @@
 package com.app.auth.controller.swagger;
 
 import com.app.auth.config.swagger.AutoValidationExamples;
-import com.app.auth.dto.request.*;
-import com.app.auth.dto.response.*;
+import com.app.auth.model.dto.request.*;
+import com.app.auth.model.dto.response.*;
 import com.app.shared.security.dto.MyApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

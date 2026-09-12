@@ -1,30 +1,27 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.dto.request.DeviceInfoRequest;
-import com.app.auth.dto.request.ForgotPasswordRequest;
-import com.app.auth.dto.request.RegisterRequest;
-import com.app.auth.dto.request.ResetPasswordRequest;
-import com.app.auth.dto.request.SendOtpRequest;
-import com.app.auth.dto.request.VerifyOtpRequest;
-import com.app.auth.dto.request.VerifyRegistrationRequest;
-import com.app.auth.dto.response.AuthResponse;
-import com.app.auth.dto.response.ForgotPasswordResponse;
-import com.app.auth.dto.response.OtpResponse;
-import com.app.auth.dto.response.RegistrationResponse;
-import com.app.auth.dto.response.ResetPasswordResponse;
-import com.app.auth.dto.response.TokenValidationResponse;
-import com.app.auth.enums.OtpStatus;
-import com.app.auth.enums.OtpType;
-import com.app.auth.enums.UserRole;
+import com.app.auth.model.dto.request.DeviceInfoRequest;
+import com.app.auth.model.dto.request.ForgotPasswordRequest;
+import com.app.auth.model.dto.request.ResetPasswordRequest;
+import com.app.auth.model.dto.request.SendOtpRequest;
+import com.app.auth.model.dto.request.VerifyOtpRequest;
+import com.app.auth.model.dto.request.VerifyRegistrationRequest;
+import com.app.auth.model.dto.response.AuthResponse;
+import com.app.auth.model.dto.response.ForgotPasswordResponse;
+import com.app.auth.model.dto.response.OtpResponse;
+import com.app.auth.model.dto.response.ResetPasswordResponse;
+import com.app.auth.model.dto.response.TokenValidationResponse;
+import com.app.auth.model.enums.OtpStatus;
+import com.app.auth.model.enums.OtpType;
+import com.app.auth.model.enums.UserRole;
 import com.app.auth.exception.*;
 import com.app.auth.mapper.AuthMapper;
 import com.app.auth.mapper.DeviceMapper;
-import com.app.auth.model.Token;
-import com.app.auth.model.User;
+import com.app.auth.model.entity.Token;
+import com.app.auth.model.entity.User;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.AuthService;
-import com.app.auth.service.EmailService;
 import com.app.auth.service.JwtService;
 import com.app.auth.service.OtpService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +39,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService  {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -50,11 +47,9 @@ public class AuthServiceImpl implements AuthService {
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final DeviceMapper deviceMapper;
-    private final EmailService emailService;
     private final OtpService otpService;
 
     @Transactional
-    @Override
     public AuthResponse authenticate(Authentication authentication, DeviceInfoRequest deviceInfo) {
         User user = (User) authentication.getPrincipal();
 
@@ -73,7 +68,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    @Override
     public AuthResponse authenticateOAuth2User(User user, DeviceInfoRequest deviceInfo) {
         // Update last login time
         user.setLastLoginAt(Instant.now());
@@ -91,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
         return authMapper.mapToAuthResponse(accessToken, refreshToken, 3600L, user);
     }
 
-    @Override
+     
     public TokenValidationResponse validateToken(String token) {
         try {
             if (jwtService.isTokenExpired(token)) {
@@ -125,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    @Override
+     
     public void logout(String token) {
         Optional<Token> storedToken = tokenRepository.findByToken(token);
         storedToken.ifPresentOrElse(tokenRepository::delete, () -> {
@@ -134,46 +128,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    @Override
     public void logoutAllDevices(Long userId) {
         List<Token> validTokens = tokenRepository.findAllValidTokenByUser(userId);
         tokenRepository.deleteAll(validTokens);
     }
 
-    //TODO: try to achieve single responsibility later.
-    @Transactional
-    @Override
-    public RegistrationResponse register(RegisterRequest request) {
-        // Check if user already exists
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
-        }
-
-        // Create new user using mapper - user is disabled and unverified until OTP verification
-        User user = authMapper.mapToUser(request, passwordEncoder.encode(request.getPassword()));
-        user.setEnabled(true);  // User cannot login until email is verified
-        user.setEmailVerified(false);
-        userRepository.save(user);
-
-        // Generate and send OTP
-        SendOtpRequest otpRequest = SendOtpRequest.builder()
-                .email(request.getEmail())
-                .type(OtpType.REGISTRATION)
-                .build();
-
-        OtpResponse otpResponse = otpService.sendOtp(otpRequest);
-
-        log.info("User registered successfully. OTP sent to email: {}", request.getEmail());
-
-        return RegistrationResponse.builder()
-                .message("Registration successful. Please verify your email with the OTP sent to " + request.getEmail())
-                .email(request.getEmail())
-                .otpExpiresAt(otpResponse.getExpiresAt())
-                .build();
-    }
 
     @Transactional
-    @Override
     public AuthResponse verifyRegistration(VerifyRegistrationRequest request, DeviceInfoRequest deviceInfo) {
         // Verify the OTP first
         VerifyOtpRequest verifyOtpRequest = VerifyOtpRequest.builder()
@@ -193,9 +154,8 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
 
-        user.setEnabled(true);
-        user.setEmailVerified(true);
-        user.setLastLoginAt(Instant.now());
+        user.markAsVerified();
+        user.recordSuccessfulLogin();
         userRepository.save(user);
 
         // Generate tokens
@@ -211,7 +171,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    @Override
     public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
         // Verify that user exists
         User user = userRepository.findByEmail(request.getEmail())
@@ -235,7 +194,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    @Override
     public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
         // Validate password confirmation
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {

@@ -1,10 +1,10 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.dto.request.LogoutDeviceRequest;
-import com.app.auth.dto.response.DeviceSessionResponse;
+import com.app.auth.model.dto.request.LogoutDeviceRequest;
+import com.app.auth.model.dto.response.DeviceSessionResponse;
 import com.app.auth.exception.UnauthorizedAccessException;
 import com.app.auth.mapper.DeviceMapper;
-import com.app.auth.model.Token;
+import com.app.auth.model.entity.Token;
 import com.app.auth.repository.TokenRepository;
 import com.app.auth.service.DeviceService;
 import lombok.RequiredArgsConstructor;

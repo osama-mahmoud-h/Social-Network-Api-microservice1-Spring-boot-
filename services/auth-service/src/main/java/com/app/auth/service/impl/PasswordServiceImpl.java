@@ -1,10 +1,10 @@
 package com.app.auth.service.impl;
 
-import com.app.auth.dto.request.ChangePasswordRequest;
-import com.app.auth.dto.response.ChangePasswordResponse;
-import com.app.auth.enums.PasswordChangeResult;
+import com.app.auth.model.dto.request.ChangePasswordRequest;
+import com.app.auth.model.dto.response.ChangePasswordResponse;
+import com.app.auth.model.enums.PasswordChangeResult;
 import com.app.auth.exception.UserNotFoundException;
-import com.app.auth.model.User;
+import com.app.auth.model.entity.User;
 import com.app.auth.repository.UserRepository;
 import com.app.auth.service.AuthService;
 import com.app.auth.service.PasswordService;

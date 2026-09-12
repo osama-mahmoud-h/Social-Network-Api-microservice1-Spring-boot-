@@ -1,6 +1,6 @@
 package com.app.auth.strategy;
 
-import com.app.auth.enums.OAuthProvider;
+import com.app.auth.model.enums.OAuthProvider;
 
 import java.util.Map;
 

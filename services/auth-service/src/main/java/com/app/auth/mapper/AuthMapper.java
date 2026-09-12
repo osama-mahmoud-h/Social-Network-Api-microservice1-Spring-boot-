@@ -1,9 +1,9 @@
 package com.app.auth.mapper;
 
-import com.app.auth.dto.request.RegisterRequest;
-import com.app.auth.dto.response.AuthResponse;
-import com.app.auth.model.User;
-import com.app.auth.enums.UserRole;
+import com.app.auth.model.dto.request.RegisterRequest;
+import com.app.auth.model.dto.response.AuthResponse;
+import com.app.auth.model.entity.User;
+import com.app.auth.model.enums.UserRole;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;

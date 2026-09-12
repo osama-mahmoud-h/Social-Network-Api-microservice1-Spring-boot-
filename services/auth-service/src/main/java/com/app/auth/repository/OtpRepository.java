@@ -1,8 +1,8 @@
 package com.app.auth.repository;
 
-import com.app.auth.enums.OtpStatus;
-import com.app.auth.enums.OtpType;
-import com.app.auth.model.Otp;
+import com.app.auth.model.enums.OtpStatus;
+import com.app.auth.model.enums.OtpType;
+import com.app.auth.model.entity.Otp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

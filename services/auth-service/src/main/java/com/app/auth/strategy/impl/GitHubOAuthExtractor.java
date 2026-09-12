@@ -1,6 +1,6 @@
 package com.app.auth.strategy.impl;
 
-import com.app.auth.enums.OAuthProvider;
+import com.app.auth.model.enums.OAuthProvider;
 import com.app.auth.strategy.OAuthAttributeExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
 package com.app.auth.mapper;
 
-import com.app.auth.dto.request.DeviceInfoRequest;
-import com.app.auth.dto.response.DeviceSessionResponse;
-import com.app.auth.model.Token;
+import com.app.auth.model.dto.request.DeviceInfoRequest;
+import com.app.auth.model.dto.response.DeviceSessionResponse;
+import com.app.auth.model.entity.Token;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

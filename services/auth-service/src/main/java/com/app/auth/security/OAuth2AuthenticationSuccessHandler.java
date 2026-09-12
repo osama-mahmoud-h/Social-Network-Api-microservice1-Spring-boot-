@@ -1,9 +1,9 @@
 package com.app.auth.security;
 
-import com.app.auth.dto.request.DeviceInfoRequest;
-import com.app.auth.dto.response.AuthResponse;
+import com.app.auth.model.dto.request.DeviceInfoRequest;
+import com.app.auth.model.dto.response.AuthResponse;
 import com.app.auth.factory.DeviceInfoFactory;
-import com.app.auth.model.User;
+import com.app.auth.model.entity.User;
 import com.app.auth.service.AuthService;
 import com.app.auth.service.CustomOAuth2User;
 import com.app.auth.service.impl.CustomOAuth2UserImpl;
